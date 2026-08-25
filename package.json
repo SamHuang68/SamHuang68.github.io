@@ -1,0 +1,15 @@
+{
+  "name": "nvm-knowledge-system-home",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check-home.mjs && node --check site.js",
+    "serve": "node scripts/serve-local.mjs",
+    "qa:render": "node scripts/qa-home.mjs",
+    "qa": "npm run check && npm run qa:render"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

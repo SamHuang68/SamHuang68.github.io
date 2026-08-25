@@ -4,147 +4,297 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#061b29" />
-    <title>Sam Huang｜Semiconductor IP &amp; Systems</title>
-    <meta name="description" content="Sam Huang 的半導體 IP、Secure Storage、記憶體系統與工程實驗入口。" />
+    <title>NVM Knowledge System｜Sam Huang</title>
+    <meta
+      name="description"
+      content="以 NVM 為知識主軸，連接 Secure Storage、AI Systems、技術白皮書與 SharePoint-ready 知識治理。"
+    />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="zh_TW" />
-    <meta property="og:title" content="Sam Huang｜Semiconductor IP &amp; Systems" />
-    <meta property="og:description" content="Semiconductor IP, secure storage, memory architecture, and system experiments." />
+    <meta property="og:site_name" content="NVM Knowledge System" />
+    <meta property="og:title" content="NVM Knowledge System｜Sam Huang" />
+    <meta
+      property="og:description"
+      content="From NVM technology to defensible system decisions — a public knowledge gateway for Secure Storage, AI Systems, and evidence-led decision work."
+    />
     <meta property="og:url" content="https://samhuang68.github.io/" />
     <meta property="og:image" content="https://samhuang68.github.io/og-semiconductor-v2.png" />
+    <meta property="og:image:width" content="1730" />
+    <meta property="og:image:height" content="909" />
+    <meta property="og:image:alt" content="NVM Knowledge System — from memory technology to defensible system decisions" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Sam Huang｜Semiconductor IP &amp; Systems" />
-    <meta name="twitter:description" content="From silicon IP to executable systems." />
+    <meta name="twitter:title" content="NVM Knowledge System｜Sam Huang" />
+    <meta name="twitter:description" content="NVM knowledge, application lenses, and evidence-led decision tools." />
     <meta name="twitter:image" content="https://samhuang68.github.io/og-semiconductor-v2.png" />
+    <meta name="twitter:image:alt" content="NVM Knowledge System — from memory technology to defensible system decisions" />
+    <link rel="canonical" href="https://samhuang68.github.io/" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="./fonts/noto-sans-tc-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="./assets/nvm-state-atlas.webp" as="image" type="image/webp" />
     <link rel="stylesheet" href="./styles.css" />
+    <script src="./site.js" defer></script>
   </head>
   <body>
-    <div class="circuit-field" aria-hidden="true"></div>
+    <a class="skip-link" href="#main-content">跳至主要內容</a>
+    <div class="ambient-field" aria-hidden="true"></div>
 
     <header class="site-header" id="page-top">
-      <a class="identity" href="#page-top" aria-label="回到 Sam Huang 專案入口頂端">
-        <span class="monogram" aria-hidden="true"><i>SH</i></span>
-        <span class="identity-copy">
-          <strong>Sam Huang</strong>
-          <small>SEMICONDUCTOR IP · SYSTEMS</small>
-        </span>
-      </a>
-      <nav aria-label="主要導覽">
-        <a href="#silicon-work">IP / SYSTEMS</a>
-        <a href="#experiments">EXPERIMENTS</a>
-        <a class="github-link" href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
-      </nav>
+      <div class="header-inner">
+        <a class="identity" href="#page-top" aria-label="回到 NVM Knowledge System 頂端">
+          <span class="monogram" aria-hidden="true"><i>N</i></span>
+          <span class="identity-copy">
+            <strong>NVM</strong>
+            <span>KNOWLEDGE SYSTEM</span>
+            <small>PUBLIC INDEX · BY SAM HUANG</small>
+          </span>
+        </a>
+
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">
+          <span class="menu-label">MENU</span>
+          <span class="menu-icon" aria-hidden="true"><i></i><i></i></span>
+        </button>
+
+        <nav id="primary-navigation" class="primary-navigation" aria-label="主要導覽">
+          <a href="#platform">PLATFORM</a>
+          <a href="#lenses">LENSES</a>
+          <a href="#studio">STUDIO</a>
+          <a href="#transfer">ENTERPRISE</a>
+          <a href="#archive">OTHER WORK</a>
+          <a class="github-link" href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer">
+            GITHUB <span aria-hidden="true">↗</span>
+          </a>
+        </nav>
+      </div>
     </header>
 
-    <main>
+    <main id="main-content">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow"><span>SEMICONDUCTOR IP</span><b>TAIWAN · 2026</b></p>
-          <h1 id="hero-title">從 <em>Silicon IP</em>，<br />連到可執行系統。</h1>
+          <p class="eyebrow"><span>NVM KNOWLEDGE ARCHITECTURE</span><b>PUBLIC EDITION · 2026</b></p>
+          <h1 id="hero-title">從 <em>NVM technology</em><br />走向可防守的 <em>system decision</em></h1>
           <p class="hero-lead">
-            聚焦 Secure Storage、記憶體架構與硬體系統，並把技術思考延伸成可操作、可驗證的產品實驗。
-            <span lang="en">Semiconductor IP, memory systems, and evidence-led product engineering.</span>
+            以非揮發性記憶體為知識主軸，連接 Secure Storage、AI Systems 與可追溯的決策工具。
+            <span lang="en">From memory technology to application context, evidence, and transferable knowledge.</span>
           </p>
           <div class="hero-actions">
-            <a class="primary-action" href="#silicon-work">查看技術專案 <span aria-hidden="true">↓</span></a>
-            <a class="text-action" href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer">GitHub Profile ↗</a>
+            <a class="primary-action" href="https://samhuang68.github.io/secure-storage-knowledge-hub/">
+              進入 NVM Knowledge Hub <span aria-hidden="true">↗</span>
+            </a>
+            <a class="secondary-action" href="https://samhuang68.github.io/nvm-whitepaper-site/">
+              OPEN DECISION STUDIO <span aria-hidden="true">↗</span>
+            </a>
           </div>
-          <dl class="hero-facts">
-            <div><dt>FOCUS</dt><dd>IP · MEMORY</dd></div>
-            <div><dt>METHOD</dt><dd>DESIGN · VERIFY</dd></div>
-            <div><dt>PUBLIC INDEX</dt><dd>07 PROJECTS</dd></div>
+          <dl class="hero-facts" aria-label="NVM Knowledge System 結構">
+            <div><dt>A · SPINE</dt><dd>TECHNOLOGY → EVIDENCE</dd></div>
+            <div><dt>B · LENSES</dt><dd>SECURE STORAGE · AI</dd></div>
+            <div><dt>C · WORKBENCH</dt><dd>COMPARE · TRANSFER</dd></div>
           </dl>
         </div>
 
-        <figure class="silicon-visual" aria-label="半導體 IP 系統架構示意圖，包含 Secure NVM、SRAM PUF、OTP、控制器、Host 介面與 Memory Fabric">
-          <figcaption><span>IP SYSTEM MAP</span><b>REV. 01</b></figcaption>
-          <div class="package">
-            <div class="package-label"><span>SECURE STORAGE SUBSYSTEM</span><small>LOGICAL FLOORPLAN</small></div>
-            <div class="die">
-              <div class="ip-block block-nvm"><small>MEMORY IP</small><strong>SECURE<br />NVM</strong><i>01</i></div>
-              <div class="ip-block block-puf"><small>IDENTITY</small><strong>SRAM PUF</strong><i>02</i></div>
-              <div class="ip-block block-otp"><small>ROOT STATE</small><strong>OTP</strong><i>03</i></div>
-              <div class="ip-block block-ctrl"><small>LIFECYCLE</small><strong>CONTROL</strong><i>04</i></div>
-              <div class="ip-block block-host"><small>SYSTEM</small><strong>HOST I/F</strong><i>05</i></div>
-              <div class="fabric"><span>MEMORY FABRIC</span><i></i><i></i><i></i></div>
-              <span class="trace trace-a"></span><span class="trace trace-b"></span><span class="trace trace-c"></span>
-            </div>
-            <div class="package-status"><span><i></i>ARCHITECTURE VIEW</span><span>BOUNDARIES · SIGNAL · STATE</span></div>
+        <figure class="hero-visual">
+          <img
+            src="./assets/nvm-state-atlas.webp"
+            width="1680"
+            height="945"
+            alt="概念性的 NVM state atlas 矽智財場景，由多個記憶體狀態區塊與訊號路徑組成"
+          />
+          <figcaption>
+            <span><i aria-hidden="true"></i>PERSISTENT STATE ATLAS</span>
+            <b>CONCEPTUAL IP ARTWORK · NOT A VERIFIED FLOORPLAN</b>
+          </figcaption>
+          <div class="atlas-overlay" aria-hidden="true">
+            <span>TECHNOLOGY</span><i></i><span>STATE CONTRACT</span><i></i><span>APPLICATION</span>
           </div>
-          <div class="visual-notes" aria-hidden="true"><span>IP BOUNDARY</span><span>SIGNAL PATH</span><span>TRUST STATE</span></div>
         </figure>
       </section>
 
-      <section class="project-section" id="silicon-work" aria-labelledby="silicon-title">
-        <div class="section-heading">
-          <div><small>01 / SILICON &amp; SYSTEMS</small><h2 id="silicon-title">半導體與系統</h2></div>
-          <p>從信任根、非揮發性記憶體到硬體環境，整理可追溯的技術脈絡。</p>
+      <section class="platform section-light" id="platform" aria-labelledby="platform-title">
+        <div class="section-index" aria-hidden="true">01</div>
+        <div class="section-heading split-heading">
+          <div>
+            <p class="section-kicker">NVM KNOWLEDGE SPINE</p>
+            <h2 id="platform-title">一條 NVM 主軸<br />連接技術、應用與證據</h2>
+          </div>
+          <p class="section-intro">
+            首頁只負責建立全貌；完整內容、來源與限制由 NVM Knowledge Hub 維護，避免多個入口各自形成不同版本。
+          </p>
         </div>
 
-        <a class="core-project" href="https://samhuang68.github.io/secure-storage-knowledge-hub/" aria-label="開啟安全儲存知識中心">
-          <div class="core-copy">
-            <span class="project-kicker"><i></i>FEATURED TECHNICAL WORK · LIVE</span>
-            <h3>安全儲存<br /><em>知識中心</em></h3>
-            <p>以 SRAM PUF、OTP、Secure Storage 與資料保護為核心的雙語技術入口。</p>
-            <small lang="en">Secure Storage Knowledge Hub · Architecture, trust state, and evidence.</small>
-            <b>OPEN KNOWLEDGE HUB <span aria-hidden="true">↗</span></b>
-          </div>
-          <div class="memory-stack" aria-hidden="true">
-            <div><span>HOST</span><i>05</i></div><div><span>SECURE CONTROL</span><i>04</i></div><div><span>PUF + OTP</span><i>03</i></div><div><span>NVM ARRAY</span><i>02</i></div><div><span>SILICON ROOT</span><i>01</i></div>
-          </div>
-          <span class="project-number">01</span>
-        </a>
+        <div class="spine-map" aria-label="NVM 知識治理四個階段">
+          <article>
+            <span>P1</span><small>FOUNDATION</small>
+            <h3>Technology Family</h3>
+            <p>OTP、MTP、eFlash、MRAM、ReRAM 與 PUF 的能力邊界</p>
+          </article>
+          <i class="spine-connector" aria-hidden="true"></i>
+          <article>
+            <span>P2</span><small>CONTRACT</small>
+            <h3>State Contract</h3>
+            <p>保存什麼、何時可讀、由誰更新，以及 power-off 後留下什麼</p>
+          </article>
+          <i class="spine-connector" aria-hidden="true"></i>
+          <article>
+            <span>P3</span><small>CONTEXT</small>
+            <h3>Application Lens</h3>
+            <p>把 memory primitive 放入安全、AI、power 與 system lifecycle</p>
+          </article>
+          <i class="spine-connector" aria-hidden="true"></i>
+          <article>
+            <span>P4</span><small>GOVERNANCE</small>
+            <h3>Evidence Class</h3>
+            <p>分開公開事實、工程推論、限制與待驗證內容</p>
+          </article>
+        </div>
 
-        <div class="technical-grid">
-          <a class="technical-card" href="https://github.com/SamHuang68/nvm-whitepaper-site" target="_blank" rel="noopener noreferrer">
-            <span class="card-top"><small>NVM · RESEARCH SOURCE</small><b>02</b></span>
-            <div class="tech-icon memory-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-            <h3>NVM Whitepaper Site</h3><p>非揮發性記憶體白皮書網站與研究內容架構。</p><b class="card-link">VIEW SOURCE ↗</b>
+        <a class="platform-entry" href="https://samhuang68.github.io/secure-storage-knowledge-hub/">
+          <span><small>CANONICAL PUBLIC HOME</small><strong>NVM Knowledge Hub</strong></span>
+          <em>EXPLORE THE KNOWLEDGE SPINE</em><b aria-hidden="true">↗</b>
+        </a>
+      </section>
+
+      <section class="lenses section-dark" id="lenses" aria-labelledby="lenses-title">
+        <div class="section-index" aria-hidden="true">02</div>
+        <div class="section-heading split-heading">
+          <div>
+            <p class="section-kicker">APPLICATION LENSES</p>
+            <h2 id="lenses-title">兩個應用視角<br />共享同一條 NVM 主軸</h2>
+          </div>
+          <p class="section-intro">不是兩座分離的網站，而是以不同 system pressure 檢視相同的 persistent-state 問題。</p>
+        </div>
+
+        <div class="lens-grid">
+          <a class="lens-card secure-lens" href="https://samhuang68.github.io/secure-storage-knowledge-hub/secure-storage.html">
+            <img src="./assets/secure-storage-key.webp" width="1536" height="1024" alt="由 SRAM PUF 啟動並於矽晶片上形成暫態 root key 的概念場景" loading="lazy" />
+            <span class="lens-shade" aria-hidden="true"></span>
+            <span class="lens-number">LENS 01</span>
+            <div class="lens-copy">
+              <p>SECURITY · IDENTITY · LIFECYCLE</p>
+              <h3>Secure Storage</h3>
+              <strong>保護永久資料，而不永久儲存 root key</strong>
+              <small lang="en">Protect permanent data without permanently storing the root key</small>
+              <span class="lens-link">OPEN SECURE STORAGE <b aria-hidden="true">↗</b></span>
+            </div>
           </a>
-          <a class="technical-card" href="https://samhuang68.github.io/my-hardware/">
-            <span class="card-top"><small>HARDWARE · LIVE NOTES</small><b>03</b></span>
-            <div class="tech-icon board-icon" aria-hidden="true"><i></i><i></i><i></i></div>
-            <h3>我的硬體筆記</h3><p>硬體環境、設備脈絡與實作紀錄的公開整理。</p><b class="card-link">OPEN HARDWARE NOTES ↗</b>
+
+          <a class="lens-card ai-lens" href="https://samhuang68.github.io/secure-storage-knowledge-hub/ai-nvm-opportunities.html">
+            <img src="./assets/ai-system-boundaries.webp" width="1600" height="900" alt="AI package 內由多個 compute、memory 與介面區塊構成的概念矽智財系統" loading="lazy" />
+            <span class="lens-shade" aria-hidden="true"></span>
+            <span class="lens-number">LENS 02</span>
+            <div class="lens-copy">
+              <p>AI PACKAGE · CALIBRATION · POLICY</p>
+              <h3>AI Systems &amp; NVM</h3>
+              <strong>先定義 persistent state，再選擇 memory</strong>
+              <small lang="en">Define persistent state before selecting memory</small>
+              <span class="lens-link">OPEN AI SYSTEMS &amp; NVM <b aria-hidden="true">↗</b></span>
+            </div>
           </a>
+        </div>
+        <p class="illustration-note">兩張場景圖皆為概念性 silicon-IP artwork，用於表達應用邊界，不代表實際產品 floorplan 或經驗證的 physical topology。</p>
+      </section>
+
+      <section class="studio section-warm" id="studio" aria-labelledby="studio-title">
+        <div class="section-index" aria-hidden="true">03</div>
+        <div class="studio-layout">
+          <div class="workbench-copy">
+            <p class="section-kicker">CROSS-TOPIC WORKBENCH</p>
+            <h2 id="studio-title">NVM Whitepaper<br />&amp; Decision Studio</h2>
+            <p>
+              把研究內容轉成可以閱讀、比較、治理與移轉的決策資產。它服務整個 NVM knowledge spine，而不是第三個應用主題。
+            </p>
+            <div class="workbench-actions">
+              <a class="dark-action" href="https://samhuang68.github.io/nvm-whitepaper-site/">OPEN DECISION STUDIO <span aria-hidden="true">↗</span></a>
+              <a class="source-action" href="https://github.com/SamHuang68/nvm-whitepaper-site" target="_blank" rel="noopener noreferrer">VIEW SOURCE ↗</a>
+            </div>
+            <aside class="evidence-note">
+              <small>EVIDENCE BOUNDARY</small>
+              <p>Public working draft · Decision aid, not a product specification</p>
+            </aside>
+          </div>
+
+          <div class="workbench-visual" aria-label="Decision Studio 的五個可切換知識視圖示意">
+            <div class="workbench-head"><span>DECISION WORKSPACE</span><b>05 VIEWS · ONE EVIDENCE MODEL</b></div>
+            <ol>
+              <li><span>V1</span><div><small>ORIENT</small><strong>NVM Overview</strong></div><i>MAP</i></li>
+              <li><span>V2</span><div><small>READ</small><strong>Technical Whitepaper</strong></div><i>CLAIM</i></li>
+              <li><span>V3</span><div><small>COMPARE</small><strong>Decision Matrix</strong></div><i>FIT</i></li>
+              <li><span>V4</span><div><small>TRANSFER</small><strong>SharePoint Taxonomy</strong></div><i>SCHEMA</i></li>
+              <li><span>V5</span><div><small>REUSE</small><strong>Content Templates</strong></div><i>ASSET</i></li>
+            </ol>
+            <div class="workbench-foot"><span><i aria-hidden="true"></i>KNOWN</span><span><i aria-hidden="true"></i>INFERENCE</span><span><i aria-hidden="true"></i>LIMITATION</span></div>
+          </div>
         </div>
       </section>
 
-      <section class="project-section experiments" id="experiments" aria-labelledby="experiments-title">
-        <div class="section-heading">
-          <div><small>02 / EXECUTABLE EXPERIMENTS</small><h2 id="experiments-title">可執行實驗</h2></div>
-          <p>把系統設計、互動與資訊架構轉成可以直接操作的公開作品。</p>
+      <section class="transfer section-dark" id="transfer" aria-labelledby="transfer-title">
+        <div class="section-index" aria-hidden="true">04</div>
+        <div class="section-heading split-heading">
+          <div>
+            <p class="section-kicker">ENTERPRISE TRANSFER</p>
+            <h2 id="transfer-title">Public now<br />Enterprise later</h2>
+          </div>
+          <p class="section-intro">目前公開版先建立治理語言與 portability；進入公司 SharePoint 後，再由 owner 補上內部來源、權限與 confidential context。</p>
         </div>
 
-        <div class="experiment-grid">
-          <a class="experiment-card game-card" href="https://samhuang68.github.io/chu-han-realm-pages/">
-            <span class="card-top"><small>OFFLINE GAME SYSTEM · LIVE</small><b>04</b></span>
-            <div class="game-schematic" aria-hidden="true"><span>楚</span><i></i><span>漢</span></div>
-            <h3>楚漢・弈境</h3><p>象棋、暗棋與墨陣連珠，一座具離線 AI、存檔與 2D／3D 視角的策略棋館。</p><b class="card-link">ENTER GAME HALL ↗</b>
-          </a>
-          <a class="experiment-card" href="https://samhuang68.github.io/E-Learning/">
-            <span class="card-top"><small>LEARNING SYSTEM · LIVE</small><b>05</b></span>
-            <span class="system-code" aria-hidden="true">LEARN_05<br /><i>CONTENT → INTERACTION</i></span>
-            <h3>E‑Learning</h3><p>可直接在瀏覽器使用的數位學習與內容體驗。</p><b class="card-link">START LEARNING ↗</b>
-          </a>
-          <a class="experiment-card" href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener noreferrer">
-            <span class="card-top"><small>DATA INTERFACE · SOURCE</small><b>06</b></span>
-            <span class="system-code pulse-code" aria-hidden="true">TW_PULSE<br /><i>▁▂▅▃▆▂▇▄</i></span>
-            <h3>TW Pulse Terminal</h3><p>終端風格的台灣脈動資訊與介面實驗。</p><b class="card-link">VIEW SOURCE ↗</b>
-          </a>
+        <div class="transfer-lanes">
+          <article>
+            <span class="status-chip live">PUBLIC · LIVE</span>
+            <small>KNOWLEDGE OBJECT</small>
+            <h3>Claim → Source → Limitation → Review Status</h3>
+            <p>公開內容維持可追溯的 evidence boundary，避免把工程推論寫成已驗證事實。</p>
+          </article>
+          <div class="transfer-arrow" aria-hidden="true"><span>PORTABLE STRUCTURE</span><i>→</i></div>
+          <article>
+            <span class="status-chip planned">ENTERPRISE · PLANNED</span>
+            <small>SHAREPOINT / COPILOT</small>
+            <h3>Content Type → Metadata → Owner → Lifecycle</h3>
+            <p>尚未連接公司 SharePoint、Copilot 或 confidential data；此處只描述 transfer model。</p>
+          </article>
         </div>
       </section>
 
-      <section class="project-section source-section" aria-labelledby="source-title">
-        <div class="section-heading compact-heading"><div><small>03 / SOURCE &amp; TOOLS</small><h2 id="source-title">工具與原始碼</h2></div></div>
-        <a class="source-row" href="https://github.com/SamHuang68/quick-archimedes" target="_blank" rel="noopener noreferrer">
-          <span class="source-number">07</span><span><small>PYTHON · ENGINEERING TOOL</small><strong>Quick Archimedes</strong></span><em>Python 工具與技術實驗</em><b>GITHUB ↗</b>
-        </a>
+      <section class="archive section-light" id="archive" aria-labelledby="archive-title">
+        <div class="section-index" aria-hidden="true">05</div>
+        <div class="section-heading split-heading compact-heading">
+          <div>
+            <p class="section-kicker">OTHER PUBLIC WORK</p>
+            <h2 id="archive-title">其他工程實驗</h2>
+          </div>
+          <p class="section-intro">保留可執行作品與工具，但不與 NVM knowledge platform 爭奪主視覺層級。</p>
+        </div>
+
+        <div class="archive-list">
+          <a href="https://samhuang68.github.io/my-hardware/">
+            <span>HARDWARE NOTES</span><strong>硬體環境與設備紀錄</strong><small>LIVE ↗</small>
+          </a>
+          <a href="https://samhuang68.github.io/chu-han-realm-pages/">
+            <span>STRATEGY SYSTEM</span><strong>楚漢・弈境</strong><small>LIVE ↗</small>
+          </a>
+          <a href="https://samhuang68.github.io/E-Learning/">
+            <span>LEARNING SYSTEM</span><strong>E‑Learning</strong><small>LIVE ↗</small>
+          </a>
+          <a href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener noreferrer">
+            <span>DATA INTERFACE</span><strong>TW Pulse Terminal</strong><small>SOURCE ↗</small>
+          </a>
+          <a href="https://github.com/SamHuang68/quick-archimedes" target="_blank" rel="noopener noreferrer">
+            <span>ENGINEERING TOOL</span><strong>Quick Archimedes</strong><small>SOURCE ↗</small>
+          </a>
+        </div>
       </section>
     </main>
 
     <footer>
-      <div><strong>Sam Huang</strong><span>SEMICONDUCTOR IP · SYSTEMS · TAIWAN</span></div>
-      <p>從架構、證據到可執行成果。<span lang="en">From architecture and evidence to working systems.</span></p>
+      <div class="footer-brand">
+        <strong>NVM Knowledge System</strong>
+        <span>PUBLIC INDEX · BY SAM HUANG · TAIWAN</span>
+      </div>
+      <nav class="footer-links" aria-label="頁尾導覽">
+        <a href="https://samhuang68.github.io/secure-storage-knowledge-hub/">NVM HUB</a>
+        <a href="https://samhuang68.github.io/secure-storage-knowledge-hub/secure-storage.html">SECURE STORAGE</a>
+        <a href="https://samhuang68.github.io/secure-storage-knowledge-hub/ai-nvm-opportunities.html">AI SYSTEMS &amp; NVM</a>
+        <a href="https://samhuang68.github.io/nvm-whitepaper-site/">DECISION STUDIO</a>
+        <a href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
+      </nav>
+      <p>Public technical knowledge only · No confidential company material</p>
       <small>© 2026</small>
     </footer>
   </body>
