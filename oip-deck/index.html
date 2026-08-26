@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TSMC OIP Technical Briefing: Mitigating OTP Data Leakage Risks in Advanced SoCs Through Secure Storage Architectures.">
+  <title>TSMC OIP Technical Briefing · Secure Storage Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-dark">
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <a class="portfolio-back-link" href="https://samhuang68.github.io/#work" title="Return to Sam Huang Portfolio">← PORTFOLIO</a>
+      <div class="brand-badge">
+        <span class="brand-icon">🛡️</span>
+        <div class="brand-text">
+          <strong>TSMC OIP BRIEFING</strong>
+          <small>SECURE STORAGE IP</small>
+        </div>
+      </div>
+      <div class="header-divider"></div>
+      <h1 class="header-title">Mitigating OTP Data Leakage Risks in Advanced SoCs</h1>
+    </div>
+    <div class="header-actions">
+      <button id="notesToggleBtn" class="btn btn-secondary" title="Toggle Speaker Notes (N)">
+        <span class="btn-icon">📝</span> Speaker Notes
+      </button>
+      <button id="fullscreenBtn" class="btn btn-secondary" title="Fullscreen Mode (F)">
+        <span class="btn-icon">⛶</span> Fullscreen
+      </button>
+      <a href="Secure_Storage_SRAM_PUF_Mitigating_OTP_Leakage_v1.pptx" download class="btn btn-primary">
+        <span class="btn-icon">📥</span> Download PPTX
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Slide Display Area -->
+  <main class="presentation-stage">
+    <!-- Slide Viewer Viewport -->
+    <div class="slide-viewport" id="slideViewport">
+      <div class="slide-card" id="currentSlideCard">
+        <!-- Dynamic Slide Content Loaded by JS -->
+      </div>
+    </div>
+
+    <!-- Speaker Notes Drawer -->
+    <aside class="notes-drawer" id="notesDrawer">
+      <div class="notes-header">
+        <h3>Speaker Notes (Bilingual / 中英對照)</h3>
+        <button id="closeNotesBtn" class="btn-close">&times;</button>
+      </div>
+      <div class="notes-body" id="notesContent">
+        <!-- Notes text injected here -->
+      </div>
+    </aside>
+  </main>
+
+  <!-- Bottom Navigation & Thumbnail Bar -->
+  <footer class="app-footer">
+    <div class="nav-controls">
+      <button id="prevSlideBtn" class="btn-nav" title="Previous Slide (←)">
+        <span>◀</span> Previous
+      </button>
+      <div class="slide-counter">
+        <span id="currentSlideNum">1</span> / <span id="totalSlidesNum">12</span>
+      </div>
+      <button id="nextSlideBtn" class="btn-nav" title="Next Slide (→)">
+        Next <span>▶</span>
+      </button>
+    </div>
+
+    <!-- Thumbnail Strip -->
+    <div class="thumbnails-container" id="thumbnailsStrip">
+      <!-- Thumbnails injected by JS -->
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
