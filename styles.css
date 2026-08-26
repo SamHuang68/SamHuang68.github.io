@@ -708,6 +708,45 @@ p {
   display: none;
 }
 
+.category-archive {
+  display: flex;
+  margin-top: 10px;
+  padding: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px dashed rgba(131, 233, 223, 0.22);
+  background: rgba(6, 23, 34, 0.52);
+  font: 700 9px/1.35 var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+.category-archive span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #8da4ac;
+}
+
+.category-archive strong {
+  color: var(--cyan);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+.category-archive a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #bed0d4;
+  text-decoration: none;
+  transition: color var(--ease);
+}
+
+.category-archive a:hover {
+  color: var(--white);
+}
+
 .discipline-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
