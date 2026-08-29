@@ -231,17 +231,17 @@ try {
 
     for (const heading of metrics.headingSizes) {
       const max = heading.selector === '.hero h1 em'
-        ? (width <= 760 ? 44 : 78)
+        ? (width <= 760 ? 44 : 72)
         : heading.selector === '.hero h1 span'
           ? (width <= 760 ? 30 : 40)
           : heading.selector === 'h2'
-            ? (width <= 760 ? 33 : 47)
-            : (width <= 760 ? 37 : 44);
+            ? (width <= 760 ? 38 : 56)
+            : 30;
       if (heading.size > max + 0.5) failures.push(`${width}px ${heading.selector} is too large: ${heading.size}px`);
     }
 
-    if (metrics.prose.some(({ size }) => size < 13)) {
-      failures.push(`${width}px primary prose below 13px: ${JSON.stringify(metrics.prose)}`);
+    if (metrics.prose.some(({ size }) => size < 15)) {
+      failures.push(`${width}px primary prose below 15px: ${JSON.stringify(metrics.prose)}`);
     }
 
     const undersizedTargets = metrics.tapTargets.filter(({ height: targetHeight, kind }) => targetHeight < (kind === 'primary' ? 44 : 36));

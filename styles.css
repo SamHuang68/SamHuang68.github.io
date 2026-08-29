@@ -370,7 +370,7 @@ p {
 
 .hero h1 em {
   color: var(--white);
-  font-size: clamp(52px, 5.7vw, 78px);
+  font-size: clamp(52px, 5.2vw, 72px);
   line-height: 0.98;
   letter-spacing: -0.045em;
 }
@@ -613,7 +613,7 @@ p {
 
 .nvm-feature h3 {
   margin-bottom: 12px;
-  font-size: clamp(31px, 3.2vw, 43px);
+  font-size: clamp(26px, 2.2vw, 30px);
   line-height: 1.12;
   letter-spacing: -0.035em;
 }
@@ -799,8 +799,8 @@ p {
 .discipline-card p {
   margin-bottom: 10px;
   color: inherit;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.6;
   opacity: 0.72;
 }
 
@@ -1367,7 +1367,7 @@ footer p span {
 
   .practice-line {
     margin-top: 24px;
-    font-size: 8px;
+    font-size: 9px;
     letter-spacing: 0.12em;
   }
 
@@ -1392,8 +1392,8 @@ footer p span {
 
   .section-intro {
     padding-left: 15px;
-    font-size: 14px;
-    line-height: 1.65;
+    font-size: 15px;
+    line-height: 1.7;
   }
 
   .nvm-feature,
@@ -1428,13 +1428,13 @@ footer p span {
 
   .nvm-feature h3 {
     margin-bottom: 9px;
-    font-size: clamp(27px, 8.6vw, 36px);
+    font-size: 30px;
   }
 
   .category-description {
     margin-bottom: 15px;
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 15px;
+    line-height: 1.7;
   }
 
   .feature-entry {
@@ -1490,8 +1490,8 @@ footer p span {
 
   .discipline-card p {
     margin-bottom: 6px;
-    font-size: 13px;
-    line-height: 1.45;
+    font-size: 15px;
+    line-height: 1.6;
   }
 
   footer {
@@ -1560,7 +1560,7 @@ footer p span {
   }
 
   .section-heading h2 {
-    font-size: 29px;
+    font-size: 30px;
   }
 
   .nvm-feature,

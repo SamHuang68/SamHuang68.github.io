@@ -31,7 +31,7 @@ for (const heading of headings) {
   if (/[。.!?！？]$/.test(heading.text)) fail(`display heading ends with sentence punctuation: ${heading.text}`);
 }
 
-const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
+const ids = [...html.matchAll(/(?:^|\s)id="([^"]+)"/g)].map((match) => match[1]);
 const idSet = new Set(ids);
 if (idSet.size !== ids.length) {
   const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
@@ -106,6 +106,12 @@ for (const destination of requiredDestinations) {
 const nvmFeature = html.match(/<article\s+class="category-card nvm-feature">([\s\S]*?)<\/article>/i)?.[1] ?? '';
 for (const destination of requiredDestinations.slice(0, 4)) {
   if (!nvmFeature.includes(`href="${destination}"`)) fail(`NVM destination must remain nested inside the NVM category: ${destination}`);
+}
+if (!/Secure Storage[\s\S]*AI state[\s\S]*advanced-node NVM[\s\S]*evidence governance[\s\S]*SharePoint-ready/i.test(nvmFeature)) {
+  fail('NVM category description must reflect the currently governed public Hub scope');
+}
+if (/TSMC N2 GAA|CXL 3\.1|\bPQC\b|40 筆規範化決策/i.test(nvmFeature)) {
+  fail('NVM category description contains unsupported or brittle scope claims');
 }
 
 if (!html.includes('sam-huang-portfolio-architecture-v2.webp')) fail('approved owner-level hero artwork is not referenced');
