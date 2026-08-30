@@ -11,4 +11,34 @@
     card.addEventListener('pointercancel', () => card.classList.remove('is-pressed'));
     card.addEventListener('pointerleave', () => card.classList.remove('is-pressed'));
   });
+
+  window.switchTab = (type) => {
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach((btn) => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
+    });
+
+    const activeBtn = document.getElementById(`tab-${type}`);
+    if (activeBtn) {
+      activeBtn.classList.add('active');
+      activeBtn.setAttribute('aria-selected', 'true');
+    }
+
+    let visibleCount = 0;
+    cards.forEach((card) => {
+      const cardType = card.getAttribute('data-type');
+      if (type === 'all' || cardType === type) {
+        card.classList.remove('hidden');
+        visibleCount += 1;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    const countDisplay = document.getElementById('matrix-count');
+    if (countDisplay) {
+      countDisplay.textContent = visibleCount < 10 ? `0${visibleCount}` : String(visibleCount);
+    }
+  };
 })();

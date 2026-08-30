@@ -326,6 +326,107 @@ main {
   line-height: 1.62;
 }
 
+/* 晶圓與電路科技網格背景 */
+.bg-tech-grid {
+  background-color: #060b13;
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(to right, rgba(14, 165, 233, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
+}
+
+.fixed-ambient-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+}
+
+.glow-orb--cyan {
+  top: -50px;
+  left: 20%;
+  width: 550px;
+  height: 350px;
+  background: rgba(6, 182, 212, 0.08);
+}
+
+.glow-orb--emerald {
+  bottom: -50px;
+  right: 20%;
+  width: 550px;
+  height: 350px;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(8, 24, 36, 0.85);
+  border: 1px solid rgba(113, 236, 227, 0.18);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #98b1b8;
+}
+
+.status-pill b {
+  color: var(--paper);
+  font-size: 11px;
+}
+
+.filter-capsule-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.filter-capsule {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  background: rgba(6, 24, 38, 0.85);
+  border: 1px solid rgba(113, 236, 227, 0.22);
+  border-radius: 12px;
+  backdrop-filter: blur(14px);
+  gap: 4px;
+}
+
+.tab-btn {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #8da4ac;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: #f1f5f9;
+}
+
+.tab-btn.active {
+  background: rgba(14, 165, 233, 0.18);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 12px rgba(14, 165, 233, 0.2);
+}
+
 .legend {
   display: grid;
   grid-template-columns: repeat(2, minmax(132px, 1fr));
@@ -382,7 +483,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 52px;
+  min-height: 48px;
 }
 
 .section-bar h2 {
@@ -405,29 +506,22 @@ main {
   color: var(--cyan);
 }
 
-.tier-divider {
-  width: 100%;
-  height: 1px;
-  margin: 32px 0 16px;
-  background: linear-gradient(90deg, rgba(199, 138, 75, 0.45) 0%, rgba(199, 138, 75, 0.1) 60%, transparent 100%);
-}
-
-.section-bar--source h2 {
-  color: #e5b27e;
-}
-
-.section-bar--source p span {
-  color: var(--copper);
-}
-
 .portal-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
-.portal-grid--source {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 1080px) {
+  .portal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .portal-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .portal-card {
@@ -438,15 +532,27 @@ main {
   min-width: 0;
   min-height: 188px;
   overflow: hidden;
-  padding: 15px 17px 14px;
+  padding: 18px 20px 16px;
+  border-radius: 16px;
   border: 1px solid var(--line-quiet);
   background:
-    linear-gradient(120deg, rgba(113, 236, 227, 0.035), transparent 45%),
-    var(--navy-card);
+    linear-gradient(135deg, rgba(14, 165, 233, 0.04), transparent 45%),
+    rgba(8, 26, 38, 0.9);
   color: var(--paper);
   text-decoration: none;
-  box-shadow: inset 0 0 0 0 rgba(17, 210, 208, 0);
-  transition: transform 170ms ease, border-color 170ms ease, background-color 170ms ease, box-shadow 170ms ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms ease, box-shadow 250ms ease;
+}
+
+.hud-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(14, 165, 233, 0.5);
+  box-shadow: 0 16px 40px -10px rgba(14, 165, 233, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.portal-card.hidden {
+  display: none !important;
 }
 
 .portal-card::before {
@@ -758,6 +864,24 @@ footer > a:hover {
 
   .portal-intro .intro-copy > p:last-child {
     font-size: 15px;
+  }
+
+  .filter-capsule-wrap {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .filter-capsule {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .tab-btn {
+    flex: 1;
+    text-align: center;
+    padding: 6px 4px;
+    font-size: 11px;
   }
 
   .legend {
