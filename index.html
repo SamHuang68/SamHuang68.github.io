@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="./styles.css" />
     <script src="./site.js" defer></script>
   </head>
-  <body class="bg-tech-grid bg-wafer" data-pov-contract-id="POV-SAM-OWNER-SHELL-2026-08-30" data-pov-scope-id="POV-SAM-OWNER-SHELL-2026-08-30" data-artifact-mode="first-party-portfolio" data-accountable-owner-key="sam-huang">
+  <body class="bg-tech-grid bg-wafer bg-silicon" data-pov-contract-id="POV-SAM-OWNER-SHELL-2026-08-30" data-pov-scope-id="POV-SAM-OWNER-SHELL-2026-08-30" data-artifact-mode="first-party-portfolio" data-accountable-owner-key="sam-huang">
     <a class="skip-link" href="#projectGrid">跳至主要專案矩陣</a>
 
     <!-- 背景動態環境光暈與晶圓架構 -->
@@ -38,7 +38,7 @@
       <div class="glow-orb glow-orb--emerald"></div>
     </div>
 
-    <!-- 頂部精密 HUD 導航列 (高度緊湊 52px) -->
+    <!-- 頂部精密 HUD 導航列 (高度緊湊 48px) -->
     <header class="site-header" id="page-top">
       <div class="header-inner">
         <a class="identity" href="./" aria-label="回到 Sam Huang 專案入口首頁">
@@ -52,8 +52,8 @@
         <!-- 狀態標籤摘要 -->
         <div class="header-status" aria-label="公開專案狀態摘要">
           <span class="status-pill status-pill--live">
-            <i class="status-dot status-dot--live" aria-hidden="true"></i>
-            <b>4</b> LIVE WEB
+            <i class="status-dot status-dot--live status-dot--pulse" aria-hidden="true"></i>
+            <b>6</b> ACTIVE NODES
           </span>
           <span class="status-pill status-pill--source">
             <i class="status-dot status-dot--source" aria-hidden="true"></i>
@@ -66,12 +66,12 @@
     </header>
 
     <main>
-      <!-- 緊湊型 Hero + 控制列 (僅佔 ~60px 高度) -->
+      <!-- 緊湊型 Hero + 控制列 (僅佔 ~54px 高度) -->
       <section class="portal-intro" aria-labelledby="portal-title">
         <div class="intro-copy">
           <p class="eyebrow"><span>PROJECT PORTAL</span><b>TAIWAN · 2026</b></p>
           <h1 id="portal-title"><em>Sam Huang</em><span>從矽智財到可執行系統</span></h1>
-          <p class="hero-desc">Semiconductor IP · Secure Storage · NVM Architecture · Live Systems</p>
+          <p class="hero-desc">From architecture to working systems · Semiconductor IP · Secure Storage</p>
         </div>
 
         <!-- 整合型分類膠囊 -->
@@ -92,11 +92,12 @@
       <section class="portal-section" id="project-portals" aria-labelledby="project-matrix-title">
         <h2 id="project-matrix-title" class="sr-only">半導體 IP 與系統矩陣</h2>
         <div class="portal-grid" id="projectGrid">
-          <!-- 專案 01: NVM Knowledge Hub (Live) -->
-          <a class="portal-card portal-card--live portal-card--research chip-card hud-card" href="https://samhuang68.github.io/secure-storage-knowledge-hub/" data-type="live" aria-label="進入 NVM Knowledge Hub，可執行研究與白皮書入口">
+          <!-- 專案 01: NVM Knowledge Hub (Live · Cyan) -->
+          <a class="portal-card portal-card--live portal-card--research pkg-card chip-card hud-card" href="https://samhuang68.github.io/secure-storage-knowledge-hub/" data-type="live" aria-label="進入 NVM Knowledge Hub，可執行研究與白皮書入口">
+            <div class="pin-strip" aria-hidden="true"></div>
             <div class="card-top-row">
-              <span class="availability availability--live"><i aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
-              <span class="card-signal font-mono" aria-hidden="true">01</span>
+              <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+              <span class="card-signal font-mono" aria-hidden="true">NODE-01</span>
             </div>
             <span class="card-domain">SEMICONDUCTOR IP · RESEARCH</span>
             <h3>NVM Knowledge Hub</h3>
@@ -107,11 +108,12 @@
             </div>
           </a>
 
-          <!-- 專案 02: 多元遊戲大廳 (Live) -->
-          <a class="portal-card portal-card--live portal-card--game chip-card hud-card" href="https://samhuang68.github.io/chu-han-realm-pages/" data-type="live" aria-label="進入多元遊戲大廳，可執行互動遊戲網站">
+          <!-- 專案 02: 多元遊戲大廳 (Live · Amber) -->
+          <a class="portal-card portal-card--live portal-card--game pkg-card chip-card hud-card" href="https://samhuang68.github.io/chu-han-realm-pages/" data-type="live" aria-label="進入多元遊戲大廳，可執行互動遊戲網站">
+            <div class="pin-strip" aria-hidden="true"></div>
             <div class="card-top-row">
-              <span class="availability availability--live"><i aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
-              <span class="card-signal font-mono" aria-hidden="true">02</span>
+              <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+              <span class="card-signal font-mono" aria-hidden="true">NODE-02</span>
             </div>
             <span class="card-domain">INTERACTIVE SYSTEMS · ARCADE</span>
             <h3>多元遊戲大廳</h3>
@@ -122,13 +124,14 @@
             </div>
           </a>
 
-          <!-- 專案 03: E-Learning (Live) -->
-          <a class="portal-card portal-card--live portal-card--learning chip-card hud-card" href="https://samhuang68.github.io/E-Learning/" data-type="live" aria-label="進入 E-Learning，可執行學習網站">
+          <!-- 專案 03: E-Learning (Live · Indigo) -->
+          <a class="portal-card portal-card--live portal-card--learning pkg-card chip-card hud-card" href="https://samhuang68.github.io/E-Learning/" data-type="live" aria-label="進入 E-Learning，可執行學習網站">
+            <div class="pin-strip" aria-hidden="true"></div>
             <div class="card-top-row">
-              <span class="availability availability--live"><i aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
-              <span class="card-signal font-mono" aria-hidden="true">03</span>
+              <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+              <span class="card-signal font-mono" aria-hidden="true">NODE-03</span>
             </div>
-            <span class="card-domain">LEARNING SYSTEM · 3 TRACKS</span>
+            <span class="card-domain">LEARNING ENGINE · 3 TRACKS</span>
             <h3>E‑Learning</h3>
             <p>臺灣數學 (K-12)、あおば日語 (JLPT) 與多益英語 (TOEIC) 三軌統一的模組化學習引擎。</p>
             <div class="card-bottom-row">
@@ -137,11 +140,12 @@
             </div>
           </a>
 
-          <!-- 專案 04: Hardware Profile (Live) -->
-          <a class="portal-card portal-card--live portal-card--hardware chip-card hud-card" href="https://samhuang68.github.io/my-hardware/" data-type="live" aria-label="進入 Hardware Profile，可執行硬體網站">
+          <!-- 專案 04: Hardware Profile (Live · Violet) -->
+          <a class="portal-card portal-card--live portal-card--hardware pkg-card chip-card hud-card" href="https://samhuang68.github.io/my-hardware/" data-type="live" aria-label="進入 Hardware Profile，可執行硬體網站">
+            <div class="pin-strip" aria-hidden="true"></div>
             <div class="card-top-row">
-              <span class="availability availability--live"><i aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
-              <span class="card-signal font-mono" aria-hidden="true">04</span>
+              <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+              <span class="card-signal font-mono" aria-hidden="true">NODE-04</span>
             </div>
             <span class="card-domain">HARDWARE · ENGINEERING PROFILE</span>
             <h3>Hardware Profile</h3>
@@ -152,11 +156,12 @@
             </div>
           </a>
 
-          <!-- 專案 05: Secure Storage OIP (Git) -->
-          <a class="portal-card portal-card--source portal-card--research chip-card hud-card" href="https://github.com/SamHuang68/secure-storage-oip-briefing" target="_blank" rel="noopener noreferrer" data-type="git" aria-label="查看 Secure Storage OIP Briefing Git 原始碼專案">
+          <!-- 專案 05: Secure Storage OIP (Git · Slate) -->
+          <a class="portal-card portal-card--source portal-card--research pkg-card chip-card hud-card" href="https://github.com/SamHuang68/secure-storage-oip-briefing" target="_blank" rel="noopener noreferrer" data-type="git" aria-label="查看 Secure Storage OIP Briefing Git 原始碼專案">
+            <div class="pin-strip" aria-hidden="true"></div>
             <div class="card-top-row">
               <span class="availability availability--source"><i aria-hidden="true"></i>僅 Git 專案 · SOURCE ONLY</span>
-              <span class="card-signal font-mono" aria-hidden="true">05</span>
+              <span class="card-signal font-mono" aria-hidden="true">NODE-05</span>
             </div>
             <span class="card-domain">SECURE STORAGE · OIP BRIEFING</span>
             <h3>Secure Storage OIP</h3>
@@ -167,11 +172,12 @@
             </div>
           </a>
 
-          <!-- 專案 06: TW Pulse Terminal (Git) -->
-          <a class="portal-card portal-card--source portal-card--data chip-card hud-card" href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener noreferrer" data-type="git" aria-label="查看 TW Pulse Terminal Git 原始碼專案">
+          <!-- 專案 06: TW Pulse Terminal (Git · Slate) -->
+          <a class="portal-card portal-card--source portal-card--data pkg-card chip-card hud-card" href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener noreferrer" data-type="git" aria-label="查看 TW Pulse Terminal Git 原始碼專案">
+            <div class="pin-strip" aria-hidden="true"></div>
             <div class="card-top-row">
               <span class="availability availability--source"><i aria-hidden="true"></i>僅 Git 專案 · SOURCE ONLY</span>
-              <span class="card-signal font-mono" aria-hidden="true">06</span>
+              <span class="card-signal font-mono" aria-hidden="true">NODE-06</span>
             </div>
             <span class="card-domain">DATA INTERFACE · TERMINAL</span>
             <h3>TW Pulse Terminal</h3>
@@ -185,7 +191,7 @@
       </section>
     </main>
 
-    <!-- 底部微資訊列 -->
+    <!-- 底部微資訊列 (高度 44px) -->
     <footer>
       <div class="footer-brand">
         <strong>Sam Huang</strong>
