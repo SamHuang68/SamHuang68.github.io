@@ -202,8 +202,8 @@ try {
     if (metrics.viewportOverflow.length) failures.push(`${width}px viewport clipping: ${JSON.stringify(metrics.viewportOverflow.slice(0, 12))}`);
     if (metrics.imageFailures.length) failures.push(`${width}px image failures: ${metrics.imageFailures.join(', ')}`);
     if (metrics.ownerText !== 'Sam Huang' || metrics.ownerHeading !== 'Sam Huang') failures.push(`${width}px owner identity missing`);
-    if (metrics.cards.length !== 7) failures.push(`${width}px expected 7 portal cards, found ${metrics.cards.length}`);
-    if (metrics.cards.filter((card) => card.live).length !== 5 || metrics.cards.filter((card) => card.source).length !== 2) failures.push(`${width}px availability counts are incorrect`);
+    if (metrics.cards.length !== 6) failures.push(`${width}px expected 6 portal cards, found ${metrics.cards.length}`);
+    if (metrics.cards.filter((card) => card.live).length !== 4 || metrics.cards.filter((card) => card.source).length !== 2) failures.push(`${width}px availability counts are incorrect`);
     if (metrics.cards.some((card) => card.tag !== 'A' || !card.href || !card.ariaLabel || card.nestedInteractive !== 0)) failures.push(`${width}px a portal card is not a single accessible anchor`);
     if (metrics.cards.some((card) => card.height < 120 || card.width < 250)) failures.push(`${width}px a portal card is not a substantial full-frame target`);
     if (metrics.focusOutline?.style === 'none' || parseFloat(metrics.focusOutline?.width || '0') < 2) failures.push(`${width}px portal focus outline is not visible`);

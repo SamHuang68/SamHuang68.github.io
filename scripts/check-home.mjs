@@ -63,7 +63,6 @@ for (const [label, pattern] of ownerSignals) {
 
 const requiredDestinations = [
   'https://samhuang68.github.io/secure-storage-knowledge-hub/',
-  'https://samhuang68.github.io/nvm-whitepaper-site/',
   'https://github.com/SamHuang68/secure-storage-oip-briefing',
   'https://samhuang68.github.io/chu-han-realm-pages/',
   'https://samhuang68.github.io/E-Learning/',
@@ -76,7 +75,7 @@ for (const destination of requiredDestinations) {
 }
 
 const cards = [...html.matchAll(/<a\b([^>]*class="[^"]*portal-card[^"]*"[^>]*)>([\s\S]*?)<\/a>/gi)];
-if (cards.length !== 7) fail(`expected 7 full-card anchors, found ${cards.length}`);
+if (cards.length !== 6) fail(`expected 6 full-card anchors, found ${cards.length}`);
 
 for (const [index, card] of cards.entries()) {
   const attributes = card[1];
@@ -90,7 +89,7 @@ for (const [index, card] of cards.entries()) {
 
 const liveCount = cards.filter(([, content]) => /portal-card--live/i.test(content)).length;
 const sourceCount = cards.filter(([, content]) => /portal-card--source/i.test(content)).length;
-if (liveCount !== 5) fail(`expected 5 runnable cards, found ${liveCount}`);
+if (liveCount !== 4) fail(`expected 4 runnable cards, found ${liveCount}`);
 if (sourceCount !== 2) fail(`expected 2 source-only cards, found ${sourceCount}`);
 
 if (!html.includes('可執行網站 · LIVE WEB')) fail('runnable web label is missing');
