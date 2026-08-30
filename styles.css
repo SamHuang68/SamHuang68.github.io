@@ -342,31 +342,35 @@ main {
 /* 晶圓與電路科技網格背景 */
 .bg-tech-grid,
 .bg-wafer,
-.bg-silicon {
+.bg-silicon,
+.bg-wafer-grid {
   background-color: #030712;
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.15), transparent),
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    radial-gradient(ellipse 60% 40% at 50% -10%, rgba(6, 182, 212, 0.18), transparent 70%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: 100% 100%, 32px 32px, 32px 32px;
 }
 
+/* 晶片引腳排線 (Pin Contacts) */
+.chip-pins,
 .pin-strip {
   position: absolute;
   top: 0;
   left: 20px;
   right: 20px;
   height: 2px;
-  opacity: 0.35;
-  background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.15) 0, rgba(255, 255, 255, 0.15) 2px, transparent 2px, transparent 6px);
+  opacity: 0.4;
+  background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0, rgba(255, 255, 255, 0.12) 2px, transparent 2px, transparent 6px);
   transition: opacity 0.25s ease;
   pointer-events: none;
   z-index: 2;
 }
 
+.portal-card:hover .chip-pins,
 .portal-card:hover .pin-strip {
-  opacity: 0.9;
-  background-image: repeating-linear-gradient(90deg, var(--card-accent) 0, var(--card-accent) 2px, transparent 2px, transparent 6px);
+  opacity: 1;
+  background-image: repeating-linear-gradient(90deg, var(--accent-color, #06b6d4) 0, var(--accent-color, #06b6d4) 2px, transparent 2px, transparent 6px);
 }
 
 .fixed-ambient-glow {
@@ -514,14 +518,17 @@ main {
   transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms ease, box-shadow 220ms ease;
 }
 
-/* 晶片 HUD 科技邊框與角落定位標記 */
+/* 矽晶片封裝卡片（Silicon Package / Wafer Die） */
+.chip-die,
 .chip-card,
 .pkg-card {
   position: relative;
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.78) 0%, rgba(3, 7, 18, 0.92) 100%);
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.85) 0%, rgba(3, 7, 18, 0.95) 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.chip-die::before,
 .chip-card::before {
   content: "";
   position: absolute;
@@ -529,13 +536,14 @@ main {
   left: 0;
   width: 6px;
   height: 6px;
-  border-top: 2px solid #06b6d4;
-  border-left: 2px solid #06b6d4;
+  border-top: 2px solid var(--accent-color, #06b6d4);
+  border-left: 2px solid var(--accent-color, #06b6d4);
   opacity: 0.65;
-  transition: all 0.28s ease;
+  transition: all 0.25s ease;
   z-index: 3;
 }
 
+.chip-die::after,
 .chip-card::after {
   content: "";
   position: absolute;
@@ -543,112 +551,64 @@ main {
   right: 0;
   width: 6px;
   height: 6px;
-  border-bottom: 2px solid #06b6d4;
-  border-right: 2px solid #06b6d4;
+  border-bottom: 2px solid var(--accent-color, #06b6d4);
+  border-right: 2px solid var(--accent-color, #06b6d4);
   opacity: 0.65;
-  transition: all 0.28s ease;
+  transition: all 0.25s ease;
   z-index: 3;
 }
 
-.chip-card:hover {
+.chip-die:hover,
+.chip-card:hover,
+.pkg-card:hover {
   transform: translateY(-2px);
-  background: linear-gradient(145deg, rgba(18, 30, 52, 0.88) 0%, rgba(9, 16, 30, 0.96) 100%);
-  border-color: rgba(6, 182, 212, 0.6);
-  box-shadow: 0 0 20px -3px rgba(6, 182, 212, 0.25), inset 0 0 12px rgba(6, 182, 212, 0.08);
+  border-color: var(--accent-border, rgba(6, 182, 212, 0.5));
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.8), 0 0 20px -3px var(--accent-glow, rgba(6, 182, 212, 0.25));
 }
 
+.chip-die:hover::before,
+.chip-die:hover::after,
 .chip-card:hover::before,
 .chip-card:hover::after {
   width: 10px;
   height: 10px;
   opacity: 1;
-  border-color: #22d3ee;
 }
 
 /* 專屬領域微色系區隔 */
 .portal-card--research {
   --card-accent: #38bdf8;
-  --card-glow: rgba(56, 189, 248, 0.3);
+  --accent-color: #06b6d4;
+  --accent-border: rgba(6, 182, 212, 0.6);
+  --accent-glow: rgba(6, 182, 212, 0.25);
 }
 
 .portal-card--game {
   --card-accent: #fbbf24;
-  --card-glow: rgba(251, 191, 36, 0.3);
-}
-
-.portal-card--game.chip-card::before,
-.portal-card--game.chip-card::after {
-  border-color: #f59e0b;
-}
-
-.portal-card--game:hover {
-  border-color: rgba(245, 158, 11, 0.6);
-  box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.25), inset 0 0 12px rgba(245, 158, 11, 0.08);
-}
-
-.portal-card--game:hover::before,
-.portal-card--game:hover::after {
-  border-color: #fbbf24;
+  --accent-color: #f59e0b;
+  --accent-border: rgba(245, 158, 11, 0.6);
+  --accent-glow: rgba(245, 158, 11, 0.25);
 }
 
 .portal-card--learning {
   --card-accent: #818cf8;
-  --card-glow: rgba(129, 140, 248, 0.3);
-}
-
-.portal-card--learning.chip-card::before,
-.portal-card--learning.chip-card::after {
-  border-color: #6366f1;
-}
-
-.portal-card--learning:hover {
-  border-color: rgba(99, 102, 241, 0.6);
-  box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.25), inset 0 0 12px rgba(99, 102, 241, 0.08);
-}
-
-.portal-card--learning:hover::before,
-.portal-card--learning:hover::after {
-  border-color: #818cf8;
+  --accent-color: #6366f1;
+  --accent-border: rgba(99, 102, 241, 0.6);
+  --accent-glow: rgba(99, 102, 241, 0.25);
 }
 
 .portal-card--hardware {
   --card-accent: #c084fc;
-  --card-glow: rgba(192, 132, 252, 0.3);
-}
-
-.portal-card--hardware.chip-card::before,
-.portal-card--hardware.chip-card::after {
-  border-color: #a855f7;
-}
-
-.portal-card--hardware:hover {
-  border-color: rgba(168, 85, 247, 0.6);
-  box-shadow: 0 0 20px -3px rgba(168, 85, 247, 0.25), inset 0 0 12px rgba(168, 85, 247, 0.08);
-}
-
-.portal-card--hardware:hover::before,
-.portal-card--hardware:hover::after {
-  border-color: #c084fc;
+  --accent-color: #a855f7;
+  --accent-border: rgba(168, 85, 247, 0.6);
+  --accent-glow: rgba(168, 85, 247, 0.25);
 }
 
 .portal-card--data {
   --card-accent: #34d399;
-  --card-glow: rgba(52, 211, 153, 0.3);
-}
-
-.portal-card--data.chip-card::before,
-.portal-card--data.chip-card::after {
-  border-color: #10b981;
-}
-
-.portal-card--data:hover {
-  border-color: rgba(16, 185, 129, 0.6);
-  box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.25), inset 0 0 12px rgba(16, 185, 129, 0.08);
-}
-
-.portal-card--data:hover::before,
-.portal-card--data:hover::after {
-  border-color: #34d399;
+  --accent-color: #10b981;
+  --accent-border: rgba(16, 185, 129, 0.6);
+  --accent-glow: rgba(16, 185, 129, 0.25);
 }
 
 .card-top-row {

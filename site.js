@@ -30,6 +30,13 @@
       const cardType = card.getAttribute('data-type');
       if (type === 'all' || cardType === type) {
         card.classList.remove('hidden');
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(4px)';
+        requestAnimationFrame(() => {
+          card.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        });
         visibleCount += 1;
       } else {
         card.classList.add('hidden');
