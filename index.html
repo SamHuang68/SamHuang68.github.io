@@ -3,209 +3,164 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#071722" />
-    <title>Sam Huang｜Projects, Systems &amp; Experiments</title>
-    <meta
-      name="description"
-      content="Sam Huang 的公開作品入口：NVM 與半導體、策略遊戲、學習體驗、資料介面，以及硬體與工具。"
-    />
+    <meta name="theme-color" content="#061b29" />
+    <title>Sam Huang｜Semiconductor IP &amp; Project Portal</title>
+    <meta name="description" content="Sam Huang 的半導體 IP、Secure Storage、NVM、系統工具與互動作品入口；清楚區分可執行網站與 Git 原始碼專案。" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="zh_TW" />
     <meta property="og:site_name" content="Sam Huang" />
-    <meta property="og:title" content="Sam Huang｜Projects, Systems &amp; Experiments" />
-    <meta
-      property="og:description"
-      content="Research, systems, and experiments across silicon, software, and interactive products."
-    />
+    <meta property="og:title" content="Sam Huang｜Semiconductor IP &amp; Project Portal" />
+    <meta property="og:description" content="Silicon IP, secure storage, memory systems and working project portals in one concise index." />
     <meta property="og:url" content="https://samhuang68.github.io/" />
     <meta property="og:image" content="https://samhuang68.github.io/assets/sam-huang-portfolio-architecture-v2.png" />
     <meta property="og:image:width" content="1672" />
     <meta property="og:image:height" content="941" />
-    <meta property="og:image:alt" content="Sam Huang portfolio abstract systems architecture artwork" />
+    <meta property="og:image:alt" content="Sam Huang silicon systems architecture artwork" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Sam Huang｜Projects, Systems &amp; Experiments" />
-    <meta name="twitter:description" content="Silicon, software, and interactive work in one concise project index." />
+    <meta name="twitter:title" content="Sam Huang｜Semiconductor IP &amp; Project Portal" />
+    <meta name="twitter:description" content="Silicon IP, systems and working project portals in one concise index." />
     <meta name="twitter:image" content="https://samhuang68.github.io/assets/sam-huang-portfolio-architecture-v2.png" />
     <link rel="canonical" href="https://samhuang68.github.io/" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="./fonts/noto-sans-tc-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="./fonts/noto-sans-tc-700.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/sam-huang-portfolio-architecture-v2.webp" as="image" type="image/webp" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./site.js" defer></script>
   </head>
-  <body data-pov-contract-id="POV-SAM-OWNER-SHELL-2026-08-29" data-pov-scope-id="POV-SAM-OWNER-SHELL-2026-08-29" data-artifact-mode="first-party-sales" data-accountable-owner-key="sam-huang">
-    <a class="skip-link" href="#main-content">跳至主要內容</a>
-    <div class="ambient-field" aria-hidden="true"></div>
+  <body data-pov-contract-id="POV-SAM-OWNER-SHELL-2026-08-30" data-pov-scope-id="POV-SAM-OWNER-SHELL-2026-08-30" data-artifact-mode="first-party-portfolio" data-accountable-owner-key="sam-huang">
+    <a class="skip-link" href="#project-portals">跳至專案入口</a>
+
+    <div class="ambient-architecture" aria-hidden="true">
+      <img src="./assets/sam-huang-portfolio-architecture-v2.webp" width="1672" height="941" alt="" />
+    </div>
 
     <header class="site-header" id="page-top">
       <div class="header-inner">
-        <a class="identity" href="./" aria-label="回到 Sam Huang 作品入口首頁">
+        <a class="identity" href="./" aria-label="回到 Sam Huang 專案入口首頁">
           <span class="monogram" aria-hidden="true">SH</span>
-          <span class="identity-copy">
-            <strong>Sam Huang</strong>
-            <span>PROJECT INDEX</span>
-            <small>TAIWAN</small>
-          </span>
+          <span class="identity-copy"><strong>Sam Huang</strong><span>SEMICONDUCTOR IP · SYSTEMS</span></span>
         </a>
 
-        <button
-          class="menu-toggle"
-          type="button"
-          aria-label="開啟主選單"
-          aria-expanded="false"
-          aria-controls="primary-navigation"
-        >
-          <span class="menu-label">MENU</span>
-          <span class="menu-icon" aria-hidden="true"><i></i><i></i></span>
-        </button>
+        <div class="header-status" aria-label="公開專案狀態摘要">
+          <span><i class="status-dot status-dot--live" aria-hidden="true"></i><b>5</b> LIVE WEB</span>
+          <span><i class="status-dot status-dot--source" aria-hidden="true"></i><b>4</b> SOURCE ONLY</span>
+        </div>
 
-        <nav id="primary-navigation" class="primary-navigation" aria-label="主要導覽">
-          <a href="#work">SELECTED WORK</a>
-          <a href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer">
-            GITHUB <span aria-hidden="true">↗</span>
-          </a>
-        </nav>
+        <a class="github-profile" href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer">GITHUB PROFILE <span aria-hidden="true">↗</span></a>
       </div>
     </header>
 
-    <main id="main-content">
-      <section class="hero" aria-labelledby="hero-title">
-        <figure class="hero-visual">
-          <img
-            src="./assets/sam-huang-portfolio-architecture-v2.webp"
-            width="1672"
-            height="941"
-            alt="抽象的矽智財與系統架構藝術，銅色幾何結構由青色訊號流串接"
-          />
-          <span class="hero-visual-shade" aria-hidden="true"></span>
-          <figcaption>
-            <span><i aria-hidden="true"></i>INTEGRATED SYSTEMS</span>
-            <b>ORIGINAL CONCEPT ART · 2026</b>
-          </figcaption>
-        </figure>
-
-        <div class="hero-copy">
-          <p class="eyebrow"><span>PORTFOLIO INDEX</span><b>TAIWAN · 2026</b></p>
-          <h1 id="hero-title">
-            <em>Sam Huang</em>
-            <span>研究、系統與實驗作品</span>
-          </h1>
-          <p class="hero-lead">
-            NVM 與半導體、策略遊戲、學習體驗、資料介面，以及硬體與工具——集中在同一個作品入口。
-            <span lang="en">Research, systems, and experiments across silicon, software, and interactive products.</span>
-          </p>
-          <div class="hero-actions">
-            <a class="primary-action" href="#work">EXPLORE WORK <span aria-hidden="true">↓</span></a>
-            <a class="secondary-action" href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer">
-              GITHUB PROFILE <span aria-hidden="true">↗</span>
-            </a>
-          </div>
-          <p class="practice-line">SEMICONDUCTOR IP · KNOWLEDGE SYSTEMS · INTERACTIVE PRODUCTS</p>
+    <main>
+      <section class="portal-intro" aria-labelledby="portal-title">
+        <div class="intro-copy">
+          <p class="eyebrow"><span>PROJECT PORTAL</span><b>TAIWAN · 2026</b></p>
+          <h1 id="portal-title"><em>Sam Huang</em><span>從矽智財到可執行系統</span></h1>
+          <p>Semiconductor IP、Secure Storage、NVM 與系統實作——每個入口皆標示可直接體驗，或僅提供 Git 原始碼。</p>
         </div>
+
+        <aside class="legend" aria-label="入口狀態說明">
+          <span class="legend-item legend-item--live"><i aria-hidden="true"></i><b>可執行網站</b><small>LIVE WEB</small></span>
+          <span class="legend-item legend-item--source"><i aria-hidden="true"></i><b>僅 Git 專案</b><small>SOURCE ONLY</small></span>
+        </aside>
       </section>
 
-      <section class="work-section" id="work" aria-labelledby="work-title">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker"><span>01</span> SELECTED WORK</p>
-            <h2 id="work-title">依領域進入</h2>
-          </div>
-          <p class="section-intro">
-            選擇一個領域，進入完整作品、系統說明與可用成果。
-          </p>
+      <section class="portal-section" id="project-portals" aria-labelledby="portal-grid-title">
+        <div class="section-bar">
+          <h2 id="portal-grid-title">選擇 Portal</h2>
+          <p><span>09</span> PUBLIC PORTALS</p>
         </div>
 
-        <div class="portfolio-grid">
-          <article class="category-card nvm-feature">
-            <div class="nvm-art" aria-hidden="true">
-              <img src="./assets/nvm-state-atlas.webp" width="1680" height="945" alt="" loading="lazy" />
-              <span></span>
-            </div>
-            <div class="category-content">
-              <p class="category-index"><span>01</span> NVM &amp; SEMICONDUCTOR</p>
-              <h3>NVM Knowledge System</h3>
-              <p class="category-description">
-                Secure Storage、AI state、advanced-node NVM 與 evidence governance，形成可追溯、SharePoint-ready 的知識系統。
-              </p>
-              <a class="feature-entry" href="https://samhuang68.github.io/secure-storage-knowledge-hub/">
-                <span><small>PRIMARY ENTRY</small><strong>NVM Knowledge Hub</strong></span><b aria-hidden="true">↗</b>
-              </a>
-              <nav class="nvm-paths" aria-label="NVM 主題入口">
-                <a href="https://samhuang68.github.io/secure-storage-knowledge-hub/secure-storage.html">
-                  <span class="path-full">SECURE STORAGE</span><span class="path-short">SECURE</span><b aria-hidden="true">↗</b>
-                </a>
-                <a href="https://samhuang68.github.io/secure-storage-knowledge-hub/ai-nvm-opportunities.html">
-                  <span class="path-full">AI ERA &amp; NVM</span><span class="path-short">AI ERA</span><b aria-hidden="true">↗</b>
-                </a>
-                <a href="https://samhuang68.github.io/nvm-whitepaper-site/">
-                  <span class="path-full">WHITEPAPER STUDIO</span><span class="path-short">STUDIO</span><b aria-hidden="true">↗</b>
-                </a>
-              </nav>
-              </div>
-          </article>
+        <div class="portal-grid">
+          <a class="portal-card portal-card--live portal-card--research" href="https://samhuang68.github.io/secure-storage-knowledge-hub/" aria-label="進入 NVM Knowledge Hub，可執行研究入口">
+            <span class="card-signal" aria-hidden="true">01</span>
+            <span class="availability availability--live"><i aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+            <span class="card-domain">SEMICONDUCTOR IP · RESEARCH PORTAL</span>
+            <h3>NVM Knowledge Hub</h3>
+            <p>Secure Storage、AI state 與 NVM evidence governance 的雙語研究入口。</p>
+            <span class="card-enter">進入研究門戶 <b aria-hidden="true">↗</b></span>
+          </a>
 
-          <div class="discipline-grid">
-            <article class="category-card discipline-card strategy-card">
-              <div class="category-topline"><span>02</span><i>STRATEGY &amp; GAMES</i></div>
-              <div class="category-symbol game-symbol" aria-hidden="true"><span>楚</span><i></i><span>漢</span></div>
-              <div>
-                <h3>楚漢・弈境</h3>
-                <p>把策略、規則與敘事整合成可直接遊玩的棋館體驗。</p>
-                <a href="https://samhuang68.github.io/chu-han-realm-pages/">ENTER GAME HALL <span aria-hidden="true">↗</span></a>
-              </div>
-            </article>
+          <a class="portal-card portal-card--live portal-card--research" href="https://samhuang68.github.io/nvm-whitepaper-site/" aria-label="進入 NVM Whitepaper Studio，可執行研究網站">
+            <span class="card-signal" aria-hidden="true">02</span>
+            <span class="availability availability--live"><i aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+            <span class="card-domain">NVM · WHITEPAPER STUDIO</span>
+            <h3>NVM Whitepaper Studio</h3>
+            <p>把技術證據、架構敘事與商業溝通整合為可閱讀的 NVM 白皮書體驗。</p>
+            <span class="card-enter">開啟白皮書 <b aria-hidden="true">↗</b></span>
+          </a>
 
-            <article class="category-card discipline-card learning-card">
-              <div class="category-topline"><span>03</span><i>LEARNING</i></div>
-              <div class="category-symbol learning-symbol" aria-hidden="true"><span>01</span><i></i><span>∞</span></div>
-              <div>
-                <h3>E‑Learning</h3>
-                <p>把內容架構轉成可瀏覽、可理解的數位學習體驗。</p>
-                <a href="https://samhuang68.github.io/E-Learning/">START LEARNING <span aria-hidden="true">↗</span></a>
-              </div>
-            </article>
+          <a class="portal-card portal-card--source portal-card--research" href="https://github.com/SamHuang68/secure-storage-oip-briefing" target="_blank" rel="noopener noreferrer" aria-label="查看 Secure Storage OIP Briefing Git 原始碼專案">
+            <span class="card-signal" aria-hidden="true">03</span>
+            <span class="availability availability--source"><i aria-hidden="true"></i>僅 Git 專案 · SOURCE ONLY</span>
+            <span class="card-domain">SECURE STORAGE · OIP BRIEFING</span>
+            <h3>Secure Storage OIP</h3>
+            <p>Secure Storage 與 OIP 技術溝通的公開原始碼與簡報實作。</p>
+            <span class="card-enter">查看 Repository <b aria-hidden="true">↗</b></span>
+          </a>
 
-            <article class="category-card discipline-card data-card">
-              <div class="category-topline"><span>04</span><i>DATA INTERFACES</i></div>
-              <div class="category-symbol data-symbol" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-              <div>
-                <h3>TW Pulse Terminal</h3>
-                <p>以終端語彙重新組織台灣脈動資訊與資料介面。</p>
-                <a href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener noreferrer">
-                  VIEW SOURCE <span aria-hidden="true">↗</span>
-                </a>
-              </div>
-            </article>
+          <a class="portal-card portal-card--live portal-card--game" href="https://samhuang68.github.io/chu-han-realm-pages/" aria-label="進入楚漢弈境，可執行遊戲網站">
+            <span class="card-signal card-signal--glyph" aria-hidden="true">弈</span>
+            <span class="availability availability--live"><i aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+            <span class="card-domain">INTERACTIVE SYSTEMS · GAME HALL</span>
+            <h3>楚漢・弈境</h3>
+            <p>象棋、暗棋、五子棋、麻將與街機作品整合的可遊玩棋館。</p>
+            <span class="card-enter">進入遊戲大廳 <b aria-hidden="true">↗</b></span>
+          </a>
 
-            <article class="category-card discipline-card hardware-card">
-              <div class="category-topline"><span>05</span><i>HARDWARE &amp; TOOLS</i></div>
-              <div class="category-symbol hardware-symbol" aria-hidden="true"><span></span><i></i><b></b></div>
-              <div>
-                <h3>Build Notes &amp; Tools</h3>
-                <p>硬體環境、實作紀錄，以及可重用的工程工具。</p>
-                <nav aria-label="硬體與工具入口">
-                  <a href="https://samhuang68.github.io/my-hardware/">HARDWARE NOTES ↗</a>
-                  <a href="https://github.com/SamHuang68/quick-archimedes" target="_blank" rel="noopener noreferrer">ARCHIMEDES ↗</a>
-                </nav>
-              </div>
-            </article>
-          </div>
+          <a class="portal-card portal-card--live portal-card--learning" href="https://samhuang68.github.io/E-Learning/" aria-label="進入 E-Learning，可執行學習網站">
+            <span class="card-signal" aria-hidden="true">05</span>
+            <span class="availability availability--live"><i aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+            <span class="card-domain">LEARNING SYSTEM · EXPERIENCE</span>
+            <h3>E‑Learning</h3>
+            <p>把內容架構轉化為可瀏覽、可理解、可持續擴充的數位學習介面。</p>
+            <span class="card-enter">開始學習 <b aria-hidden="true">↗</b></span>
+          </a>
+
+          <a class="portal-card portal-card--source portal-card--data" href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener noreferrer" aria-label="查看 TW Pulse Terminal Git 原始碼專案">
+            <span class="card-signal" aria-hidden="true">06</span>
+            <span class="availability availability--source"><i aria-hidden="true"></i>僅 Git 專案 · SOURCE ONLY</span>
+            <span class="card-domain">DATA INTERFACE · TERMINAL</span>
+            <h3>TW Pulse Terminal</h3>
+            <p>以終端語彙重組台灣脈動資訊與資料介面的公開 Git 專案。</p>
+            <span class="card-enter">查看 Repository <b aria-hidden="true">↗</b></span>
+          </a>
+
+          <a class="portal-card portal-card--live portal-card--hardware" href="https://samhuang68.github.io/my-hardware/" aria-label="進入 Hardware Profile，可執行硬體網站">
+            <span class="card-signal" aria-hidden="true">07</span>
+            <span class="availability availability--live"><i aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+            <span class="card-domain">HARDWARE · ENGINEERING PROFILE</span>
+            <h3>Hardware Profile</h3>
+            <p>工作站、GPU、開發環境與工程硬體配置的可瀏覽紀錄。</p>
+            <span class="card-enter">查看硬體配置 <b aria-hidden="true">↗</b></span>
+          </a>
+
+          <a class="portal-card portal-card--source portal-card--tool" href="https://github.com/SamHuang68/quick-archimedes" target="_blank" rel="noopener noreferrer" aria-label="查看 Quick Archimedes Git 原始碼專案">
+            <span class="card-signal" aria-hidden="true">08</span>
+            <span class="availability availability--source"><i aria-hidden="true"></i>僅 Git 專案 · SOURCE ONLY</span>
+            <span class="card-domain">ENGINEERING TOOL · SOURCE</span>
+            <h3>Quick Archimedes</h3>
+            <p>聚焦快速實驗與工程工作流的公開原始碼工具。</p>
+            <span class="card-enter">查看 Repository <b aria-hidden="true">↗</b></span>
+          </a>
+
+          <a class="portal-card portal-card--source portal-card--game" href="https://github.com/SamHuang68/HeroesOfTheLake_Godot" target="_blank" rel="noopener noreferrer" aria-label="查看 Heroes of the Lake Godot Git 原始碼專案">
+            <span class="card-signal" aria-hidden="true">09</span>
+            <span class="availability availability--source"><i aria-hidden="true"></i>僅 Git 專案 · SOURCE ONLY</span>
+            <span class="card-domain">GODOT · STRATEGY PROTOTYPE</span>
+            <h3>Heroes of the Lake</h3>
+            <p>水滸題材策略管理遊戲的 Godot 公開原型與程式碼。</p>
+            <span class="card-enter">查看 Repository <b aria-hidden="true">↗</b></span>
+          </a>
         </div>
       </section>
     </main>
 
     <footer>
-      <div class="footer-brand">
-        <strong>Sam Huang</strong>
-        <span>PROJECTS · SYSTEMS · EXPERIMENTS · TAIWAN</span>
-      </div>
-      <p>從研究與架構，走到可以使用的成果。<span lang="en">From ideas and evidence to working systems.</span></p>
-      <nav class="footer-links" aria-label="頁尾導覽">
-        <a href="#page-top">TOP ↑</a>
-        <a href="#work">WORK</a>
-        <a href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
-      </nav>
-      <small>© 2026</small>
+      <div class="footer-brand"><strong>Sam Huang</strong><span>SEMICONDUCTOR IP · SYSTEMS · INTERACTIVE PRODUCTS</span></div>
+      <p>從架構與證據，走到可以使用的成果。<span lang="en">From architecture and evidence to working systems.</span></p>
+      <a href="#page-top">TOP ↑</a>
+      <small>© <span data-current-year>2026</span></small>
     </footer>
   </body>
 </html>
