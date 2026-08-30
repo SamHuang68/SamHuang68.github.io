@@ -340,12 +340,14 @@ main {
 }
 
 /* 晶圓與電路科技網格背景 */
-.bg-tech-grid {
-  background-color: #060b13;
-  background-size: 32px 32px;
+.bg-tech-grid,
+.bg-wafer {
+  background-color: #040811;
   background-image:
+    radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.12) 0%, transparent 60%),
     linear-gradient(to right, rgba(14, 165, 233, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 28px 28px, 28px 28px;
 }
 
 .fixed-ambient-glow {
@@ -466,7 +468,7 @@ main {
   min-height: 154px;
   overflow: hidden;
   padding: 13px 15px 11px;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid rgba(113, 236, 227, 0.16);
   background:
     linear-gradient(135deg, rgba(14, 165, 233, 0.04), transparent 45%),
@@ -476,6 +478,141 @@ main {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(16px);
   transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms ease, box-shadow 220ms ease;
+}
+
+/* 晶片 HUD 科技邊框與角落定位標記 */
+.chip-card {
+  position: relative;
+  background: linear-gradient(145deg, rgba(13, 22, 38, 0.78) 0%, rgba(7, 12, 22, 0.9) 100%);
+}
+
+.chip-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid #06b6d4;
+  border-left: 2px solid #06b6d4;
+  opacity: 0.65;
+  transition: all 0.28s ease;
+  z-index: 3;
+}
+
+.chip-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  border-bottom: 2px solid #06b6d4;
+  border-right: 2px solid #06b6d4;
+  opacity: 0.65;
+  transition: all 0.28s ease;
+  z-index: 3;
+}
+
+.chip-card:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(145deg, rgba(18, 30, 52, 0.88) 0%, rgba(9, 16, 30, 0.96) 100%);
+  border-color: rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 20px -3px rgba(6, 182, 212, 0.25), inset 0 0 12px rgba(6, 182, 212, 0.08);
+}
+
+.chip-card:hover::before,
+.chip-card:hover::after {
+  width: 10px;
+  height: 10px;
+  opacity: 1;
+  border-color: #22d3ee;
+}
+
+/* 專屬領域微色系區隔 */
+.portal-card--research {
+  --card-accent: #38bdf8;
+  --card-glow: rgba(56, 189, 248, 0.3);
+}
+
+.portal-card--game {
+  --card-accent: #fbbf24;
+  --card-glow: rgba(251, 191, 36, 0.3);
+}
+
+.portal-card--game.chip-card::before,
+.portal-card--game.chip-card::after {
+  border-color: #f59e0b;
+}
+
+.portal-card--game:hover {
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.25), inset 0 0 12px rgba(245, 158, 11, 0.08);
+}
+
+.portal-card--game:hover::before,
+.portal-card--game:hover::after {
+  border-color: #fbbf24;
+}
+
+.portal-card--learning {
+  --card-accent: #818cf8;
+  --card-glow: rgba(129, 140, 248, 0.3);
+}
+
+.portal-card--learning.chip-card::before,
+.portal-card--learning.chip-card::after {
+  border-color: #6366f1;
+}
+
+.portal-card--learning:hover {
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.25), inset 0 0 12px rgba(99, 102, 241, 0.08);
+}
+
+.portal-card--learning:hover::before,
+.portal-card--learning:hover::after {
+  border-color: #818cf8;
+}
+
+.portal-card--hardware {
+  --card-accent: #c084fc;
+  --card-glow: rgba(192, 132, 252, 0.3);
+}
+
+.portal-card--hardware.chip-card::before,
+.portal-card--hardware.chip-card::after {
+  border-color: #a855f7;
+}
+
+.portal-card--hardware:hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 20px -3px rgba(168, 85, 247, 0.25), inset 0 0 12px rgba(168, 85, 247, 0.08);
+}
+
+.portal-card--hardware:hover::before,
+.portal-card--hardware:hover::after {
+  border-color: #c084fc;
+}
+
+.portal-card--data {
+  --card-accent: #34d399;
+  --card-glow: rgba(52, 211, 153, 0.3);
+}
+
+.portal-card--data.chip-card::before,
+.portal-card--data.chip-card::after {
+  border-color: #10b981;
+}
+
+.portal-card--data:hover {
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.25), inset 0 0 12px rgba(16, 185, 129, 0.08);
+}
+
+.portal-card--data:hover::before,
+.portal-card--data:hover::after {
+  border-color: #34d399;
 }
 
 .card-top-row {
@@ -503,13 +640,11 @@ main {
 }
 
 .hud-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(14, 165, 233, 0.75);
-  box-shadow: 0 12px 30px -8px rgba(14, 165, 233, 0.35), inset 0 0 16px rgba(6, 182, 212, 0.12);
+  transform: translateY(-2px);
 }
 
 .hud-card:hover .card-enter {
-  color: #38bdf8;
+  color: var(--card-accent);
 }
 
 .hud-card:hover .card-enter b {
