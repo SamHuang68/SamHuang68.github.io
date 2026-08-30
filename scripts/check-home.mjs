@@ -69,8 +69,6 @@ const requiredDestinations = [
   'https://samhuang68.github.io/E-Learning/',
   'https://github.com/SamHuang68/tw-pulse-terminal',
   'https://samhuang68.github.io/my-hardware/',
-  'https://github.com/SamHuang68/quick-archimedes',
-  'https://github.com/SamHuang68/HeroesOfTheLake_Godot',
 ];
 
 for (const destination of requiredDestinations) {
@@ -78,7 +76,7 @@ for (const destination of requiredDestinations) {
 }
 
 const cards = [...html.matchAll(/<a\b([^>]*class="[^"]*portal-card[^"]*"[^>]*)>([\s\S]*?)<\/a>/gi)];
-if (cards.length !== 9) fail(`expected 9 full-card anchors, found ${cards.length}`);
+if (cards.length !== 7) fail(`expected 7 full-card anchors, found ${cards.length}`);
 
 for (const [index, card] of cards.entries()) {
   const attributes = card[1];
@@ -93,7 +91,7 @@ for (const [index, card] of cards.entries()) {
 const liveCount = cards.filter(([, content]) => /portal-card--live/i.test(content)).length;
 const sourceCount = cards.filter(([, content]) => /portal-card--source/i.test(content)).length;
 if (liveCount !== 5) fail(`expected 5 runnable cards, found ${liveCount}`);
-if (sourceCount !== 4) fail(`expected 4 source-only cards, found ${sourceCount}`);
+if (sourceCount !== 2) fail(`expected 2 source-only cards, found ${sourceCount}`);
 
 if (!html.includes('可執行網站 · LIVE WEB')) fail('runnable web label is missing');
 if (!html.includes('僅 Git 專案 · SOURCE ONLY')) fail('source-only label is missing');
