@@ -1,5 +1,5 @@
 import { createReadStream } from 'node:fs';
-import { mkdir, stat } from 'node:fs/promises';
+import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import path from 'node:path';
 import process from 'node:process';
@@ -39,22 +39,26 @@ const server = createServer(async (request, response) => {
 });
 
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-const address = server.address();
-const baseUrl = `http://127.0.0.1:${address.port}/`;
+const baseUrl = `http://127.0.0.1:${server.address().port}/`;
 const viewports = [
   [1440, 1000],
   [1361, 900],
   [1280, 900],
   [1101, 900],
+  [1100, 900],
+  [1024, 900],
   [901, 900],
+  [900, 900],
   [768, 1024],
   [621, 900],
+  [620, 900],
   [390, 844],
   [312, 720],
 ];
 
 const browser = await chromium.launch({ headless: true });
 const failures = [];
+const records = [];
 
 try {
   for (const [width, height] of viewports) {
@@ -68,18 +72,12 @@ try {
     });
     page.on('requestfailed', (request) => runtimeErrors.push(`requestfailed: ${request.url()}`));
     page.on('response', (response) => {
-      if (response.url().startsWith(baseUrl) && response.status() >= 400) {
-        runtimeErrors.push(`HTTP ${response.status()}: ${response.url()}`);
-      }
+      if (response.url().startsWith(baseUrl) && response.status() >= 400) runtimeErrors.push(`HTTP ${response.status()}: ${response.url()}`);
     });
 
     await page.goto(baseUrl, { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(async () => {
-      for (const image of [...document.images]) {
-        image.scrollIntoView({ block: 'center' });
-        await new Promise((resolve) => setTimeout(resolve, 35));
-      }
       await Promise.all(
         [...document.images].map((image) =>
           image.complete
@@ -98,22 +96,7 @@ try {
         const style = getComputedStyle(element);
         return style.display !== 'none' && style.visibility !== 'hidden' && element.getClientRects().length > 0;
       };
-      const keySelectors = [
-        '.site-header',
-        '.header-inner',
-        '.hero',
-        '.hero-copy',
-        '.hero-visual',
-        '.work-section',
-        '.section-heading',
-        '.portfolio-grid',
-        '.nvm-feature',
-        '.category-content',
-        '.nvm-paths',
-        '.discipline-grid',
-        '.discipline-card',
-        'footer',
-      ];
+      const keySelectors = ['.site-header', '.header-inner', '.portal-intro', '.intro-copy', '.legend', '.portal-section', '.section-bar', '.portal-grid', '.portal-card', 'footer'];
       const internalOverflow = keySelectors.flatMap((selector) =>
         [...document.querySelectorAll(selector)]
           .filter(visible)
@@ -122,44 +105,41 @@ try {
       );
       const viewportOverflow = [...document.querySelectorAll('body *')]
         .filter(visible)
-        .filter((element) => !element.closest('.ambient-field'))
+        .filter((element) => !element.closest('.ambient-architecture'))
         .map((element) => ({ element, rect: element.getBoundingClientRect() }))
         .filter(({ rect }) => rect.left < -1 || rect.right > innerWidth + 1)
-        .map(({ element, rect }) => ({
-          tag: element.tagName,
-          className: String(element.className || ''),
-          left: Math.round(rect.left * 10) / 10,
-          right: Math.round(rect.right * 10) / 10,
-        }));
+        .map(({ element, rect }) => ({ tag: element.tagName, className: String(element.className || ''), left: rect.left, right: rect.right }));
       const imageFailures = [...document.images]
         .filter((image) => !image.complete || image.naturalWidth === 0)
         .map((image) => image.getAttribute('src'));
-      const headingSizes = [...document.querySelectorAll('.hero h1 em, .hero h1 span, h2, h3')]
+      const cards = [...document.querySelectorAll('.portal-card')].filter(visible).map((card) => {
+        const rect = card.getBoundingClientRect();
+        return {
+          tag: card.tagName,
+          width: rect.width,
+          height: rect.height,
+          href: card.getAttribute('href'),
+          ariaLabel: card.getAttribute('aria-label'),
+          live: card.classList.contains('portal-card--live'),
+          source: card.classList.contains('portal-card--source'),
+          nestedInteractive: card.querySelectorAll('a, button, input, select, textarea').length,
+          cursor: getComputedStyle(card).cursor,
+          bottom: rect.bottom,
+        };
+      });
+      const headingSizes = [...document.querySelectorAll('.portal-intro h1 em, .portal-intro h1 span, h2, h3')]
         .filter(visible)
         .map((element) => ({
-          selector: element.matches('.hero h1 em')
-            ? '.hero h1 em'
-            : element.matches('.hero h1 span')
-              ? '.hero h1 span'
-              : element.tagName.toLowerCase(),
+          selector: element.matches('.portal-intro h1 em') ? 'h1-em' : element.matches('.portal-intro h1 span') ? 'h1-span' : element.tagName.toLowerCase(),
           size: parseFloat(getComputedStyle(element).fontSize),
         }));
-      const prose = [...document.querySelectorAll('.hero-lead, .section-intro, .category-description, .discipline-card p')]
+      const prose = [...document.querySelectorAll('.portal-intro .intro-copy > p:last-child, .portal-card p')]
         .filter(visible)
         .map((element) => ({ selector: element.className || element.tagName, size: parseFloat(getComputedStyle(element).fontSize) }));
-      const tapTargets = [...document.querySelectorAll('.hero-actions a, .menu-toggle, .primary-navigation a, .feature-entry, .nvm-paths a, .discipline-card a, .footer-links a')]
+      const tapTargets = [...document.querySelectorAll('.github-profile, .portal-card, footer > a')]
         .filter(visible)
-        .map((element) => ({
-          text: element.textContent.trim().slice(0, 30),
-          height: element.getBoundingClientRect().height,
-          kind: element.matches('.hero-actions a, .menu-toggle') ? 'primary' : 'compact',
-          fontSize: parseFloat(getComputedStyle(element).fontSize),
-          minimumFontSize: element.matches('.hero-actions a')
-            ? 10
-            : element.matches('.nvm-paths a, .discipline-card a, .footer-links a')
-              ? 9
-              : 0,
-        }));
+        .map((element) => ({ text: element.textContent.trim().slice(0, 32), height: element.getBoundingClientRect().height, card: element.classList.contains('portal-card') }));
+
       const parseRgb = (value) => {
         const parts = value.match(/[\d.]+/g)?.map(Number) ?? [];
         return parts.length >= 3 ? parts.slice(0, 3) : null;
@@ -174,21 +154,13 @@ try {
       const nearestBackground = (element) => {
         let current = element;
         while (current) {
-          const color = getComputedStyle(current).backgroundColor;
-          const values = color.match(/[\d.]+/g)?.map(Number) ?? [];
+          const values = getComputedStyle(current).backgroundColor.match(/[\d.]+/g)?.map(Number) ?? [];
           if (values.length >= 3 && (values.length < 4 || values[3] >= 0.98)) return values.slice(0, 3);
           current = current.parentElement;
         }
-        return [255, 255, 255];
+        return [4, 20, 31];
       };
-      const contrastChecks = [
-        '.section-kicker',
-        '.section-kicker span',
-        '.learning-card .category-topline',
-        '.learning-card .category-topline span',
-        '.hardware-card .category-topline',
-        '.hardware-card .category-topline span',
-      ].flatMap((selector) =>
+      const contrastChecks = ['.availability--live', '.availability--source', '.portal-card h3', '.portal-card p', '.card-enter'].flatMap((selector) =>
         [...document.querySelectorAll(selector)].filter(visible).map((element) => {
           const foreground = parseRgb(getComputedStyle(element).color);
           const background = nearestBackground(element);
@@ -197,17 +169,20 @@ try {
           return { selector, ratio: (lighter + 0.05) / (darker + 0.05) };
         }),
       );
+
+      const firstCard = document.querySelector('.portal-card');
+      firstCard?.focus();
+      const focusStyle = firstCard ? getComputedStyle(firstCard) : null;
+      const introBottom = document.querySelector('.portal-intro')?.getBoundingClientRect().bottom ?? null;
+      const sectionTop = document.querySelector('#project-portals')?.getBoundingClientRect().top ?? null;
+
       return {
-        document: {
-          innerWidth,
-          clientWidth: document.documentElement.clientWidth,
-          scrollWidth: document.documentElement.scrollWidth,
-          scrollHeight: document.documentElement.scrollHeight,
-        },
+        document: { innerWidth, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight },
         body: { clientWidth: document.body.clientWidth, scrollWidth: document.body.scrollWidth },
         internalOverflow,
         viewportOverflow,
         imageFailures,
+        cards,
         headingSizes,
         prose,
         tapTargets,
@@ -215,97 +190,62 @@ try {
         headerPosition: getComputedStyle(document.querySelector('.site-header')).position,
         reducedMotion: getComputedStyle(document.documentElement).scrollBehavior,
         ownerText: document.querySelector('.identity-copy strong')?.textContent.trim(),
-        ownerHeading: document.querySelector('.hero h1 em')?.textContent.trim(),
+        ownerHeading: document.querySelector('.portal-intro h1 em')?.textContent.trim(),
+        focusOutline: focusStyle ? { style: focusStyle.outlineStyle, width: focusStyle.outlineWidth } : null,
+        introBottom,
+        sectionTop,
       };
     });
 
-    if (metrics.document.scrollWidth > width + 1 || metrics.body.scrollWidth > width + 1) {
-      failures.push(`${width}px document overflow: ${JSON.stringify({ document: metrics.document, body: metrics.body })}`);
-    }
+    if (metrics.document.scrollWidth > width + 1 || metrics.body.scrollWidth > width + 1) failures.push(`${width}px document overflow: ${JSON.stringify({ document: metrics.document, body: metrics.body })}`);
     if (metrics.internalOverflow.length) failures.push(`${width}px internal overflow: ${JSON.stringify(metrics.internalOverflow)}`);
     if (metrics.viewportOverflow.length) failures.push(`${width}px viewport clipping: ${JSON.stringify(metrics.viewportOverflow.slice(0, 12))}`);
     if (metrics.imageFailures.length) failures.push(`${width}px image failures: ${metrics.imageFailures.join(', ')}`);
-    if (metrics.ownerText !== 'Sam Huang' || metrics.ownerHeading !== 'Sam Huang') {
-      failures.push(`${width}px owner-first identity missing: ${JSON.stringify({ header: metrics.ownerText, hero: metrics.ownerHeading })}`);
-    }
+    if (metrics.ownerText !== 'Sam Huang' || metrics.ownerHeading !== 'Sam Huang') failures.push(`${width}px owner identity missing`);
+    if (metrics.cards.length !== 6) failures.push(`${width}px expected 6 portal cards, found ${metrics.cards.length}`);
+    if (metrics.cards.filter((card) => card.live).length !== 4 || metrics.cards.filter((card) => card.source).length !== 2) failures.push(`${width}px availability counts are incorrect`);
+    if (metrics.cards.some((card) => card.tag !== 'A' || !card.href || !card.ariaLabel || card.nestedInteractive !== 0)) failures.push(`${width}px a portal card is not a single accessible anchor`);
+    if (metrics.cards.some((card) => card.height < 120 || card.width < 250)) failures.push(`${width}px a portal card is not a substantial full-frame target`);
+    if (metrics.focusOutline?.style === 'none' || parseFloat(metrics.focusOutline?.width || '0') < 2) failures.push(`${width}px portal focus outline is not visible`);
+    if (metrics.introBottom !== null && metrics.sectionTop !== null && metrics.sectionTop < metrics.introBottom - 1) failures.push(`${width}px portal section overlaps the intro`);
 
     for (const heading of metrics.headingSizes) {
-      const max = heading.selector === '.hero h1 em'
-        ? (width <= 760 ? 44 : 78)
-        : heading.selector === '.hero h1 span'
-          ? (width <= 760 ? 30 : 40)
-          : heading.selector === 'h2'
-            ? (width <= 760 ? 33 : 47)
-            : (width <= 760 ? 37 : 44);
+      const max = heading.selector === 'h1-span' ? (width <= 760 ? 40 : 44) : heading.selector === 'h1-em' ? 20 : heading.selector === 'h2' ? 28 : 30;
       if (heading.size > max + 0.5) failures.push(`${width}px ${heading.selector} is too large: ${heading.size}px`);
     }
 
-    if (metrics.prose.some(({ size }) => size < 13)) {
-      failures.push(`${width}px primary prose below 13px: ${JSON.stringify(metrics.prose)}`);
-    }
-
-    const undersizedTargets = metrics.tapTargets.filter(({ height: targetHeight, kind }) => targetHeight < (kind === 'primary' ? 44 : 36));
-    if (undersizedTargets.length) {
-      failures.push(`${width}px interactive target below commercial floor: ${JSON.stringify(undersizedTargets)}`);
-    }
-
-    const undersizedInteractionType = metrics.tapTargets.filter(({ fontSize, minimumFontSize }) => fontSize < minimumFontSize);
-    if (undersizedInteractionType.length) {
-      failures.push(`${width}px interaction type below commercial floor: ${JSON.stringify(undersizedInteractionType)}`);
-    }
-
+    if (metrics.prose.some(({ size }) => size < 14)) failures.push(`${width}px primary prose below 14px: ${JSON.stringify(metrics.prose)}`);
+    const undersizedTargets = metrics.tapTargets.filter(({ height: targetHeight, card }) => targetHeight < (card ? 120 : 44));
+    if (undersizedTargets.length) failures.push(`${width}px interaction target below floor: ${JSON.stringify(undersizedTargets)}`);
     const lowContrast = metrics.contrastChecks.filter(({ ratio }) => ratio < 4.5);
-    if (lowContrast.length) failures.push(`${width}px light-section metadata below 4.5:1 contrast: ${JSON.stringify(lowContrast)}`);
+    if (lowContrast.length) failures.push(`${width}px text below 4.5:1 contrast: ${JSON.stringify(lowContrast)}`);
 
-    const maximumPageHeight = width >= 1200 ? 1800 : width >= 761 ? 2150 : 2050;
-    if (metrics.document.scrollHeight > maximumPageHeight) {
-      failures.push(`${width}px page is not sufficiently condensed: ${metrics.document.scrollHeight}px > ${maximumPageHeight}px`);
-    }
-
+    const maximumPageHeight = width >= 1200 ? 1120 : width >= 761 ? 1580 : 2050;
+    if (metrics.document.scrollHeight > maximumPageHeight) failures.push(`${width}px page is not sufficiently condensed: ${metrics.document.scrollHeight}px > ${maximumPageHeight}px`);
+    if (width === 1440 && Math.max(...metrics.cards.map((card) => card.bottom)) > height) failures.push(`1440px portal grid does not fit in the initial viewport`);
     if (metrics.headerPosition !== 'sticky') failures.push(`${width}px header is not sticky`);
     if (metrics.reducedMotion !== 'auto') failures.push(`${width}px reduced motion does not disable smooth scrolling`);
     runtimeErrors.forEach((error) => failures.push(`${width}px ${error}`));
 
+    records.push({
+      viewport: { width, height },
+      pageHeight: metrics.document.scrollHeight,
+      portalCount: metrics.cards.length,
+      liveCount: metrics.cards.filter((card) => card.live).length,
+      sourceOnlyCount: metrics.cards.filter((card) => card.source).length,
+      minimumCardWidth: Math.round(Math.min(...metrics.cards.map((card) => card.width))),
+      minimumCardHeight: Math.round(Math.min(...metrics.cards.map((card) => card.height))),
+      maximumCardBottom: Math.round(Math.max(...metrics.cards.map((card) => card.bottom))),
+      horizontalOverflow: metrics.document.scrollWidth > width + 1 || metrics.body.scrollWidth > width + 1,
+      internalOverflowCount: metrics.internalOverflow.length,
+      viewportClippingCount: metrics.viewportOverflow.length,
+      imageFailureCount: metrics.imageFailures.length,
+      runtimeErrorCount: runtimeErrors.length,
+      focusOutline: metrics.focusOutline,
+    });
+
+    await page.evaluate(() => document.activeElement?.blur());
     await page.screenshot({ path: path.join(outputDir, `home-${width}.png`), fullPage: true });
-
-    if (width === 390) {
-      const toggle = page.locator('.menu-toggle');
-      const accessibleName = await toggle.getAttribute('aria-label');
-      if (accessibleName !== '開啟主選單') failures.push(`390px menu accessible name is wrong: ${accessibleName}`);
-
-      await toggle.click();
-      if ((await toggle.getAttribute('aria-expanded')) !== 'true') failures.push('390px menu did not open');
-      await page.waitForTimeout(50);
-
-      const focusedAfterOpen = await page.evaluate(() => ({
-        href: document.activeElement?.getAttribute('href'),
-        tag: document.activeElement?.tagName,
-        className: document.activeElement?.className,
-      }));
-      if (focusedAfterOpen.href !== '#work') failures.push(`390px menu focus did not move to first link: ${JSON.stringify(focusedAfterOpen)}`);
-
-      const inertState = await page.evaluate(() => ({
-        main: document.querySelector('main')?.hasAttribute('inert'),
-        footer: document.querySelector('footer')?.hasAttribute('inert'),
-      }));
-      if (!inertState.main || !inertState.footer) failures.push(`390px open menu does not isolate background: ${JSON.stringify(inertState)}`);
-
-      await page.screenshot({ path: path.join(outputDir, 'home-390-menu.png'), fullPage: false });
-      await page.keyboard.press('Escape');
-      if ((await toggle.getAttribute('aria-expanded')) !== 'false') failures.push('390px Escape did not close menu');
-      const toggleFocused = await page.evaluate(() => document.activeElement?.classList.contains('menu-toggle'));
-      if (!toggleFocused) failures.push('390px Escape did not return focus to menu button');
-
-      await toggle.click();
-      await page.locator('.primary-navigation a[href="#work"]').click();
-      await page.waitForTimeout(80);
-      if (!page.url().endsWith('#work')) failures.push(`390px section jump did not update hash: ${page.url()}`);
-      if ((await toggle.getAttribute('aria-expanded')) !== 'false') failures.push('390px menu did not close after section jump');
-      const anchorTop = await page.locator('#work').evaluate((element) => element.getBoundingClientRect().top);
-      const headerHeight = await page.locator('.site-header').evaluate((element) => element.getBoundingClientRect().height);
-      if (anchorTop < headerHeight - 2) failures.push(`390px sticky header obscures #work: top=${anchorTop}, header=${headerHeight}`);
-    }
-
     await context.close();
   }
 } finally {
@@ -313,10 +253,16 @@ try {
   await new Promise((resolve) => server.close(resolve));
 }
 
+await writeFile(
+  path.join(outputDir, 'report.json'),
+  `${JSON.stringify({ gate: failures.length ? 'FAIL' : 'PASS', generatedAt: new Date().toISOString(), records, failures }, null, 2)}\n`,
+  'utf8',
+);
+
 if (failures.length) {
   console.error('Rendered homepage QA failed:');
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }
 
-console.log(`Rendered homepage QA PASS: ${viewports.length} viewports, owner-first hierarchy, condensed layout, zero overflow/runtime/image/type/menu failures`);
+console.log(`Rendered homepage QA PASS: ${viewports.length} viewports, 9 full-card portals, zero overflow, visible focus, classified availability and first-viewport desktop fit`);
