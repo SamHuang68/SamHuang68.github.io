@@ -1,9 +1,15 @@
+/**
+ * Sam Huang Portal · site.js
+ * 純前端雙語切換、狀態持久化、分類濾鏡與微互動
+ */
 (() => {
   document.documentElement.classList.add('js-ready');
 
+  // 1. 年份自動化
   const year = document.querySelector('[data-current-year]');
   if (year) year.textContent = String(new Date().getFullYear());
 
+  // 2. 卡片觸控與點擊微反饋 (嚴格維持 querySelectorAll('.portal-card'))
   const cards = [...document.querySelectorAll('.portal-card')];
   cards.forEach((card) => {
     card.addEventListener('pointerdown', () => card.classList.add('is-pressed'));
@@ -12,6 +18,84 @@
     card.addEventListener('pointerleave', () => card.classList.remove('is-pressed'));
   });
 
+  // 3. 雙語架構與持久化 (Bilingual Engine)
+  const STORAGE_KEY = 'portal_language';
+  const NVM_HUB_KEY = 'nvm-hub-language';
+
+  const CARD_LABELS = {
+    zh: [
+      '進入 NVM Knowledge Hub，可執行研究與白皮書入口',
+      '進入多元遊戲大廳，可執行互動遊戲網站',
+      '進入 E-Learning，可執行學習網站',
+      '進入 Hardware Profile，可執行硬體網站',
+      '查看 Secure Storage OIP Briefing Git 原始碼專案',
+      '查看 TW Pulse Terminal Git 原始碼專案'
+    ],
+    en: [
+      'Enter NVM Knowledge Hub, runnable research and whitepaper portal',
+      'Enter Interactive Game Arcade, runnable interactive gaming platform',
+      'Enter E-Learning, runnable modular learning platform',
+      'Enter Hardware Profile, runnable hardware and workstation rig specifications',
+      'View Secure Storage OIP Briefing Git repository',
+      'View TW Pulse Terminal Git repository'
+    ]
+  };
+
+  const getStoredLanguage = () => {
+    try {
+      return localStorage.getItem(STORAGE_KEY) || localStorage.getItem(NVM_HUB_KEY) || 'zh';
+    } catch {
+      return 'zh';
+    }
+  };
+
+  const setLanguage = (lang, persist = true) => {
+    const target = lang === 'en' ? 'en' : 'zh';
+    document.documentElement.setAttribute('data-language', target);
+    if (document.body) {
+      document.body.setAttribute('data-language', target);
+    }
+    // 嚴格保留 lang 屬性相容性
+    document.documentElement.lang = target === 'zh' ? 'zh-Hant' : 'en';
+
+    if (persist) {
+      try {
+        localStorage.setItem(STORAGE_KEY, target);
+        localStorage.setItem(NVM_HUB_KEY, target);
+      } catch {}
+    }
+
+    // 更新 Language Toggle 按鈕
+    const toggleBtn = document.getElementById('languageToggle');
+    if (toggleBtn) {
+      toggleBtn.setAttribute('aria-label', target === 'zh' ? 'Switch to English (切換至英文)' : '切換至繁體中文 (Switch to Traditional Chinese)');
+    }
+
+    // 動態同步卡片 aria-label
+    cards.forEach((card, idx) => {
+      if (CARD_LABELS[target] && CARD_LABELS[target][idx]) {
+        card.setAttribute('aria-label', CARD_LABELS[target][idx]);
+      }
+    });
+
+    // 廣播跨組件語系事件
+    window.dispatchEvent(new CustomEvent('portal:language-change', { detail: { language: target } }));
+  };
+
+  // 綁定 Language Toggle 點擊
+  const toggleBtn = document.getElementById('languageToggle');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const current = document.documentElement.getAttribute('data-language') || 'zh';
+      setLanguage(current === 'zh' ? 'en' : 'zh', true);
+    });
+  }
+
+  // 初始化語系
+  setLanguage(getStoredLanguage(), false);
+
+  // 4. 直立測條工作台過濾 (Vertical Project Rail Filter)
   window.switchTab = (type) => {
     const buttons = document.querySelectorAll('.tab-btn');
     buttons.forEach((btn) => {

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hant" class="dark">
+<html lang="zh-Hant" data-language="zh" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,8 +26,59 @@
     <link rel="preload" href="./fonts/noto-sans-tc-700.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/sam-huang-portfolio-architecture-v2.webp" as="image" type="image/webp" />
     <link rel="stylesheet" href="./styles.css" />
+    <script>
+      try {
+        const l = localStorage.getItem('portal_language') || localStorage.getItem('nvm-hub-language') || 'zh';
+        document.documentElement.setAttribute('data-language', l);
+      } catch(e) {}
+    </script>
     <script src="./site.js" defer></script>
     <style>
+      /* 語系切換顯示規則 (Single Source of Truth) */
+      [data-lang="en"] { display: none !important; }
+      [data-lang="zh"] { display: inline; }
+
+      html[data-language="en"] [data-lang="zh"],
+      body[data-language="en"] [data-lang="zh"] { display: none !important; }
+      html[data-language="en"] [data-lang="en"],
+      body[data-language="en"] [data-lang="en"] { display: inline; }
+
+      /* 語系切換膠囊按鈕 */
+      .language-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        min-height: 32px;
+        padding: 0 10px;
+        border: 1px solid rgba(113, 236, 227, 0.28);
+        border-radius: 4px;
+        background: rgba(7, 29, 43, 0.7);
+        color: #94a3b8;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none;
+      }
+      .language-toggle:hover {
+        border-color: var(--cyan);
+        background: rgba(17, 210, 208, 0.12);
+        color: var(--paper);
+      }
+      .language-toggle b { font-weight: 800; }
+      .language-toggle i { color: rgba(255, 255, 255, 0.25); font-style: normal; margin: 0 1px; }
+      .language-toggle [data-lang-option="zh"] { color: var(--cyan); }
+      .language-toggle [data-lang-option="en"] { color: #64748b; }
+      html[data-language="en"] .language-toggle [data-lang-option="zh"] { color: #64748b; }
+      html[data-language="en"] .language-toggle [data-lang-option="en"] { color: var(--cyan); }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
       /* 高密度直立測條工作台版面 (Executive Studio Workbench) */
       .portal-studio-container {
         max-width: 1440px;
@@ -194,10 +245,23 @@
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 16px;
       }
+
+      /* 晶片封裝倒角與 Pin 腳美化 */
+      .portal-card {
+        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+      }
+      .status-dot--live {
+        animation: live-pulse-ring 2.2s infinite ease-in-out;
+      }
+      @keyframes live-pulse-ring {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(17, 210, 208, 0.7); }
+        70% { transform: scale(1.15); box-shadow: 0 0 0 7px rgba(17, 210, 208, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(17, 210, 208, 0); }
+      }
     </style>
   </head>
   <body class="bg-tech-grid bg-wafer bg-silicon" data-pov-contract-id="POV-SAM-OWNER-SHELL-2026-08-30" data-pov-scope-id="POV-SAM-OWNER-SHELL-2026-08-30" data-artifact-mode="first-party-portfolio" data-accountable-owner-key="sam-huang">
-    <a class="skip-link" href="#projectGrid">跳至主要專案矩陣</a>
+    <a class="skip-link" href="#projectGrid"><span data-lang="zh">跳至主要專案矩陣</span><span data-lang="en">Skip to project matrix</span></a>
 
     <!-- 背景動態環境光暈與晶圓架構 -->
     <div class="ambient-architecture" aria-hidden="true">
@@ -221,15 +285,20 @@
         <div class="header-status" aria-label="公開專案狀態摘要">
           <span class="status-pill status-pill--live">
             <i class="status-dot status-dot--live status-dot--pulse" aria-hidden="true"></i>
-            <b>6</b> ACTIVE NODES
+            <b>6</b> <span data-lang="zh">有效節點</span><span data-lang="en">ACTIVE NODES</span>
           </span>
           <span class="status-pill status-pill--source">
             <i class="status-dot status-dot--source" aria-hidden="true"></i>
-            <b>2</b> REPOS
+            <b>2</b> <span data-lang="zh">儲存庫</span><span data-lang="en">REPOS</span>
           </span>
         </div>
 
-        <a class="github-profile" href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer" aria-label="前往 Sam Huang GitHub 個人主頁">GITHUB <span aria-hidden="true">↗</span></a>
+        <div class="header-actions">
+          <button class="language-toggle" id="languageToggle" type="button" aria-label="Switch to English (切換至英文)">
+            <b data-lang-option="zh">中</b><i>/</i><b data-lang-option="en">EN</b>
+          </button>
+          <a class="github-profile" href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer" aria-label="前往 Sam Huang GitHub 個人主頁">GITHUB <span aria-hidden="true">↗</span></a>
+        </div>
       </div>
     </header>
 
@@ -237,9 +306,9 @@
       <!-- 緊湊型 Hero (高度收斂，避免空曠) -->
       <section class="portal-intro" aria-labelledby="portal-title">
         <div class="intro-copy">
-          <p class="eyebrow"><span>PROJECT PORTAL</span><b>TAIWAN · 2026</b></p>
-          <h1 id="portal-title"><em>Sam Huang</em><span>從矽智財到可執行系統</span></h1>
-          <p class="hero-desc">From architecture to working systems · Semiconductor IP · Secure Storage</p>
+          <p class="eyebrow"><span>PROJECT PORTAL</span><b><span data-lang="zh">台灣 · 2026</span><span data-lang="en">TAIWAN · 2026</span></b></p>
+          <h1 id="portal-title"><em>Sam Huang</em><span data-lang="zh">從矽智財到可執行系統</span><span data-lang="en">From Silicon IP to Working Systems</span></h1>
+          <p class="hero-desc"><span data-lang="zh">從架構規劃到可執行系統 · 半導體 IP · 安全儲存 (Secure Storage)</span><span data-lang="en">From architecture to working systems · Semiconductor IP · Secure Storage</span></p>
         </div>
       </section>
 
@@ -259,22 +328,22 @@
               <button type="button" role="tab" aria-selected="true" id="tab-all" class="project-rail-btn tab-btn active" onclick="switchTab('all')">
                 <span class="project-rail-code">00</span>
                 <div class="project-rail-desc">
-                  <span class="project-rail-label">全部節點 (06)</span>
-                  <span class="project-rail-sub">ALL NODES</span>
+                  <span class="project-rail-label"><span data-lang="zh">全部節點 (06)</span><span data-lang="en">All Nodes (06)</span></span>
+                  <span class="project-rail-sub">ALL CATEGORIES</span>
                 </div>
               </button>
               <button type="button" role="tab" aria-selected="false" id="tab-live" class="project-rail-btn tab-btn" onclick="switchTab('live')">
                 <span class="project-rail-code">01</span>
                 <div class="project-rail-desc">
-                  <span class="project-rail-label">可執行網站 (04)</span>
-                  <span class="project-rail-sub">RUNNABLE WEB</span>
+                  <span class="project-rail-label"><span data-lang="zh">可執行網站 (04)</span><span data-lang="en">Runnable Web (04)</span></span>
+                  <span class="project-rail-sub">LIVE WEBSITES</span>
                 </div>
               </button>
               <button type="button" role="tab" aria-selected="false" id="tab-git" class="project-rail-btn tab-btn" onclick="switchTab('git')">
                 <span class="project-rail-code">02</span>
                 <div class="project-rail-desc">
-                  <span class="project-rail-label">僅 Git 專案 (02)</span>
-                  <span class="project-rail-sub">OPEN REPOSITORIES</span>
+                  <span class="project-rail-label"><span data-lang="zh">僅 Git 專案 (02)</span><span data-lang="en">Open Repos (02)</span></span>
+                  <span class="project-rail-sub">SOURCE ONLY</span>
                 </div>
               </button>
             </nav>
@@ -291,28 +360,28 @@
                   <span class="stat-mini-code">METRIC #01</span>
                 </div>
                 <div class="stat-mini-num">06</div>
-                <span class="stat-mini-label">ACTIVE NODES</span>
+                <span class="stat-mini-label"><span data-lang="zh">活躍架構節點</span><span data-lang="en">ACTIVE SYSTEM NODES</span></span>
               </div>
               <div class="stat-mini-card">
                 <div class="stat-mini-head">
                   <span class="stat-mini-code">METRIC #02</span>
                 </div>
                 <div class="stat-mini-num">04</div>
-                <span class="stat-mini-label">LIVE WEBSITES</span>
+                <span class="stat-mini-label"><span data-lang="zh">可即時存取網站</span><span data-lang="en">LIVE INTERACTIVE WEB</span></span>
               </div>
               <div class="stat-mini-card">
                 <div class="stat-mini-head">
                   <span class="stat-mini-code">METRIC #03</span>
                 </div>
                 <div class="stat-mini-num">02</div>
-                <span class="stat-mini-label">GIT REPOSITORIES</span>
+                <span class="stat-mini-label"><span data-lang="zh">公開原始碼倉庫</span><span data-lang="en">OPEN REPOSITORIES</span></span>
               </div>
               <div class="stat-mini-card">
                 <div class="stat-mini-head">
                   <span class="stat-mini-code">METRIC #04</span>
                 </div>
                 <div class="stat-mini-num">2026</div>
-                <span class="stat-mini-label">SYSTEM ARCHITECTURE</span>
+                <span class="stat-mini-label"><span data-lang="zh">系統架構基準</span><span data-lang="en">SILICON SPEC 2026</span></span>
               </div>
             </div>
 
@@ -327,10 +396,10 @@
                 </div>
                 <span class="card-domain">SEMICONDUCTOR IP · RESEARCH</span>
                 <h3>NVM Knowledge Hub</h3>
-                <p>整合 Secure Storage、AI Era 應用與 NVM Whitepaper Studio 的完整半導體研究門戶。</p>
+                <p><span data-lang="zh">整合 Secure Storage、AI 時代應用與 NVM 白皮書工作室的完整半導體研究門戶。</span><span data-lang="en">Comprehensive semiconductor research portal integrating Secure Storage, AI-era applications, and NVM Whitepaper Studio.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">OTP · MTP · eFlash · PUF</span>
-                  <span class="card-enter">進入門戶 <b aria-hidden="true">↗</b></span>
+                  <span class="card-enter"><span data-lang="zh">進入門戶</span><span data-lang="en">Open Hub</span> <b aria-hidden="true">↗</b></span>
                 </div>
               </a>
 
@@ -342,11 +411,11 @@
                   <span class="card-signal font-mono" aria-hidden="true">NODE-02</span>
                 </div>
                 <span class="card-domain">INTERACTIVE SYSTEMS · ARCADE</span>
-                <h3>多元遊戲大廳</h3>
-                <p>涵蓋 3D 棋盤對弈、策略模擬、復古街機與休閒益智等 21 款主題領域的互動遊戲合輯。</p>
+                <h3><span data-lang="zh">多元遊戲大廳</span><span data-lang="en">Interactive Game Arcade</span></h3>
+                <p><span data-lang="zh">涵蓋 3D 棋盤對弈、策略模擬、復古街機與休閒益智等 21 款主題領域的互動遊戲合輯。</span><span data-lang="en">Interactive gaming suite featuring 21 titles across 3D chess/board engines, strategy simulation, retro arcade, and puzzles.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">21 Games · 3D · Web Audio</span>
-                  <span class="card-enter">進入大廳 <b aria-hidden="true">↗</b></span>
+                  <span class="card-enter"><span data-lang="zh">進入大廳</span><span data-lang="en">Enter Arcade</span> <b aria-hidden="true">↗</b></span>
                 </div>
               </a>
 
@@ -359,10 +428,10 @@
                 </div>
                 <span class="card-domain">LEARNING ENGINE · 3 TRACKS</span>
                 <h3>E‑Learning</h3>
-                <p>臺灣數學 (K-12)、あおば日語 (JLPT) 與多益英語 (TOEIC) 三軌統一的模組化學習引擎。</p>
+                <p><span data-lang="zh">臺灣數學 (K-12)、あおば日語 (JLPT) 與多益英語 (TOEIC) 三軌統一的模組化學習引擎。</span><span data-lang="en">Unified modular learning engine integrating Taiwan Math (K-12), Aoba Japanese (JLPT), and TOEIC English tracks.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">Math · JLPT · TOEIC · FSRS</span>
-                  <span class="card-enter">開始學習 <b aria-hidden="true">↗</b></span>
+                  <span class="card-enter"><span data-lang="zh">開始學習</span><span data-lang="en">Start Learning</span> <b aria-hidden="true">↗</b></span>
                 </div>
               </a>
 
@@ -375,10 +444,10 @@
                 </div>
                 <span class="card-domain">HARDWARE · ENGINEERING PROFILE</span>
                 <h3>Hardware Profile</h3>
-                <p>AI 工作站、RTX 5080 eGPU、開發環境與工程硬體資產規格的可互動檢視紀錄。</p>
+                <p><span data-lang="zh">AI 工作站、RTX 5080 eGPU、開發環境與工程硬體資產規格的可互動檢視紀錄。</span><span data-lang="en">Interactive engineering asset profile detailing AI workstations, RTX 5080 eGPU setups, and dev environments.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">Ultra 9 · RTX 5080 · 96GB</span>
-                  <span class="card-enter">查看硬體 <b aria-hidden="true">↗</b></span>
+                  <span class="card-enter"><span data-lang="zh">查看硬體</span><span data-lang="en">View Rig</span> <b aria-hidden="true">↗</b></span>
                 </div>
               </a>
 
@@ -391,10 +460,10 @@
                 </div>
                 <span class="card-domain">SECURE STORAGE · OIP BRIEFING</span>
                 <h3>Secure Storage OIP</h3>
-                <p>Secure Storage 與 OIP 技術溝通的公開原始碼、技術簡報與硬體架構實作。</p>
+                <p><span data-lang="zh">Secure Storage 與 OIP 技術溝通的公開原始碼、技術簡報與硬體架構實作。</span><span data-lang="en">Open-source codebase, technical briefings, and silicon architecture reference for Secure Storage and TSMC OIP alignment.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">Hardware IP · OIP · Crypto</span>
-                  <span class="card-enter">查看 Repo <b aria-hidden="true">↗</b></span>
+                  <span class="card-enter"><span data-lang="zh">查看 Repo</span><span data-lang="en">View Repo</span> <b aria-hidden="true">↗</b></span>
                 </div>
               </a>
 
@@ -407,10 +476,10 @@
                 </div>
                 <span class="card-domain">DATA INTERFACE · TERMINAL</span>
                 <h3>TW Pulse Terminal</h3>
-                <p>以終端命令語彙重組台灣脈動資訊與技術數據介面的開源 Python/Web 專案。</p>
+                <p><span data-lang="zh">以終端命令語彙重組台灣脈動資訊與技術數據介面的開源 Python/Web 專案。</span><span data-lang="en">Open-source Python and web terminal synthesizing Taiwan macroeconomic indicators and real-time market data feeds.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">Python · CLI · REST API</span>
-                  <span class="card-enter">查看 Repo <b aria-hidden="true">↗</b></span>
+                  <span class="card-enter"><span data-lang="zh">查看 Repo</span><span data-lang="en">View Repo</span> <b aria-hidden="true">↗</b></span>
                 </div>
               </a>
             </div>
@@ -426,8 +495,8 @@
         <strong>Sam Huang</strong>
         <span>SEMICONDUCTOR IP · SYSTEMS · INTERACTIVE PRODUCTS</span>
       </div>
-      <p>從架構與證據，走到可以使用的成果。<span lang="en">From architecture and evidence to working systems.</span></p>
-      <a href="#page-top">TOP ↑</a>
+      <p><span data-lang="zh">從架構與證據，走到可以使用的成果。</span><span data-lang="en">From architecture and evidence to working systems.</span></p>
+      <a href="#page-top"><span data-lang="zh">TOP ↑</span><span data-lang="en">TOP ↑</span></a>
       <small>© <span data-current-year>2026</span></small>
     </footer>
   </body>
