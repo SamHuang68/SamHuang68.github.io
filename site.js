@@ -1,6 +1,6 @@
 /**
- * Sam Huang Portal · site.js (v20260905-bilingual-v4)
- * 純前端雙語切換、狀態持久化、分類濾鏡與微互動
+ * Sam Huang Portal · site.js (v20260905-bilingual-v5)
+ * 高可靠純前端雙語切換引擎與卡片過濾
  */
 (() => {
   document.documentElement.classList.add('js-ready');
@@ -116,7 +116,7 @@
         card.style.opacity = '0';
         card.style.transform = 'translateY(4px)';
         requestAnimationFrame(() => {
-          card.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+          card.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
           card.style.opacity = '1';
           card.style.transform = 'translateY(0)';
         });

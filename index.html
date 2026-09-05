@@ -34,7 +34,7 @@
         } catch(e) {}
       })();
     </script>
-    <script src="./site.js?v=20260905-bilingual-v4" defer></script>
+    <script src="./site.js?v=20260905-bilingual-v5" defer></script>
     <style>
       /* =======================================================
          高可靠純前端中英雙語規則 (Single Source of Truth)
@@ -48,7 +48,7 @@
       body[data-language="en"] [data-lang="en"] { display: inline !important; }
 
       /* =======================================================
-         極致收斂版面：一頁完整容納所有內容 (One-Screen Fit Layout)
+         極致工整單屏工作台佈局 (Precision Studio Workbench)
          ======================================================= */
       body {
         margin: 0;
@@ -57,33 +57,39 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        justify-content: space-between;
+        background-color: #030a12;
       }
       main {
         flex: 1;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding: 6px 0;
+        padding: 10px 0 16px;
       }
 
-      /* 頂部導航列 (44px 緊湊型) */
+      /* 頂部導航列 (48px 精緻 HUD) */
       .site-header {
-        height: 44px;
-        min-height: 44px;
+        height: 48px;
+        min-height: 48px;
+        background: rgba(4, 18, 28, 0.92);
+        border-bottom: 1px solid rgba(113, 236, 227, 0.16);
       }
       .header-inner {
-        height: 44px;
-        padding: 0 16px;
+        height: 48px;
+        padding: 0 24px;
+        max-width: 1440px;
+        margin: 0 auto;
       }
 
       /* 語系切換膠囊按鈕 */
       .language-toggle {
         display: inline-flex;
         align-items: center;
-        gap: 2px;
-        height: 28px;
-        padding: 0 8px;
-        border: 1px solid rgba(113, 236, 227, 0.35);
+        gap: 3px;
+        height: 30px;
+        padding: 0 10px;
+        border: 1px solid rgba(113, 236, 227, 0.3);
         border-radius: 4px;
         background: rgba(7, 29, 43, 0.85);
         color: #94a3b8;
@@ -95,7 +101,7 @@
       }
       .language-toggle:hover {
         border-color: #73eee4;
-        background: rgba(17, 210, 208, 0.18);
+        background: rgba(17, 210, 208, 0.16);
         color: #ffffff;
       }
       .language-toggle b { font-weight: 800; }
@@ -108,51 +114,58 @@
       .header-actions {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
       }
 
-      /* 緊湊型 Hero (高度僅佔約 44px) */
+      /* 恢復優雅層次的 Hero 區塊 (垂直分明，不擠在一行) */
       .portal-intro {
-        padding: 4px 16px 8px;
+        padding: 8px 24px 16px;
         margin: 0 auto;
         max-width: 1440px;
         width: 100%;
       }
       .portal-intro .intro-copy {
         display: flex;
-        align-items: baseline;
-        gap: 14px;
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 4px;
       }
       .portal-intro .eyebrow {
         margin: 0;
-        font-size: 0.65rem;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        color: #73eee4;
       }
       .portal-intro h1 {
         margin: 0;
-        font-size: clamp(16px, 1.4vw, 20px);
-        line-height: 1.2;
+        font-size: clamp(20px, 1.8vw, 26px);
+        font-weight: 700;
+        line-height: 1.25;
+        letter-spacing: -0.02em;
+        color: #f8fafc;
       }
       .portal-intro h1 em {
-        margin-right: 8px;
+        color: #73eee4;
+        font-style: normal;
+        margin-right: 10px;
       }
       .portal-intro .hero-desc {
         margin: 0;
-        font-size: 0.72rem;
-        color: #94a3b8;
+        font-size: 0.8rem;
+        color: #8ea9b3;
       }
 
-      /* 高密度工作台容器 (填滿一頁視窗，杜絕下方過多空白) */
+      /* 高密度工作台容器 (填滿一頁視窗，比例平衡) */
       .portal-studio-container {
         max-width: 1440px;
         margin: 0 auto;
-        padding: 0 16px;
+        padding: 0 24px;
         width: 100%;
       }
       .portal-studio-layout {
         display: grid;
-        grid-template-columns: 240px minmax(0, 1fr);
-        gap: 16px;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 20px;
         align-items: stretch;
       }
       @media (max-width: 1024px) {
@@ -161,51 +174,51 @@
         }
       }
 
-      /* 左側直立專案測條 (整合 4-Metric Strip) */
+      /* 左側直立專案測條 (與右側 6 大卡片等高平衡) */
       .project-vertical-rail {
         background: #061925;
-        border: 1px solid rgba(115, 238, 228, 0.2);
-        border-radius: 8px;
-        padding: 12px;
+        border: 1px solid rgba(115, 238, 228, 0.22);
+        border-radius: 10px;
+        padding: 16px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
       }
       .rail-header {
         border-bottom: 1px solid rgba(255,255,255,0.08);
-        padding-bottom: 8px;
-        margin-bottom: 8px;
+        padding-bottom: 10px;
+        margin-bottom: 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
       .rail-title {
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         color: #73eee4;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.1em;
         font-weight: 700;
       }
       .rail-badge-counter {
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.65rem;
+        font-size: 0.68rem;
         color: #94a3b8;
         background: rgba(255,255,255,0.06);
-        padding: 1px 5px;
-        border-radius: 3px;
+        padding: 2px 6px;
+        border-radius: 4px;
       }
       .project-rail-nav {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
       }
       .project-rail-btn {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 7px 10px;
-        border-radius: 5px;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 6px;
         color: #94a3b8;
         background: rgba(255,255,255,0.02);
         border: 1px solid transparent;
@@ -213,7 +226,7 @@
         width: 100%;
         text-align: left;
         font-family: inherit;
-        transition: all 0.15s ease;
+        transition: all 0.18s ease;
       }
       .project-rail-btn:hover {
         color: #eaf3f2;
@@ -222,15 +235,15 @@
       }
       .project-rail-btn.active {
         color: #73eee4;
-        background: rgba(115, 238, 228, 0.12);
+        background: rgba(115, 238, 228, 0.14);
         border-color: #73eee4;
-        box-shadow: 0 0 12px rgba(115, 238, 228, 0.15);
+        box-shadow: 0 0 16px rgba(115, 238, 228, 0.18);
       }
       .project-rail-code {
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.68rem;
+        font-size: 0.7rem;
         font-weight: 700;
-        padding: 1px 5px;
+        padding: 2px 6px;
         border-radius: 3px;
         background: rgba(255,255,255,0.08);
         color: #eaf3f2;
@@ -244,47 +257,49 @@
         flex-direction: column;
       }
       .project-rail-label {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         font-weight: 600;
-        line-height: 1.2;
+        line-height: 1.25;
       }
       .project-rail-sub {
-        font-size: 0.62rem;
+        font-size: 0.65rem;
         font-family: 'IBM Plex Mono', monospace;
         color: #64748b;
+        margin-top: 2px;
       }
 
-      /* 測條底部整合型 4-Metric Strip (微型 2x2 網格) */
+      /* 測條底部整合型 4-Metric Strip (工整 2x2 網格) */
       .rail-stat-grid {
-        margin-top: 10px;
-        padding-top: 8px;
+        margin-top: 14px;
+        padding-top: 12px;
         border-top: 1px solid rgba(255,255,255,0.08);
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 6px;
+        gap: 8px;
       }
       .rail-stat-cell {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(115,238,228,0.12);
-        border-radius: 4px;
-        padding: 4px 6px;
+        background: rgba(255,255,255,0.025);
+        border: 1px solid rgba(115,238,228,0.14);
+        border-radius: 6px;
+        padding: 8px 10px;
       }
       .rail-stat-num {
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.95rem;
+        font-size: 1.15rem;
         font-weight: 700;
         color: #73eee4;
         line-height: 1;
       }
       .rail-stat-lbl {
-        font-size: 0.6rem;
+        font-size: 0.65rem;
+        font-family: 'IBM Plex Mono', monospace;
         color: #64748b;
-        line-height: 1.1;
-        margin-top: 2px;
+        line-height: 1.2;
+        margin-top: 3px;
         display: block;
       }
 
-      /* 右側 Stage：3 欄 x 2 列卡片網格 (一頁完美容納) */
+      /* 右側 Stage：3 欄 x 2 列卡片網格 (文字完整呈現，高度協調) */
       .portal-stage-main {
         display: flex;
         flex-direction: column;
@@ -292,7 +307,7 @@
       .portal-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
+        gap: 16px;
       }
       @media (max-width: 1200px) {
         .portal-grid { grid-template-columns: repeat(2, 1fr); }
@@ -301,51 +316,88 @@
         .portal-grid { grid-template-columns: 1fr; }
       }
 
-      /* 卡片高度收斂 (剛好滿足 min-height: 150px) */
+      /* 卡片高度充分保障 (display: grid, min-height: 185px) */
       .portal-card {
         display: grid;
-        min-height: 150px;
-        max-height: 165px;
-        padding: 10px 14px;
-        clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-        transition: transform 0.15s ease, border-color 0.15s ease;
+        min-height: 185px;
+        padding: 16px 18px;
+        background: linear-gradient(150deg, rgba(15, 23, 42, 0.9) 0%, rgba(3, 7, 18, 0.96) 100%);
+        border: 1px solid rgba(113, 236, 227, 0.18);
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      }
+      .portal-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(115, 238, 228, 0.5);
+        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(115, 238, 228, 0.15);
       }
       .portal-card .card-top-row {
-        margin-bottom: 2px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
       }
       .portal-card .card-domain {
-        font-size: 0.62rem;
-        margin-bottom: 2px;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.68rem;
+        color: #73eee4;
+        letter-spacing: 0.08em;
+        margin-bottom: 4px;
       }
       .portal-card h3 {
-        font-size: 0.88rem;
-        margin: 0 0 3px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 0 0 6px;
         line-height: 1.25;
+        color: #f8fafc;
       }
       .portal-card p {
-        font-size: 0.72rem;
-        line-height: 1.35;
-        margin: 0 0 4px;
+        font-size: 0.8rem;
+        line-height: 1.55;
+        margin: 0 0 10px;
         color: #94a3b8;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
       }
       .portal-card .card-bottom-row {
         margin-top: auto;
-        padding-top: 4px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .portal-card .card-chips {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.7rem;
+        color: #64748b;
+      }
+      .portal-card .card-enter {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #73eee4;
+        display: flex;
+        align-items: center;
+        gap: 4px;
       }
 
-      /* 底部微型 Footer (34px) */
+      /* 底部微型 Footer (38px) */
       footer {
-        height: 34px;
-        min-height: 34px;
-        padding: 0 16px;
+        height: 38px;
+        min-height: 38px;
+        padding: 0 24px;
+        max-width: 1440px;
+        width: 100%;
+        margin: 0 auto;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
+        color: #64748b;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
       }
       footer p { margin: 0; }
     </style>
@@ -360,7 +412,7 @@
       <div class="glow-orb glow-orb--emerald"></div>
     </div>
 
-    <!-- 頂部精密 HUD 導航列 (44px) -->
+    <!-- 頂部精密 HUD 導航列 (48px) -->
     <header class="site-header" id="page-top">
       <div class="header-inner">
         <a class="identity" href="./" aria-label="回到 Sam Huang 專案入口首頁">
@@ -393,12 +445,12 @@
     </header>
 
     <main>
-      <!-- 緊湊型 Hero (極致壓縮空間) -->
+      <!-- 工整層次的 Hero 區塊 -->
       <section class="portal-intro" aria-labelledby="portal-title">
         <div class="intro-copy">
-          <p class="eyebrow"><span>PROJECT PORTAL</span><b><span data-lang="zh">台灣 · 2026</span><span data-lang="en">TAIWAN · 2026</span></b></p>
+          <p class="eyebrow"><span>PROJECT PORTAL</span><b> · <span data-lang="zh">台灣 · 2026</span><span data-lang="en">TAIWAN · 2026</span></b></p>
           <h1 id="portal-title"><em>Sam Huang</em><span data-lang="zh">從矽智財到可執行系統</span><span data-lang="en">From Silicon IP to Working Systems</span></h1>
-          <p class="hero-desc"><span data-lang="zh">從架構規劃到可執行系統 · 半導體 IP · 安全儲存</span><span data-lang="en">From architecture to working systems · Semiconductor IP · Secure Storage</span></p>
+          <p class="hero-desc"><span data-lang="zh">從架構規劃到可執行系統 · 半導體 IP · 安全儲存 (Secure Storage)</span><span data-lang="en">From architecture to working systems · Semiconductor IP · Secure Storage</span></p>
         </div>
       </section>
 
@@ -461,7 +513,7 @@
             </div>
           </aside>
 
-          <!-- 右側主工作台：3x2 高密度卡片矩陣 (一頁全覽) -->
+          <!-- 右側主工作台：3x2 高密度卡片矩陣 (文字充實不截斷) -->
           <section class="portal-stage-main portal-section" id="project-portals" aria-labelledby="project-matrix-title">
             <h2 id="project-matrix-title" class="sr-only">半導體 IP 與系統矩陣</h2>
 
@@ -470,12 +522,12 @@
               <a class="portal-card portal-card--live portal-card--research pkg-card chip-card hud-card" href="https://samhuang68.github.io/secure-storage-knowledge-hub/" data-type="live" aria-label="進入 NVM Knowledge Hub，可執行研究與白皮書入口">
                 <div class="pin-strip" aria-hidden="true"></div>
                 <div class="card-top-row">
-                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i><span data-lang="zh">可執行網站 · LIVE WEB</span><span data-lang="en">LIVE WEB</span></span>
                   <span class="card-signal font-mono" aria-hidden="true">NODE-01</span>
                 </div>
                 <span class="card-domain">SEMICONDUCTOR IP · RESEARCH</span>
                 <h3>NVM Knowledge Hub</h3>
-                <p><span data-lang="zh">整合 Secure Storage、AI 時代應用與 NVM 白皮書工作室的完整半導體研究門戶。</span><span data-lang="en">Comprehensive semiconductor research portal integrating Secure Storage, AI-era applications, and NVM Whitepaper Studio.</span></p>
+                <p><span data-lang="zh">整合 Secure Storage、AI 時代應用與 NVM 白皮書工作室的完整半導體研究門戶。</span><span data-lang="en">Comprehensive semiconductor research portal integrating Secure Storage, AI applications, and NVM Whitepaper Studio.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">OTP · MTP · eFlash · PUF</span>
                   <span class="card-enter"><span data-lang="zh">進入門戶</span><span data-lang="en">Open Hub</span> <b aria-hidden="true">↗</b></span>
@@ -486,12 +538,12 @@
               <a class="portal-card portal-card--live portal-card--game pkg-card chip-card hud-card" href="https://samhuang68.github.io/chu-han-realm-pages/" data-type="live" aria-label="進入多元遊戲大廳，可執行互動遊戲網站">
                 <div class="pin-strip" aria-hidden="true"></div>
                 <div class="card-top-row">
-                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i><span data-lang="zh">可執行網站 · LIVE WEB</span><span data-lang="en">LIVE WEB</span></span>
                   <span class="card-signal font-mono" aria-hidden="true">NODE-02</span>
                 </div>
                 <span class="card-domain">INTERACTIVE SYSTEMS · ARCADE</span>
                 <h3><span data-lang="zh">多元遊戲大廳</span><span data-lang="en">Interactive Game Arcade</span></h3>
-                <p><span data-lang="zh">涵蓋 3D 棋盤對弈、策略模擬、復古街機與休閒益智等 21 款主題領域的互動遊戲合輯。</span><span data-lang="en">Interactive gaming suite featuring 21 titles across 3D chess/board engines, strategy simulation, retro arcade, and puzzles.</span></p>
+                <p><span data-lang="zh">涵蓋 3D 棋盤對弈、策略模擬、復古街機與休閒益智等 21 款主題領域的互動遊戲合輯。</span><span data-lang="en">Interactive gaming suite featuring 21 titles across 3D chess engines, strategy simulation, retro arcade, and puzzles.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">21 Games · 3D · Web Audio</span>
                   <span class="card-enter"><span data-lang="zh">進入大廳</span><span data-lang="en">Enter Arcade</span> <b aria-hidden="true">↗</b></span>
@@ -502,7 +554,7 @@
               <a class="portal-card portal-card--live portal-card--learning pkg-card chip-card hud-card" href="https://samhuang68.github.io/E-Learning/" data-type="live" aria-label="進入 E-Learning，可執行學習網站">
                 <div class="pin-strip" aria-hidden="true"></div>
                 <div class="card-top-row">
-                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i><span data-lang="zh">可執行網站 · LIVE WEB</span><span data-lang="en">LIVE WEB</span></span>
                   <span class="card-signal font-mono" aria-hidden="true">NODE-03</span>
                 </div>
                 <span class="card-domain">LEARNING ENGINE · 3 TRACKS</span>
@@ -518,7 +570,7 @@
               <a class="portal-card portal-card--live portal-card--hardware pkg-card chip-card hud-card" href="https://samhuang68.github.io/my-hardware/" data-type="live" aria-label="進入 Hardware Profile，可執行硬體網站">
                 <div class="pin-strip" aria-hidden="true"></div>
                 <div class="card-top-row">
-                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i>可執行網站 · LIVE WEB</span>
+                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i><span data-lang="zh">可執行網站 · LIVE WEB</span><span data-lang="en">LIVE WEB</span></span>
                   <span class="card-signal font-mono" aria-hidden="true">NODE-04</span>
                 </div>
                 <span class="card-domain">HARDWARE · ENGINEERING PROFILE</span>
@@ -534,12 +586,12 @@
               <a class="portal-card portal-card--source portal-card--research pkg-card chip-card hud-card" href="https://github.com/SamHuang68/secure-storage-oip-briefing" target="_blank" rel="noopener noreferrer" data-type="git" aria-label="查看 Secure Storage OIP Briefing Git 原始碼專案">
                 <div class="pin-strip" aria-hidden="true"></div>
                 <div class="card-top-row">
-                  <span class="availability availability--source"><i aria-hidden="true"></i>僅 Git 專案 · SOURCE ONLY</span>
+                  <span class="availability availability--source"><i aria-hidden="true"></i><span data-lang="zh">僅 Git 專案 · SOURCE ONLY</span><span data-lang="en">SOURCE ONLY</span></span>
                   <span class="card-signal font-mono" aria-hidden="true">NODE-05</span>
                 </div>
                 <span class="card-domain">SECURE STORAGE · OIP BRIEFING</span>
                 <h3>Secure Storage OIP</h3>
-                <p><span data-lang="zh">Secure Storage 與 OIP 技術溝通的公開原始碼、技術簡報與硬體架構實作。</span><span data-lang="en">Open-source codebase, technical briefings, and silicon architecture reference for Secure Storage and TSMC OIP alignment.</span></p>
+                <p><span data-lang="zh">Secure Storage 與 OIP 技術溝通的公開原始碼、技術簡報與硬體架構實作。</span><span data-lang="en">Open-source codebase, technical briefings, and silicon architecture reference for Secure Storage and TSMC OIP.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">Hardware IP · OIP · Crypto</span>
                   <span class="card-enter"><span data-lang="zh">查看 Repo</span><span data-lang="en">View Repo</span> <b aria-hidden="true">↗</b></span>
@@ -550,7 +602,7 @@
               <a class="portal-card portal-card--source portal-card--data pkg-card chip-card hud-card" href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener noreferrer" data-type="git" aria-label="查看 TW Pulse Terminal Git 原始碼專案">
                 <div class="pin-strip" aria-hidden="true"></div>
                 <div class="card-top-row">
-                  <span class="availability availability--source"><i aria-hidden="true"></i>僅 Git 專案 · SOURCE ONLY</span>
+                  <span class="availability availability--source"><i aria-hidden="true"></i><span data-lang="zh">僅 Git 專案 · SOURCE ONLY</span><span data-lang="en">SOURCE ONLY</span></span>
                   <span class="card-signal font-mono" aria-hidden="true">NODE-06</span>
                 </div>
                 <span class="card-domain">DATA INTERFACE · TERMINAL</span>
@@ -568,7 +620,7 @@
       </div>
     </main>
 
-    <!-- 底部微型 Footer (34px) -->
+    <!-- 底部微型 Footer (38px) -->
     <footer>
       <div class="footer-brand">
         <strong>Sam Huang</strong>
