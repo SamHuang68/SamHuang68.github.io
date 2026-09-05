@@ -468,9 +468,13 @@
       }
       .portal-card p {
         font-size: 14px;
-        line-height: 1.5;
-        margin: 0 0 10px;
+        line-height: 1.45;
+        margin: 0 0 8px;
         color: #94a3b8;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
       .portal-card .card-bottom-row {
         margin-top: auto;
@@ -717,7 +721,7 @@
                 </div>
                 <span class="card-domain">SEMICONDUCTOR IP · RESEARCH</span>
                 <h3>NVM Knowledge Hub</h3>
-                <p><span data-lang="zh">整合 Secure Storage、AI 時代應用與 NVM 白皮書工作室的完整半導體研究門戶。</span><span data-lang="en">Comprehensive semiconductor research portal integrating Secure Storage, AI applications, and NVM Whitepaper Studio.</span></p>
+                <p><span data-lang="zh">整合 Secure Storage、AI 時代應用與 NVM 白皮書工作室的完整半導體研究門戶。</span><span data-lang="en">Semiconductor research portal for Secure Storage, AI-era nodes, and NVM architecture.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">OTP · MTP · eFlash · PUF</span>
                   <span class="card-enter"><span data-lang="zh">進入門戶</span><span data-lang="en">Open Hub</span> <b aria-hidden="true">↗</b></span>
@@ -733,7 +737,7 @@
                 </div>
                 <span class="card-domain">INTERACTIVE SYSTEMS · ARCADE</span>
                 <h3><span data-lang="zh">多元遊戲大廳</span><span data-lang="en">Interactive Game Arcade</span></h3>
-                <p><span data-lang="zh">涵蓋 3D 棋盤對弈、策略模擬、復古街機與休閒益智等 21 款主題領域的互動遊戲合輯。</span><span data-lang="en">Interactive gaming suite featuring 21 titles across 3D chess engines, strategy simulation, retro arcade, and puzzles.</span></p>
+                <p><span data-lang="zh">涵蓋 3D 棋盤對弈、策略模擬、復古街機與休閒益智等 21 款主題領域的互動遊戲合輯。</span><span data-lang="en">Interactive gaming suite featuring 21 titles across 3D chess, strategy, arcade, and puzzles.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">21 Games · 3D · Web Audio</span>
                   <span class="card-enter"><span data-lang="zh">進入大廳</span><span data-lang="en">Enter Arcade</span> <b aria-hidden="true">↗</b></span>
@@ -749,7 +753,7 @@
                 </div>
                 <span class="card-domain">LEARNING ENGINE · 3 TRACKS</span>
                 <h3>E‑Learning</h3>
-                <p><span data-lang="zh">臺灣數學 (K-12)、あおば日語 (JLPT) 與多益英語 (TOEIC) 三軌統一的模組化學習引擎。</span><span data-lang="en">Unified modular learning engine integrating Taiwan Math (K-12), Aoba Japanese (JLPT), and TOEIC English tracks.</span></p>
+                <p><span data-lang="zh">臺灣數學 (K-12)、あおば日語 (JLPT) 與多益英語 (TOEIC) 三軌統一的模組化學習引擎。</span><span data-lang="en">Unified learning engine integrating Taiwan Math (K-12), Japanese (JLPT), and English (TOEIC).</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">Math · JLPT · TOEIC · FSRS</span>
                   <span class="card-enter"><span data-lang="zh">開始學習</span><span data-lang="en">Start Learning</span> <b aria-hidden="true">↗</b></span>
@@ -765,7 +769,7 @@
                 </div>
                 <span class="card-domain">HARDWARE · ENGINEERING PROFILE</span>
                 <h3>Hardware Profile</h3>
-                <p><span data-lang="zh">AI 工作站、RTX 5080 eGPU、開發環境與工程硬體資產規格的可互動檢視紀錄。</span><span data-lang="en">Interactive engineering asset profile detailing AI workstations, RTX 5080 eGPU setups, and dev environments.</span></p>
+                <p><span data-lang="zh">AI 工作站、RTX 5080 eGPU、開發環境與工程硬體資產規格的可互動檢視紀錄。</span><span data-lang="en">Interactive asset profile detailing AI workstations, RTX 5080 eGPU, and dev environments.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">Ultra 9 · RTX 5080 · 96GB</span>
                   <span class="card-enter"><span data-lang="zh">查看硬體</span><span data-lang="en">View Rig</span> <b aria-hidden="true">↗</b></span>
@@ -781,7 +785,7 @@
                 </div>
                 <span class="card-domain">SECURE STORAGE · OIP BRIEFING</span>
                 <h3>Secure Storage OIP</h3>
-                <p><span data-lang="zh">Secure Storage 與 OIP 技術溝通的公開原始碼、技術簡報與硬體架構實作。</span><span data-lang="en">Open-source codebase, technical briefings, and silicon architecture reference for Secure Storage and TSMC OIP.</span></p>
+                <p><span data-lang="zh">Secure Storage 與 OIP 技術溝通的公開原始碼、技術簡報與硬體架構實作。</span><span data-lang="en">Open codebase, technical briefings, and silicon reference for Secure Storage and TSMC OIP.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">Hardware IP · OIP · Crypto</span>
                   <span class="card-enter"><span data-lang="zh">查看 Repo</span><span data-lang="en">View Repo</span> <b aria-hidden="true">↗</b></span>
@@ -797,7 +801,7 @@
                 </div>
                 <span class="card-domain">DATA INTERFACE · TERMINAL</span>
                 <h3>TW Pulse Terminal</h3>
-                <p><span data-lang="zh">以終端命令語彙重組台灣脈動資訊與技術數據介面的開源 Python/Web 專案。</span><span data-lang="en">Open-source Python and web terminal synthesizing Taiwan macroeconomic indicators and real-time market data feeds.</span></p>
+                <p><span data-lang="zh">以終端命令語彙重組台灣脈動資訊與技術數據介面的開源 Python/Web 專案。</span><span data-lang="en">Open-source terminal synthesizing Taiwan market indicators and real-time data telemetry.</span></p>
                 <div class="card-bottom-row">
                   <span class="card-chips font-mono">Python · CLI · REST API</span>
                   <span class="card-enter"><span data-lang="zh">查看 Repo</span><span data-lang="en">View Repo</span> <b aria-hidden="true">↗</b></span>
