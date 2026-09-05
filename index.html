@@ -68,27 +68,117 @@
         padding: 10px 0 16px;
       }
 
-      /* 頂部導航列 (48px 精緻 HUD) */
+      /* =======================================================
+         頂部精密 HUD 導航列 (64px 高度保障，杜絕切字與基線衝突)
+         ======================================================= */
       .site-header {
-        height: 48px;
-        min-height: 48px;
-        background: rgba(4, 18, 28, 0.92);
-        border-bottom: 1px solid rgba(113, 236, 227, 0.16);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        height: 64px;
+        min-height: 64px;
+        background: rgba(4, 18, 28, 0.95);
+        backdrop-filter: blur(18px) saturate(1.2);
+        border-bottom: 1px solid rgba(113, 236, 227, 0.2);
+        box-sizing: border-box;
       }
       .header-inner {
-        height: 48px;
+        height: 64px;
+        min-height: 64px;
         padding: 0 24px;
         max-width: 1440px;
         margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        box-sizing: border-box;
       }
 
-      /* 語系切換膠囊按鈕 */
+      /* 左側品牌 Identity (垂直居中，文字與底部分隔線保持安全距離) */
+      .identity {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        flex-shrink: 0;
+      }
+      .monogram {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(113, 236, 227, 0.45);
+        border-radius: 4px;
+        background: linear-gradient(145deg, rgba(17, 210, 208, 0.14), rgba(9, 34, 53, 0.4));
+        color: #71ece3;
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        flex-shrink: 0;
+      }
+      .identity-copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        line-height: 1.1;
+      }
+      .identity-copy strong {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #f8fafc;
+        line-height: 1.15;
+      }
+      .identity-copy span {
+        margin-top: 2px;
+        color: #8eabb3;
+        font-family: var(--mono);
+        font-size: 8.5px;
+        letter-spacing: 0.14em;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      /* 中間狀態標籤 (確保精確垂直對齊) */
+      .header-status {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        white-space: nowrap;
+      }
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: var(--mono);
+        font-size: 10px;
+        color: #94a3b8;
+        letter-spacing: 0.06em;
+      }
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+      }
+
+      /* 右側動作控制群組 (語系切換與 GitHub 按鈕高度統一為 44px) */
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
       .language-toggle {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 3px;
-        height: 30px;
-        padding: 0 10px;
+        height: 44px;
+        min-height: 44px;
+        padding: 0 12px;
         border: 1px solid rgba(113, 236, 227, 0.3);
         border-radius: 4px;
         background: rgba(7, 29, 43, 0.85);
@@ -97,6 +187,7 @@
         font-size: 11px;
         font-weight: 700;
         cursor: pointer;
+        box-sizing: border-box;
         transition: all 0.15s ease;
       }
       .language-toggle:hover {
@@ -111,11 +202,31 @@
       html[data-language="en"] .language-toggle [data-lang-option="zh"] { color: #64748b; }
       html[data-language="en"] .language-toggle [data-lang-option="en"] { color: #73eee4; }
 
-      .header-actions {
-        display: flex;
+      .github-profile {
+        display: inline-flex;
         align-items: center;
-        gap: 12px;
+        justify-content: center;
+        height: 44px;
+        min-height: 44px;
+        padding: 0 14px;
+        border: 1px solid rgba(113, 236, 227, 0.28);
+        border-radius: 4px;
+        background: rgba(7, 29, 43, 0.6);
+        color: #c8d8dc;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+        box-sizing: border-box;
+        transition: all 0.15s ease;
       }
+      .github-profile:hover {
+        border-color: #73eee4;
+        background: rgba(17, 210, 208, 0.12);
+        color: #ffffff;
+      }
+
+
 
       /* 恢復優雅層次的 Hero 區塊 (垂直分明，不擠在一行) */
       .portal-intro {
@@ -151,7 +262,7 @@
       }
       .portal-intro .hero-desc {
         margin: 0;
-        font-size: 0.8rem;
+        font-size: 14px;
         color: #8ea9b3;
       }
 
@@ -356,8 +467,8 @@
         color: #f8fafc;
       }
       .portal-card p {
-        font-size: 0.8rem;
-        line-height: 1.55;
+        font-size: 14px;
+        line-height: 1.5;
         margin: 0 0 10px;
         color: #94a3b8;
       }
@@ -400,6 +511,85 @@
         border-top: 1px solid rgba(255, 255, 255, 0.06);
       }
       footer p { margin: 0; }
+
+      /* =======================================================
+         響應式佈局適配規則 (放置於樣式表末端確保權重優先)
+         ======================================================= */
+      @media (max-width: 1060px) {
+        .header-status { display: none; }
+      }
+      @media (max-width: 768px) {
+        .project-vertical-rail { display: none; }
+        .portal-studio-layout { grid-template-columns: 1fr; }
+        .portal-grid { grid-template-columns: 1fr; gap: 10px; }
+        .portal-card {
+          min-height: 135px;
+          padding: 12px 15px;
+        }
+        .portal-card h3 {
+          font-size: 1.05rem;
+          margin-bottom: 4px;
+        }
+        .portal-card p {
+          font-size: 14px;
+          line-height: 1.45;
+          margin-bottom: 6px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      }
+      @media (max-width: 420px) {
+        .site-header {
+          height: 60px;
+          min-height: 60px;
+        }
+        .header-inner {
+          padding: 0 10px;
+          gap: 6px;
+        }
+        .identity {
+          gap: 6px;
+        }
+        .monogram {
+          width: 32px;
+          height: 32px;
+          font-size: 11px;
+        }
+        .identity-copy strong {
+          font-size: 14px;
+        }
+        .identity-copy span {
+          display: none;
+        }
+        .header-actions {
+          gap: 6px;
+        }
+        .language-toggle {
+          height: 44px;
+          min-height: 44px;
+          padding: 0 8px;
+          font-size: 10px;
+        }
+        .github-profile {
+          height: 44px;
+          min-height: 44px;
+          padding: 0 8px;
+          font-size: 10px;
+        }
+        .portal-intro {
+          padding: 6px 0 10px;
+        }
+        .portal-studio-container {
+          padding: 0;
+          width: 100%;
+        }
+        .portal-card {
+          min-height: 130px;
+          padding: 10px 12px;
+        }
+      }
     </style>
   </head>
   <body class="bg-tech-grid bg-wafer bg-silicon" data-pov-contract-id="POV-SAM-OWNER-SHELL-2026-08-30" data-pov-scope-id="POV-SAM-OWNER-SHELL-2026-08-30" data-artifact-mode="first-party-portfolio" data-accountable-owner-key="sam-huang">
