@@ -27,69 +27,133 @@
     <link rel="preload" href="./assets/sam-huang-portfolio-architecture-v2.webp" as="image" type="image/webp" />
     <link rel="stylesheet" href="./styles.css" />
     <script>
-      try {
-        const l = localStorage.getItem('portal_language') || localStorage.getItem('nvm-hub-language') || 'zh';
-        document.documentElement.setAttribute('data-language', l);
-      } catch(e) {}
+      (function() {
+        try {
+          var l = localStorage.getItem('portal_language') || localStorage.getItem('nvm-hub-language') || 'zh';
+          document.documentElement.setAttribute('data-language', l);
+        } catch(e) {}
+      })();
     </script>
-    <script src="./site.js" defer></script>
+    <script src="./site.js?v=20260905-bilingual-v4" defer></script>
     <style>
-      /* 語系切換顯示規則 (Single Source of Truth) */
+      /* =======================================================
+         高可靠純前端中英雙語規則 (Single Source of Truth)
+         ======================================================= */
       [data-lang="en"] { display: none !important; }
-      [data-lang="zh"] { display: inline; }
+      [data-lang="zh"] { display: inline !important; }
 
       html[data-language="en"] [data-lang="zh"],
       body[data-language="en"] [data-lang="zh"] { display: none !important; }
       html[data-language="en"] [data-lang="en"],
-      body[data-language="en"] [data-lang="en"] { display: inline; }
+      body[data-language="en"] [data-lang="en"] { display: inline !important; }
+
+      /* =======================================================
+         極致收斂版面：一頁完整容納所有內容 (One-Screen Fit Layout)
+         ======================================================= */
+      body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 6px 0;
+      }
+
+      /* 頂部導航列 (44px 緊湊型) */
+      .site-header {
+        height: 44px;
+        min-height: 44px;
+      }
+      .header-inner {
+        height: 44px;
+        padding: 0 16px;
+      }
 
       /* 語系切換膠囊按鈕 */
       .language-toggle {
         display: inline-flex;
         align-items: center;
-        gap: 3px;
-        min-height: 32px;
-        padding: 0 10px;
-        border: 1px solid rgba(113, 236, 227, 0.28);
+        gap: 2px;
+        height: 28px;
+        padding: 0 8px;
+        border: 1px solid rgba(113, 236, 227, 0.35);
         border-radius: 4px;
-        background: rgba(7, 29, 43, 0.7);
+        background: rgba(7, 29, 43, 0.85);
         color: #94a3b8;
         font-family: var(--mono);
         font-size: 11px;
         font-weight: 700;
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        text-decoration: none;
+        transition: all 0.15s ease;
       }
       .language-toggle:hover {
-        border-color: var(--cyan);
-        background: rgba(17, 210, 208, 0.12);
-        color: var(--paper);
+        border-color: #73eee4;
+        background: rgba(17, 210, 208, 0.18);
+        color: #ffffff;
       }
       .language-toggle b { font-weight: 800; }
-      .language-toggle i { color: rgba(255, 255, 255, 0.25); font-style: normal; margin: 0 1px; }
-      .language-toggle [data-lang-option="zh"] { color: var(--cyan); }
+      .language-toggle i { color: rgba(255, 255, 255, 0.3); font-style: normal; margin: 0 2px; }
+      .language-toggle [data-lang-option="zh"] { color: #73eee4; }
       .language-toggle [data-lang-option="en"] { color: #64748b; }
       html[data-language="en"] .language-toggle [data-lang-option="zh"] { color: #64748b; }
-      html[data-language="en"] .language-toggle [data-lang-option="en"] { color: var(--cyan); }
+      html[data-language="en"] .language-toggle [data-lang-option="en"] { color: #73eee4; }
 
       .header-actions {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
       }
 
-      /* 高密度直立測條工作台版面 (Executive Studio Workbench) */
+      /* 緊湊型 Hero (高度僅佔約 44px) */
+      .portal-intro {
+        padding: 4px 16px 8px;
+        margin: 0 auto;
+        max-width: 1440px;
+        width: 100%;
+      }
+      .portal-intro .intro-copy {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .portal-intro .eyebrow {
+        margin: 0;
+        font-size: 0.65rem;
+      }
+      .portal-intro h1 {
+        margin: 0;
+        font-size: clamp(16px, 1.4vw, 20px);
+        line-height: 1.2;
+      }
+      .portal-intro h1 em {
+        margin-right: 8px;
+      }
+      .portal-intro .hero-desc {
+        margin: 0;
+        font-size: 0.72rem;
+        color: #94a3b8;
+      }
+
+      /* 高密度工作台容器 (填滿一頁視窗，杜絕下方過多空白) */
       .portal-studio-container {
         max-width: 1440px;
-        margin: 16px auto 40px;
-        padding: 0 20px;
+        margin: 0 auto;
+        padding: 0 16px;
+        width: 100%;
       }
       .portal-studio-layout {
         display: grid;
-        grid-template-columns: 280px minmax(0, 1fr);
-        gap: 24px;
-        align-items: start;
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 16px;
+        align-items: stretch;
       }
       @media (max-width: 1024px) {
         .portal-studio-layout {
@@ -97,29 +161,30 @@
         }
       }
 
-      /* 左側直立專案測條 (Vertical Project Rail) */
+      /* 左側直立專案測條 (整合 4-Metric Strip) */
       .project-vertical-rail {
-        position: sticky;
-        top: 76px;
         background: #061925;
         border: 1px solid rgba(115, 238, 228, 0.2);
         border-radius: 8px;
-        padding: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
       }
       .rail-header {
         border-bottom: 1px solid rgba(255,255,255,0.08);
-        padding-bottom: 10px;
-        margin-bottom: 12px;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
       .rail-title {
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         color: #73eee4;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.08em;
         font-weight: 700;
       }
       .rail-badge-counter {
@@ -127,21 +192,20 @@
         font-size: 0.65rem;
         color: #94a3b8;
         background: rgba(255,255,255,0.06);
-        padding: 2px 6px;
-        border-radius: 4px;
+        padding: 1px 5px;
+        border-radius: 3px;
       }
       .project-rail-nav {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
       }
       .project-rail-btn {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px 12px;
-        border-radius: 6px;
-        text-decoration: none;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: 5px;
         color: #94a3b8;
         background: rgba(255,255,255,0.02);
         border: 1px solid transparent;
@@ -149,7 +213,7 @@
         width: 100%;
         text-align: left;
         font-family: inherit;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.15s ease;
       }
       .project-rail-btn:hover {
         color: #eaf3f2;
@@ -160,13 +224,13 @@
         color: #73eee4;
         background: rgba(115, 238, 228, 0.12);
         border-color: #73eee4;
-        box-shadow: 0 0 16px rgba(115, 238, 228, 0.18), inset 0 0 10px rgba(115, 238, 228, 0.08);
+        box-shadow: 0 0 12px rgba(115, 238, 228, 0.15);
       }
       .project-rail-code {
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         font-weight: 700;
-        padding: 2px 6px;
+        padding: 1px 5px;
         border-radius: 3px;
         background: rgba(255,255,255,0.08);
         color: #eaf3f2;
@@ -180,84 +244,110 @@
         flex-direction: column;
       }
       .project-rail-label {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 600;
-        line-height: 1.25;
-        color: inherit;
+        line-height: 1.2;
       }
       .project-rail-sub {
-        font-size: 0.68rem;
+        font-size: 0.62rem;
         font-family: 'IBM Plex Mono', monospace;
         color: #64748b;
-        margin-top: 2px;
       }
 
-      /* 緊湊型 Stat Strip 規格彩條 */
-      .project-stat-strip {
+      /* 測條底部整合型 4-Metric Strip (微型 2x2 網格) */
+      .rail-stat-grid {
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,0.08);
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        margin-bottom: 20px;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
       }
-      @media (max-width: 768px) {
-        .project-stat-strip { grid-template-columns: repeat(2, 1fr); }
+      .rail-stat-cell {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(115,238,228,0.12);
+        border-radius: 4px;
+        padding: 4px 6px;
       }
-      .stat-mini-card {
-        background: rgba(8, 28, 42, 0.65);
-        border: 1px solid rgba(115, 238, 228, 0.15);
-        border-radius: 6px;
-        padding: 10px 14px;
-        display: flex;
-        flex-direction: column;
-      }
-      .stat-mini-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 4px;
-      }
-      .stat-mini-code {
+      .rail-stat-num {
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.65rem;
-        color: #64748b;
-        letter-spacing: 0.08em;
-      }
-      .stat-mini-num {
-        font-family: 'IBM Plex Mono', monospace;
-        font-size: 1.15rem;
+        font-size: 0.95rem;
         font-weight: 700;
         color: #73eee4;
         line-height: 1;
       }
-      .stat-mini-label {
-        font-size: 0.72rem;
-        color: #94a3b8;
-        margin-top: 4px;
+      .rail-stat-lbl {
+        font-size: 0.6rem;
+        color: #64748b;
+        line-height: 1.1;
+        margin-top: 2px;
+        display: block;
       }
 
-      /* 右側 Stage 卡片矩陣緊湊佈局 */
+      /* 右側 Stage：3 欄 x 2 列卡片網格 (一頁完美容納) */
       .portal-stage-main {
         display: flex;
         flex-direction: column;
       }
       .portal-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 16px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      @media (max-width: 1200px) {
+        .portal-grid { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 680px) {
+        .portal-grid { grid-template-columns: 1fr; }
       }
 
-      /* 晶片封裝倒角與 Pin 腳美化 */
+      /* 卡片高度收斂 (剛好滿足 min-height: 150px) */
       .portal-card {
-        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+        display: grid;
+        min-height: 150px;
+        max-height: 165px;
+        padding: 10px 14px;
+        clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+        transition: transform 0.15s ease, border-color 0.15s ease;
       }
-      .status-dot--live {
-        animation: live-pulse-ring 2.2s infinite ease-in-out;
+      .portal-card .card-top-row {
+        margin-bottom: 2px;
       }
-      @keyframes live-pulse-ring {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(17, 210, 208, 0.7); }
-        70% { transform: scale(1.15); box-shadow: 0 0 0 7px rgba(17, 210, 208, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(17, 210, 208, 0); }
+      .portal-card .card-domain {
+        font-size: 0.62rem;
+        margin-bottom: 2px;
       }
+      .portal-card h3 {
+        font-size: 0.88rem;
+        margin: 0 0 3px;
+        line-height: 1.25;
+      }
+      .portal-card p {
+        font-size: 0.72rem;
+        line-height: 1.35;
+        margin: 0 0 4px;
+        color: #94a3b8;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .portal-card .card-bottom-row {
+        margin-top: auto;
+        padding-top: 4px;
+      }
+
+      /* 底部微型 Footer (34px) */
+      footer {
+        height: 34px;
+        min-height: 34px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.7rem;
+      }
+      footer p { margin: 0; }
     </style>
   </head>
   <body class="bg-tech-grid bg-wafer bg-silicon" data-pov-contract-id="POV-SAM-OWNER-SHELL-2026-08-30" data-pov-scope-id="POV-SAM-OWNER-SHELL-2026-08-30" data-artifact-mode="first-party-portfolio" data-accountable-owner-key="sam-huang">
@@ -270,7 +360,7 @@
       <div class="glow-orb glow-orb--emerald"></div>
     </div>
 
-    <!-- 頂部精密 HUD 導航列 (高度緊湊 48px) -->
+    <!-- 頂部精密 HUD 導航列 (44px) -->
     <header class="site-header" id="page-top">
       <div class="header-inner">
         <a class="identity" href="./" aria-label="回到 Sam Huang 專案入口首頁">
@@ -294,7 +384,7 @@
         </div>
 
         <div class="header-actions">
-          <button class="language-toggle" id="languageToggle" type="button" aria-label="Switch to English (切換至英文)">
+          <button class="language-toggle" id="languageToggle" type="button" onclick="window.toggleLanguage &amp;&amp; window.toggleLanguage()" aria-label="Switch to English (切換至英文)">
             <b data-lang-option="zh">中</b><i>/</i><b data-lang-option="en">EN</b>
           </button>
           <a class="github-profile" href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer" aria-label="前往 Sam Huang GitHub 個人主頁">GITHUB <span aria-hidden="true">↗</span></a>
@@ -303,12 +393,12 @@
     </header>
 
     <main>
-      <!-- 緊湊型 Hero (高度收斂，避免空曠) -->
+      <!-- 緊湊型 Hero (極致壓縮空間) -->
       <section class="portal-intro" aria-labelledby="portal-title">
         <div class="intro-copy">
           <p class="eyebrow"><span>PROJECT PORTAL</span><b><span data-lang="zh">台灣 · 2026</span><span data-lang="en">TAIWAN · 2026</span></b></p>
           <h1 id="portal-title"><em>Sam Huang</em><span data-lang="zh">從矽智財到可執行系統</span><span data-lang="en">From Silicon IP to Working Systems</span></h1>
-          <p class="hero-desc"><span data-lang="zh">從架構規劃到可執行系統 · 半導體 IP · 安全儲存 (Secure Storage)</span><span data-lang="en">From architecture to working systems · Semiconductor IP · Secure Storage</span></p>
+          <p class="hero-desc"><span data-lang="zh">從架構規劃到可執行系統 · 半導體 IP · 安全儲存</span><span data-lang="en">From architecture to working systems · Semiconductor IP · Secure Storage</span></p>
         </div>
       </section>
 
@@ -320,72 +410,61 @@
 
           <!-- 左側直立專案測條 (Vertical Project Rail) -->
           <aside class="project-vertical-rail" aria-label="專案分類直立測條">
-            <div class="rail-header">
-              <span class="rail-title">PROJECT LENS</span>
-              <span class="rail-badge-counter" id="matrix-count">06</span>
+            <div>
+              <div class="rail-header">
+                <span class="rail-title">PROJECT LENS</span>
+                <span class="rail-badge-counter" id="matrix-count">06</span>
+              </div>
+              <nav class="project-rail-nav" role="tablist" aria-label="專案分類切換">
+                <button type="button" role="tab" aria-selected="true" id="tab-all" class="project-rail-btn tab-btn active" onclick="switchTab('all')">
+                  <span class="project-rail-code">00</span>
+                  <div class="project-rail-desc">
+                    <span class="project-rail-label"><span data-lang="zh">全部節點 (06)</span><span data-lang="en">All Nodes (06)</span></span>
+                    <span class="project-rail-sub">ALL CATEGORIES</span>
+                  </div>
+                </button>
+                <button type="button" role="tab" aria-selected="false" id="tab-live" class="project-rail-btn tab-btn" onclick="switchTab('live')">
+                  <span class="project-rail-code">01</span>
+                  <div class="project-rail-desc">
+                    <span class="project-rail-label"><span data-lang="zh">可執行網站 (04)</span><span data-lang="en">Runnable Web (04)</span></span>
+                    <span class="project-rail-sub">LIVE WEBSITES</span>
+                  </div>
+                </button>
+                <button type="button" role="tab" aria-selected="false" id="tab-git" class="project-rail-btn tab-btn" onclick="switchTab('git')">
+                  <span class="project-rail-code">02</span>
+                  <div class="project-rail-desc">
+                    <span class="project-rail-label"><span data-lang="zh">僅 Git 專案 (02)</span><span data-lang="en">Open Repos (02)</span></span>
+                    <span class="project-rail-sub">SOURCE ONLY</span>
+                  </div>
+                </button>
+              </nav>
             </div>
-            <nav class="project-rail-nav" role="tablist" aria-label="專案分類切換">
-              <button type="button" role="tab" aria-selected="true" id="tab-all" class="project-rail-btn tab-btn active" onclick="switchTab('all')">
-                <span class="project-rail-code">00</span>
-                <div class="project-rail-desc">
-                  <span class="project-rail-label"><span data-lang="zh">全部節點 (06)</span><span data-lang="en">All Nodes (06)</span></span>
-                  <span class="project-rail-sub">ALL CATEGORIES</span>
-                </div>
-              </button>
-              <button type="button" role="tab" aria-selected="false" id="tab-live" class="project-rail-btn tab-btn" onclick="switchTab('live')">
-                <span class="project-rail-code">01</span>
-                <div class="project-rail-desc">
-                  <span class="project-rail-label"><span data-lang="zh">可執行網站 (04)</span><span data-lang="en">Runnable Web (04)</span></span>
-                  <span class="project-rail-sub">LIVE WEBSITES</span>
-                </div>
-              </button>
-              <button type="button" role="tab" aria-selected="false" id="tab-git" class="project-rail-btn tab-btn" onclick="switchTab('git')">
-                <span class="project-rail-code">02</span>
-                <div class="project-rail-desc">
-                  <span class="project-rail-label"><span data-lang="zh">僅 Git 專案 (02)</span><span data-lang="en">Open Repos (02)</span></span>
-                  <span class="project-rail-sub">SOURCE ONLY</span>
-                </div>
-              </button>
-            </nav>
+
+            <!-- 整合型 4-Metric Telemetry Strip -->
+            <div class="rail-stat-grid">
+              <div class="rail-stat-cell">
+                <div class="rail-stat-num">06</div>
+                <span class="rail-stat-lbl"><span data-lang="zh">活躍節點</span><span data-lang="en">NODES</span></span>
+              </div>
+              <div class="rail-stat-cell">
+                <div class="rail-stat-num">04</div>
+                <span class="rail-stat-lbl"><span data-lang="zh">線上網站</span><span data-lang="en">LIVE</span></span>
+              </div>
+              <div class="rail-stat-cell">
+                <div class="rail-stat-num">02</div>
+                <span class="rail-stat-lbl"><span data-lang="zh">程式庫</span><span data-lang="en">REPOS</span></span>
+              </div>
+              <div class="rail-stat-cell">
+                <div class="rail-stat-num">2026</div>
+                <span class="rail-stat-lbl"><span data-lang="zh">架構基準</span><span data-lang="en">SPEC</span></span>
+              </div>
+            </div>
           </aside>
 
-          <!-- 右側主工作台 (Stage) -->
+          <!-- 右側主工作台：3x2 高密度卡片矩陣 (一頁全覽) -->
           <section class="portal-stage-main portal-section" id="project-portals" aria-labelledby="project-matrix-title">
             <h2 id="project-matrix-title" class="sr-only">半導體 IP 與系統矩陣</h2>
 
-            <!-- 4-Metric 規格彩條 -->
-            <div class="project-stat-strip">
-              <div class="stat-mini-card">
-                <div class="stat-mini-head">
-                  <span class="stat-mini-code">METRIC #01</span>
-                </div>
-                <div class="stat-mini-num">06</div>
-                <span class="stat-mini-label"><span data-lang="zh">活躍架構節點</span><span data-lang="en">ACTIVE SYSTEM NODES</span></span>
-              </div>
-              <div class="stat-mini-card">
-                <div class="stat-mini-head">
-                  <span class="stat-mini-code">METRIC #02</span>
-                </div>
-                <div class="stat-mini-num">04</div>
-                <span class="stat-mini-label"><span data-lang="zh">可即時存取網站</span><span data-lang="en">LIVE INTERACTIVE WEB</span></span>
-              </div>
-              <div class="stat-mini-card">
-                <div class="stat-mini-head">
-                  <span class="stat-mini-code">METRIC #03</span>
-                </div>
-                <div class="stat-mini-num">02</div>
-                <span class="stat-mini-label"><span data-lang="zh">公開原始碼倉庫</span><span data-lang="en">OPEN REPOSITORIES</span></span>
-              </div>
-              <div class="stat-mini-card">
-                <div class="stat-mini-head">
-                  <span class="stat-mini-code">METRIC #04</span>
-                </div>
-                <div class="stat-mini-num">2026</div>
-                <span class="stat-mini-label"><span data-lang="zh">系統架構基準</span><span data-lang="en">SILICON SPEC 2026</span></span>
-              </div>
-            </div>
-
-            <!-- 專案 HUD 2x3 卡片矩陣 -->
             <div class="portal-grid" id="projectGrid">
               <!-- 專案 01: NVM Knowledge Hub (Live · Cyan) -->
               <a class="portal-card portal-card--live portal-card--research pkg-card chip-card hud-card" href="https://samhuang68.github.io/secure-storage-knowledge-hub/" data-type="live" aria-label="進入 NVM Knowledge Hub，可執行研究與白皮書入口">
@@ -489,11 +568,11 @@
       </div>
     </main>
 
-    <!-- 底部微資訊列 (高度 44px) -->
+    <!-- 底部微型 Footer (34px) -->
     <footer>
       <div class="footer-brand">
         <strong>Sam Huang</strong>
-        <span>SEMICONDUCTOR IP · SYSTEMS · INTERACTIVE PRODUCTS</span>
+        <span>SEMICONDUCTOR IP · SYSTEMS</span>
       </div>
       <p><span data-lang="zh">從架構與證據，走到可以使用的成果。</span><span data-lang="en">From architecture and evidence to working systems.</span></p>
       <a href="#page-top"><span data-lang="zh">TOP ↑</span><span data-lang="en">TOP ↑</span></a>

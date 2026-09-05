@@ -1,5 +1,5 @@
 /**
- * Sam Huang Portal · site.js
+ * Sam Huang Portal · site.js (v20260905-bilingual-v4)
  * 純前端雙語切換、狀態持久化、分類濾鏡與微互動
  */
 (() => {
@@ -49,13 +49,12 @@
     }
   };
 
-  const setLanguage = (lang, persist = true) => {
+  window.setSiteLanguage = (lang, persist = true) => {
     const target = lang === 'en' ? 'en' : 'zh';
     document.documentElement.setAttribute('data-language', target);
     if (document.body) {
       document.body.setAttribute('data-language', target);
     }
-    // 嚴格保留 lang 屬性相容性
     document.documentElement.lang = target === 'zh' ? 'zh-Hant' : 'en';
 
     if (persist) {
@@ -65,35 +64,35 @@
       } catch {}
     }
 
-    // 更新 Language Toggle 按鈕
     const toggleBtn = document.getElementById('languageToggle');
     if (toggleBtn) {
       toggleBtn.setAttribute('aria-label', target === 'zh' ? 'Switch to English (切換至英文)' : '切換至繁體中文 (Switch to Traditional Chinese)');
     }
 
-    // 動態同步卡片 aria-label
     cards.forEach((card, idx) => {
       if (CARD_LABELS[target] && CARD_LABELS[target][idx]) {
         card.setAttribute('aria-label', CARD_LABELS[target][idx]);
       }
     });
 
-    // 廣播跨組件語系事件
     window.dispatchEvent(new CustomEvent('portal:language-change', { detail: { language: target } }));
   };
 
-  // 綁定 Language Toggle 點擊
+  window.toggleLanguage = () => {
+    const current = document.documentElement.getAttribute('data-language') || 'zh';
+    window.setSiteLanguage(current === 'zh' ? 'en' : 'zh', true);
+  };
+
   const toggleBtn = document.getElementById('languageToggle');
   if (toggleBtn) {
     toggleBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      const current = document.documentElement.getAttribute('data-language') || 'zh';
-      setLanguage(current === 'zh' ? 'en' : 'zh', true);
+      window.toggleLanguage();
     });
   }
 
   // 初始化語系
-  setLanguage(getStoredLanguage(), false);
+  window.setSiteLanguage(getStoredLanguage(), false);
 
   // 4. 直立測條工作台過濾 (Vertical Project Rail Filter)
   window.switchTab = (type) => {
@@ -117,7 +116,7 @@
         card.style.opacity = '0';
         card.style.transform = 'translateY(4px)';
         requestAnimationFrame(() => {
-          card.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+          card.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
           card.style.opacity = '1';
           card.style.transform = 'translateY(0)';
         });
