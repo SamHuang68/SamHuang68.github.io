@@ -62,7 +62,7 @@ for (const [label, pattern] of ownerSignals) {
 }
 
 const requiredDestinations = [
-  'https://samhuang68.github.io/secure-storage-knowledge-hub/',
+  'https://samhuang68.github.io/nvm-knowledge-hub/',
   'https://github.com/SamHuang68/secure-storage-oip-briefing',
   'https://samhuang68.github.io/chu-han-realm-pages/',
   'https://samhuang68.github.io/E-Learning/',
