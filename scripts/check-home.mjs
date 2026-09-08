@@ -6,6 +6,7 @@ const root = process.cwd();
 const html = await readFile(path.join(root, 'index.html'), 'utf8');
 const css = await readFile(path.join(root, 'styles.css'), 'utf8');
 const js = await readFile(path.join(root, 'site.js'), 'utf8');
+const favicon = await readFile(path.join(root, 'favicon.svg'), 'utf8');
 const failures = [];
 
 const fail = (message) => failures.push(message);
@@ -49,17 +50,28 @@ for (const match of html.matchAll(/<a\b([^>]*target="_blank"[^>]*)>/gi)) {
   }
 }
 
-const ownerSignals = [
-  ['document title', /<title>Sam Huang｜/i],
-  ['Open Graph site name', /property="og:site_name"\s+content="Sam Huang"/i],
-  ['header identity', /class="identity-copy"[^>]*>[\s\S]*?<strong>Sam Huang<\/strong>/i],
-  ['portal owner', /<h1[^>]*>[\s\S]*?<em>Sam Huang<\/em>/i],
-  ['footer identity', /class="footer-brand"[^>]*>[\s\S]*?<strong>Sam Huang<\/strong>/i],
+const portalSignals = [
+  ['頁面標題', /<title>半導體與系統專案入口｜/i],
+  ['分享網站名稱', /property="og:site_name"\s+content="半導體與系統專案入口"/i],
+  ['頁首中英文識別', /class="identity-copy"[^>]*>\s*<strong><b data-lang="zh">專案入口<\/b><b data-lang="en">Project Portal<\/b><\/strong>/i],
+  ['主標入口名稱', /<h1[^>]*><em data-lang="zh">專案入口<\/em><em data-lang="en">Project Portal<\/em>/i],
+  ['頁尾中英文識別', /class="footer-brand"[^>]*>\s*<strong><b data-lang="zh">專案入口<\/b><b data-lang="en">Project Portal<\/b><\/strong>/i],
+  ['中性入口圖示', /class="monogram"[^>]*>IP<\/span>/i],
 ];
 
-for (const [label, pattern] of ownerSignals) {
-  if (!pattern.test(html)) fail(`owner-first signal missing: ${label}`);
+for (const [label, pattern] of portalSignals) {
+  if (!pattern.test(html)) fail(`缺少專案入口識別：${label}`);
 }
+
+// 實際帳號網址與既有資產路徑保持不變；頁面文字、朗讀名稱與分享資訊不留個人署名。
+const publicMarkup = html
+  .replace(/<!--[^]*?-->/g, '')
+  .replace(/<(script|style)\b[^>]*>[^]*?<\/\1>/gi, '')
+  .replace(/\s(?:href|src)="[^"]*"/gi, '')
+  .replace(/\scontent="https?:\/\/[^\"]*"/gi, '');
+if (/\bSam[\s-]+Huang\b|\bSH\b/i.test(publicMarkup)) fail('頁面或中繼資訊仍含個人署名');
+if (!/aria-label="專案入口"/.test(favicon)) fail('頁籤圖示缺少中性可讀名稱');
+if (/\bSam[\s-]+Huang\b|\bSH\b/i.test(favicon)) fail('頁籤圖示仍含個人署名');
 
 const requiredDestinations = [
   'https://samhuang68.github.io/nvm-knowledge-hub/',
