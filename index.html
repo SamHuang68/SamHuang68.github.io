@@ -297,7 +297,7 @@
         background: #061925;
         border: 1px solid rgba(115, 238, 228, 0.22);
         border-radius: 10px;
-        padding: 16px;
+        padding: 12px 14px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -437,8 +437,8 @@
       /* 保留晶片卡片造型，讓文字與操作有充足空間 */
       .portal-card {
         display: grid;
-        min-height: 224px;
-        padding: 18px 20px;
+        min-height: 170px;
+        padding: 14px 16px;
         background: linear-gradient(150deg, rgba(15, 23, 42, 0.9) 0%, rgba(3, 7, 18, 0.96) 100%);
         border: 1px solid rgba(113, 236, 227, 0.18);
         border-radius: 8px;
@@ -575,8 +575,8 @@
         .portal-studio-layout { grid-template-columns: 1fr; }
         .portal-grid { grid-template-columns: 1fr; gap: 14px; }
         .portal-card {
-          min-height: 200px;
-          padding: 16px 18px;
+          min-height: 155px;
+          padding: 12px 14px;
         }
         .portal-card h3 {
           font-size: 1.15rem;
@@ -629,10 +629,109 @@
           width: 100%;
         }
         .portal-card {
-          min-height: 200px;
-          padding: 16px;
+          min-height: 155px;
+          padding: 12px 14px;
         }
       }
+    
+      /* === 次世代晶圓黑曜光子美學 (Obsidian Silicon & Photonics Luxury) === */
+      body {
+        background-color: #030712 !important;
+        background-image:
+          radial-gradient(circle at 50% 0%, rgba(0, 245, 212, 0.07), transparent 45%),
+          radial-gradient(circle at 100% 50%, rgba(56, 189, 248, 0.05), transparent 40%),
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px !important;
+      }
+      .site-header {
+        background: rgba(3, 7, 18, 0.88) !important;
+        border-bottom: 1px solid rgba(0, 245, 212, 0.25) !important;
+      }
+      .monogram {
+        background: #061925 !important;
+        border: 1px solid rgba(0, 245, 212, 0.4) !important;
+        color: #00f5d4 !important;
+        box-shadow: 0 0 12px rgba(0, 245, 212, 0.25) !important;
+      }
+      .project-vertical-rail {
+        background: rgba(6, 14, 26, 0.85) !important;
+        border: 1px solid rgba(0, 245, 212, 0.25) !important;
+        backdrop-filter: blur(12px) !important;
+      }
+      .portal-card {
+        position: relative;
+        background: rgba(6, 14, 26, 0.9) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      }
+      .portal-card:hover {
+        background: rgba(8, 18, 34, 0.98) !important;
+      }
+      .portal-card:nth-child(1) { border-color: rgba(0, 245, 212, 0.35) !important; }
+      .portal-card:nth-child(1):hover { border-color: #00f5d4 !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 245, 212, 0.25) !important; }
+      .portal-card:nth-child(1) .card-domain { color: #00f5d4 !important; }
+      .portal-card:nth-child(1) .card-enter { color: #00f5d4 !important; }
+
+      .portal-card:nth-child(2) { border-color: rgba(245, 158, 11, 0.35) !important; }
+      .portal-card:nth-child(2):hover { border-color: #f59e0b !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.25) !important; }
+      .portal-card:nth-child(2) .card-domain { color: #f59e0b !important; }
+      .portal-card:nth-child(2) .card-enter { color: #f59e0b !important; }
+
+      .portal-card:nth-child(3) { border-color: rgba(129, 140, 248, 0.35) !important; }
+      .portal-card:nth-child(3):hover { border-color: #818cf8 !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(129, 140, 248, 0.25) !important; }
+      .portal-card:nth-child(3) .card-domain { color: #818cf8 !important; }
+      .portal-card:nth-child(3) .card-enter { color: #818cf8 !important; }
+
+      .portal-card:nth-child(4) { border-color: rgba(56, 189, 248, 0.35) !important; }
+      .portal-card:nth-child(4):hover { border-color: #38bdf8 !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.25) !important; }
+      .portal-card:nth-child(4) .card-domain { color: #38bdf8 !important; }
+      .portal-card:nth-child(4) .card-enter { color: #38bdf8 !important; }
+
+      .portal-card:nth-child(5) { border-color: rgba(16, 185, 129, 0.35) !important; }
+      .portal-card:nth-child(5):hover { border-color: #10b981 !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(16, 185, 129, 0.25) !important; }
+      .portal-card:nth-child(5) .card-domain { color: #10b981 !important; }
+      .portal-card:nth-child(5) .card-enter { color: #10b981 !important; }
+
+      .portal-card:nth-child(6) { border-color: rgba(251, 146, 60, 0.35) !important; }
+      .portal-card:nth-child(6):hover { border-color: #fb923c !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(251, 146, 60, 0.25) !important; }
+      .portal-card:nth-child(6) .card-domain { color: #fb923c !important; }
+      .portal-card:nth-child(6) .card-enter { color: #fb923c !important; }
+
+      .portal-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
+      }
+      .portal-card:hover::before {
+        height: 3px;
+        background: #00f5d4;
+      }
+      .portal-card:nth-child(2):hover::before { background: #f59e0b; }
+      .portal-card:nth-child(3):hover::before { background: #818cf8; }
+      .portal-card:nth-child(4):hover::before { background: #38bdf8; }
+      .portal-card:nth-child(5):hover::before { background: #10b981; }
+      .portal-card:nth-child(6):hover::before { background: #fb923c; }
+
+      @media (max-width: 768px) {
+        .portal-studio-layout { gap: 10px !important; }
+        .portal-grid { gap: 8px !important; }
+        .portal-card {
+          min-height: 140px !important;
+          padding: 10px 14px !important;
+        }
+        .portal-card p {
+          margin-bottom: 6px !important;
+          font-size: 14px !important;
+          line-height: 1.45 !important;
+        }
+      }
+
     </style>
   </head>
   <body class="bg-tech-grid bg-wafer bg-silicon" data-artifact-mode="project-portal">
