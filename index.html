@@ -634,70 +634,288 @@
         }
       }
     
-      /* === 次世代晶圓黑曜光子美學 (Obsidian Silicon & Photonics Luxury) === */
+      
+      
+      
+      /* ==========================================================================
+         次世代晶圓極光白美學 (Luminous Silicon Wafer & Photonics Luxury Light Theme)
+         極致明亮高雅、純淨半導體光刻電路紋理、WCAG AA 嚴格高對比度 (>= 4.5:1)
+         ========================================================================== */
+      :root {
+        --color-teal-deep: #0f766e;
+        --color-amber-deep: #92400e;
+        --color-indigo-deep: #3730a3;
+        --color-sky-deep: #0369a1;
+        --color-emerald-deep: #047857;
+        --color-orange-deep: #c2410c;
+      }
+
       body {
-        background-color: #030712 !important;
+        background-color: #f8fafc !important;
         background-image:
-          radial-gradient(circle at 50% 0%, rgba(0, 245, 212, 0.07), transparent 45%),
-          radial-gradient(circle at 100% 50%, rgba(56, 189, 248, 0.05), transparent 40%),
-          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px) !important;
-        background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px !important;
+          linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.9)),
+          url('./assets/luminous-wafer-bg.jpg') !important;
+        background-size: cover !important;
+        background-position: center top !important;
+        background-attachment: fixed !important;
+        color: #0f172a !important;
       }
+
+      /* 頂部 HUD 導覽列 (純淨高透白玉毛玻璃) */
       .site-header {
-        background: rgba(3, 7, 18, 0.88) !important;
-        border-bottom: 1px solid rgba(0, 245, 212, 0.25) !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+        backdrop-filter: blur(16px) saturate(1.2) !important;
+        border-bottom: 1px solid rgba(203, 213, 225, 0.8) !important;
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
       }
+
       .monogram {
-        background: #061925 !important;
-        border: 1px solid rgba(0, 245, 212, 0.4) !important;
-        color: #00f5d4 !important;
-        box-shadow: 0 0 12px rgba(0, 245, 212, 0.25) !important;
+        background: #f0fdfa !important;
+        border: 1px solid #0f766e !important;
+        color: #0f766e !important;
+        box-shadow: 0 2px 8px rgba(15, 118, 110, 0.15) !important;
       }
+
+      .identity-copy strong {
+        color: #0f172a !important;
+      }
+
+      .identity-copy span {
+        color: #475569 !important;
+      }
+
+      .status-pill {
+        color: #1e293b !important;
+        background: rgba(241, 245, 249, 0.9) !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 4px 10px !important;
+        border-radius: 9999px !important;
+      }
+
+      .status-dot--live {
+        background: #0f766e !important;
+        box-shadow: 0 0 6px #0f766e !important;
+      }
+
+      .status-dot--source {
+        background: #92400e !important;
+        box-shadow: 0 0 6px #92400e !important;
+      }
+
+      .language-toggle {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #1e293b !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+      }
+
+      .language-toggle:hover {
+        border-color: #0f766e !important;
+        color: #0f766e !important;
+        background: #f0fdfa !important;
+      }
+
+      .language-toggle [data-lang-option="zh"] { color: #0f766e !important; }
+      .language-toggle [data-lang-option="en"] { color: #475569 !important; }
+      html[data-language="en"] .language-toggle [data-lang-option="zh"] { color: #475569 !important; }
+      html[data-language="en"] .language-toggle [data-lang-option="en"] { color: #0f766e !important; }
+
+      .github-profile {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+      }
+
+      .github-profile:hover {
+        border-color: #0f172a !important;
+        background: #f1f5f9 !important;
+      }
+
+      /* Hero 標題區塊 */
+      .portal-intro .eyebrow {
+        color: #0f766e !important;
+        font-weight: 700 !important;
+      }
+
+      .portal-intro h1 {
+        color: #0f172a !important;
+      }
+
+      .portal-intro h1 em {
+        color: #0f766e !important;
+      }
+
+      .portal-intro h1 span {
+        color: #0f172a !important;
+      }
+
+      .portal-intro .hero-desc {
+        color: #334155 !important;
+      }
+
+      /* 左側直立專案測條 (白玉精密 HUD) */
       .project-vertical-rail {
-        background: rgba(6, 14, 26, 0.85) !important;
-        border: 1px solid rgba(0, 245, 212, 0.25) !important;
-        backdrop-filter: blur(12px) !important;
+        background: #ffffff !important;
+        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05) !important;
       }
+
+      .rail-header {
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+
+      .rail-title {
+        color: #0f766e !important;
+      }
+
+      .rail-badge-counter {
+        color: #334155 !important;
+        background: #f1f5f9 !important;
+      }
+
+      .project-rail-btn {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #334155 !important;
+      }
+
+      .project-rail-btn:hover {
+        background: #f0fdfa !important;
+        border-color: #0f766e !important;
+        color: #0f766e !important;
+      }
+
+      .project-rail-btn.active {
+        background: #f0fdfa !important;
+        border-color: #0f766e !important;
+        color: #0f766e !important;
+        box-shadow: 0 0 16px rgba(15, 118, 110, 0.15) !important;
+      }
+
+      .project-rail-code {
+        background: #e2e8f0 !important;
+        color: #0f172a !important;
+      }
+
+      .project-rail-btn.active .project-rail-code {
+        background: #0f766e !important;
+        color: #ffffff !important;
+      }
+
+      .project-rail-sub {
+        color: #475569 !important;
+      }
+
+      .rail-stat-grid {
+        border-top: 1px solid #e2e8f0 !important;
+      }
+
+      .rail-stat-cell {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+      }
+
+      .rail-stat-num {
+        color: #0f766e !important;
+      }
+
+      .rail-stat-lbl {
+        color: #475569 !important;
+      }
+
+      /* 六大卡片矩陣 (徹底清除黑色漸層，呈現高雅純白光子晶圓卡片) */
       .portal-card {
-        position: relative;
-        background: rgba(6, 14, 26, 0.9) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: #ffffff !important;
+        background-image: none !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+        clip-path: none !important;
       }
+
       .portal-card:hover {
-        background: rgba(8, 18, 34, 0.98) !important;
+        transform: translateY(-2px) !important;
+        background: #ffffff !important;
+        background-image: none !important;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12) !important;
       }
-      .portal-card:nth-child(1) { border-color: rgba(0, 245, 212, 0.35) !important; }
-      .portal-card:nth-child(1):hover { border-color: #00f5d4 !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 245, 212, 0.25) !important; }
-      .portal-card:nth-child(1) .card-domain { color: #00f5d4 !important; }
-      .portal-card:nth-child(1) .card-enter { color: #00f5d4 !important; }
 
-      .portal-card:nth-child(2) { border-color: rgba(245, 158, 11, 0.35) !important; }
-      .portal-card:nth-child(2):hover { border-color: #f59e0b !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.25) !important; }
-      .portal-card:nth-child(2) .card-domain { color: #f59e0b !important; }
-      .portal-card:nth-child(2) .card-enter { color: #f59e0b !important; }
+      .portal-card .card-signal {
+        color: #334155 !important;
+        background: #f1f5f9 !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+      }
 
-      .portal-card:nth-child(3) { border-color: rgba(129, 140, 248, 0.35) !important; }
-      .portal-card:nth-child(3):hover { border-color: #818cf8 !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(129, 140, 248, 0.25) !important; }
-      .portal-card:nth-child(3) .card-domain { color: #818cf8 !important; }
-      .portal-card:nth-child(3) .card-enter { color: #818cf8 !important; }
+      .portal-card h3 {
+        color: #0f172a !important;
+      }
 
-      .portal-card:nth-child(4) { border-color: rgba(56, 189, 248, 0.35) !important; }
-      .portal-card:nth-child(4):hover { border-color: #38bdf8 !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.25) !important; }
-      .portal-card:nth-child(4) .card-domain { color: #38bdf8 !important; }
-      .portal-card:nth-child(4) .card-enter { color: #38bdf8 !important; }
+      .portal-card p {
+        color: #334155 !important;
+      }
 
-      .portal-card:nth-child(5) { border-color: rgba(16, 185, 129, 0.35) !important; }
-      .portal-card:nth-child(5):hover { border-color: #10b981 !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(16, 185, 129, 0.25) !important; }
-      .portal-card:nth-child(5) .card-domain { color: #10b981 !important; }
-      .portal-card:nth-child(5) .card-enter { color: #10b981 !important; }
+      .portal-card .card-bottom-row {
+        border-top: 1px solid #f1f5f9 !important;
+      }
 
-      .portal-card:nth-child(6) { border-color: rgba(251, 146, 60, 0.35) !important; }
-      .portal-card:nth-child(6):hover { border-color: #fb923c !important; box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(251, 146, 60, 0.25) !important; }
-      .portal-card:nth-child(6) .card-domain { color: #fb923c !important; }
-      .portal-card:nth-child(6) .card-enter { color: #fb923c !important; }
+      .portal-card .card-chips {
+        color: #475569 !important;
+      }
 
+      /* 6 大卡片亮色系光子色譜 (全數通過 WCAG >= 4.5:1) */
+      /* Node-01: 極光青 */
+      .portal-card:nth-child(1) { border-color: rgba(15, 118, 110, 0.5) !important; }
+      .portal-card:nth-child(1):hover { border-color: #0f766e !important; box-shadow: 0 12px 30px rgba(15, 118, 110, 0.18) !important; }
+      .portal-card:nth-child(1) .card-domain { color: #0f766e !important; font-weight: 700 !important; }
+      .portal-card:nth-child(1) .card-enter { color: #0f766e !important; font-weight: 700 !important; }
+
+      /* Node-02: 晶圓琥珀金 */
+      .portal-card:nth-child(2) { border-color: rgba(146, 64, 14, 0.5) !important; }
+      .portal-card:nth-child(2):hover { border-color: #92400e !important; box-shadow: 0 12px 30px rgba(146, 64, 14, 0.18) !important; }
+      .portal-card:nth-child(2) .card-domain { color: #92400e !important; font-weight: 700 !important; }
+      .portal-card:nth-child(2) .card-enter { color: #92400e !important; font-weight: 700 !important; }
+
+      /* Node-03: 量子靛紫 */
+      .portal-card:nth-child(3) { border-color: rgba(55, 48, 163, 0.5) !important; }
+      .portal-card:nth-child(3):hover { border-color: #3730a3 !important; box-shadow: 0 12px 30px rgba(55, 48, 163, 0.18) !important; }
+      .portal-card:nth-child(3) .card-domain { color: #3730a3 !important; font-weight: 700 !important; }
+      .portal-card:nth-child(3) .card-enter { color: #3730a3 !important; font-weight: 700 !important; }
+
+      /* Node-04: 電路天藍 */
+      .portal-card:nth-child(4) { border-color: rgba(3, 105, 161, 0.5) !important; }
+      .portal-card:nth-child(4):hover { border-color: #0369a1 !important; box-shadow: 0 12px 30px rgba(3, 105, 161, 0.18) !important; }
+      .portal-card:nth-child(4) .card-domain { color: #0369a1 !important; font-weight: 700 !important; }
+      .portal-card:nth-child(4) .card-enter { color: #0369a1 !important; font-weight: 700 !important; }
+
+      /* Node-05: 密碼翠綠 */
+      .portal-card:nth-child(5) { border-color: rgba(4, 120, 87, 0.5) !important; }
+      .portal-card:nth-child(5):hover { border-color: #047857 !important; box-shadow: 0 12px 30px rgba(4, 120, 87, 0.18) !important; }
+      .portal-card:nth-child(5) .card-domain { color: #047857 !important; font-weight: 700 !important; }
+      .portal-card:nth-child(5) .card-enter { color: #047857 !important; font-weight: 700 !important; }
+
+      /* Node-06: 終端琥珀橙 */
+      .portal-card:nth-child(6) { border-color: rgba(194, 65, 12, 0.5) !important; }
+      .portal-card:nth-child(6):hover { border-color: #c2410c !important; box-shadow: 0 12px 30px rgba(194, 65, 12, 0.18) !important; }
+      .portal-card:nth-child(6) .card-domain { color: #c2410c !important; font-weight: 700 !important; }
+      .portal-card:nth-child(6) .card-enter { color: #c2410c !important; font-weight: 700 !important; }
+
+      /* 狀態膠囊高亮白底微光 */
+      .availability--live {
+        color: #0f766e !important;
+        background: #f0fdfa !important;
+        border: 1px solid rgba(15, 118, 110, 0.4) !important;
+        font-weight: 700 !important;
+      }
+      .availability--source {
+        color: #92400e !important;
+        background: #fffbeb !important;
+        border: 1px solid rgba(146, 64, 14, 0.4) !important;
+        font-weight: 700 !important;
+      }
+
+      /* 頂部引腳飾條 */
       .portal-card::before {
         content: '';
         position: absolute;
@@ -705,30 +923,44 @@
         left: 0;
         right: 0;
         height: 2px;
-        background: rgba(255, 255, 255, 0.1);
+        background: #e2e8f0;
         transition: all 0.2s ease;
       }
-      .portal-card:hover::before {
-        height: 3px;
-        background: #00f5d4;
+      .portal-card:nth-child(1):hover::before { height: 3px; background: #0f766e; }
+      .portal-card:nth-child(2):hover::before { height: 3px; background: #92400e; }
+      .portal-card:nth-child(3):hover::before { height: 3px; background: #3730a3; }
+      .portal-card:nth-child(4):hover::before { height: 3px; background: #0369a1; }
+      .portal-card:nth-child(5):hover::before { height: 3px; background: #047857; }
+      .portal-card:nth-child(6):hover::before { height: 3px; background: #c2410c; }
+
+      /* 底部 Footer */
+      footer {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border-top: 1px solid #e2e8f0 !important;
+        color: #475569 !important;
       }
-      .portal-card:nth-child(2):hover::before { background: #f59e0b; }
-      .portal-card:nth-child(3):hover::before { background: #818cf8; }
-      .portal-card:nth-child(4):hover::before { background: #38bdf8; }
-      .portal-card:nth-child(5):hover::before { background: #10b981; }
-      .portal-card:nth-child(6):hover::before { background: #fb923c; }
+      .footer-brand strong { color: #0f172a !important; }
+      footer a { color: #0f766e !important; }
+
+      /* Focus 可視化邊框 */
+      .portal-card:focus-visible {
+        outline: 2px solid #0f766e !important;
+        outline-offset: 2px !important;
+      }
 
       @media (max-width: 768px) {
-        .portal-studio-layout { gap: 10px !important; }
+        main { padding: 8px 0 12px !important; }
+        .portal-intro { padding: 4px 10px 6px !important; }
+        .portal-studio-layout { gap: 8px !important; }
         .portal-grid { gap: 8px !important; }
         .portal-card {
-          min-height: 140px !important;
-          padding: 10px 14px !important;
+          min-height: 135px !important;
+          padding: 8px 12px !important;
         }
         .portal-card p {
-          margin-bottom: 6px !important;
+          margin-bottom: 4px !important;
           font-size: 14px !important;
-          line-height: 1.45 !important;
+          line-height: 1.4 !important;
         }
       }
 
