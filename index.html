@@ -34,6 +34,7 @@
         } catch(e) {}
       })();
     </script>
+    <script src="./effects.js" defer></script>
     <script src="./site.js?v=20260905-bilingual-v5" defer></script>
     <style>
       /* =======================================================
@@ -1014,6 +1015,73 @@
           font-size: 14px !important;
           line-height: 1.4 !important;
         }
+      }
+
+    
+      /* ==========================================================================
+         全域光子水波紋與 3D 鏡面光斑折射微特效 (Photonic Ripple & Specular Sheen)
+         ========================================================================== */
+      .ripple-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+
+      /* 卡片表面 3D 鏡面光斑折射 (隨游標動態凝聚) */
+      .portal-card {
+        position: relative;
+        overflow: hidden;
+      }
+      .portal-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle 240px at var(--mouse-x, -999px) var(--mouse-y, -999px), rgba(255, 255, 255, 0.5), transparent 75%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+      }
+      .portal-card:hover::after {
+        opacity: 1;
+      }
+
+      /* Tab 與按鈕點擊水波擴散動效 */
+      .project-rail-btn,
+      .language-toggle {
+        position: relative;
+        overflow: hidden;
+      }
+      .tab-click-ripple {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(15, 118, 110, 0.38) 0%, rgba(13, 148, 136, 0.15) 50%, transparent 80%);
+        transform: translate(-50%, -50%) scale(1);
+        animation: tabRippleAnim 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        pointer-events: none;
+      }
+      @keyframes tabRippleAnim {
+        0% {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 0.9;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(18);
+          opacity: 0;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .ripple-canvas { display: none !important; }
+        .portal-card::after { display: none !important; }
+        .tab-click-ripple { display: none !important; }
       }
 
     </style>
