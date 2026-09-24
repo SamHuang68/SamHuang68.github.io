@@ -34,6 +34,8 @@
         } catch(e) {}
       })();
     </script>
+    <script src="./audio-engine.js" defer></script>
+    <script src="./command-palette.js" defer></script>
     <script src="./effects.js" defer></script>
     <script src="./site.js?v=20260905-bilingual-v5" defer></script>
     <style>
@@ -1084,6 +1086,214 @@
         .tab-click-ripple { display: none !important; }
       }
 
+    
+      /* ======================================================================
+         HUD 按鈕群組 (⌘K, 音效, X-Ray)
+         ====================================================================== */
+      .hud-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        min-height: 44px;
+        padding: 0 10px;
+        border: 1px solid rgba(203, 213, 225, 0.9);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.85);
+        color: #1e293b;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 1px #ffffff;
+        transition: all 0.2s ease;
+      }
+      .hud-btn:hover {
+        border-color: #0f766e;
+        color: #0f766e;
+        background: rgba(240, 253, 250, 0.95);
+        box-shadow: 0 4px 14px rgba(15, 118, 110, 0.18), inset 0 1px 1px #ffffff;
+      }
+      .hud-btn[data-sound="on"] {
+        border-color: #0f766e;
+        color: #0f766e;
+        background: #f0fdfa;
+        box-shadow: 0 0 10px rgba(15, 118, 110, 0.25);
+      }
+
+      /* Command Palette (⌘K) 全域指揮中心樣式 */
+      .cmd-palette-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.35);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        z-index: 1000;
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: clamp(40px, 12vh, 120px);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      .cmd-palette-backdrop.is-open {
+        display: flex;
+        opacity: 1;
+      }
+      .cmd-palette-box {
+        width: 100%;
+        max-width: 580px;
+        margin: 0 16px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(28px) saturate(1.8);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18), inset 0 1px 1px #ffffff;
+        overflow: hidden;
+        animation: cmdPopAnim 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes cmdPopAnim {
+        from { transform: scale(0.96) translateY(-10px); opacity: 0; }
+        to { transform: scale(1) translateY(0); opacity: 1; }
+      }
+      .cmd-palette-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 18px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .cmd-palette-icon {
+        font-family: var(--mono);
+        font-size: 16px;
+        color: #0f766e;
+      }
+      .cmd-palette-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 15px;
+        color: #0f172a;
+      }
+      .cmd-palette-input::placeholder {
+        color: #94a3b8;
+      }
+      .cmd-palette-esc {
+        font-family: var(--mono);
+        font-size: 10px;
+        padding: 2px 6px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        color: #64748b;
+      }
+      .cmd-palette-list {
+        list-style: none;
+        margin: 0;
+        padding: 8px;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+      .cmd-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .cmd-item.is-selected {
+        background: #f0fdfa;
+        color: #0f766e;
+      }
+      .cmd-item-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .cmd-item-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .cmd-item.is-selected .cmd-item-title {
+        color: #0f766e;
+      }
+      .cmd-item-desc {
+        font-size: 11px;
+        color: #64748b;
+      }
+      .cmd-item-badge {
+        font-family: var(--mono);
+        font-size: 9px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: #f1f5f9;
+        color: #475569;
+        font-weight: 700;
+      }
+      .cmd-item.is-selected .cmd-item-badge {
+        background: #0f766e;
+        color: #ffffff;
+      }
+      .cmd-empty {
+        padding: 24px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 13px;
+      }
+      .cmd-palette-footer {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 8px 18px;
+        border-top: 1px solid #f1f5f9;
+        background: rgba(248, 250, 252, 0.8);
+        font-size: 11px;
+        color: #64748b;
+      }
+      .cmd-palette-footer kbd {
+        font-family: var(--mono);
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 10px;
+      }
+
+      /* X-Ray 晶圓光罩走線透視模式 */
+      body.xray-mode {
+        background-color: #020617 !important;
+        background-image:
+          linear-gradient(rgba(2, 6, 23, 0.88), rgba(2, 6, 23, 0.94)),
+          url('./assets/luminous-wafer-bg.jpg') !important;
+        filter: contrast(1.15) !important;
+        color: #e2e8f0 !important;
+      }
+      body.xray-mode .portal-card {
+        background: rgba(15, 23, 42, 0.85) !important;
+        border-color: rgba(0, 245, 212, 0.45) !important;
+        box-shadow: 0 10px 30px rgba(0, 245, 212, 0.15) !important;
+      }
+      body.xray-mode .portal-card h3 { color: #ffffff !important; }
+      body.xray-mode .portal-card p { color: #94a3b8 !important; }
+      body.xray-mode .site-header { background: rgba(2, 6, 23, 0.9) !important; border-bottom-color: rgba(0, 245, 212, 0.3) !important; }
+      body.xray-mode .project-vertical-rail { background: rgba(15, 23, 42, 0.85) !important; border-color: rgba(0, 245, 212, 0.35) !important; }
+      body.xray-mode .hud-btn { background: rgba(15, 23, 42, 0.85) !important; border-color: rgba(0, 245, 212, 0.4) !important; color: #00f5d4 !important; }
+      body.xray-mode .identity-copy strong { color: #ffffff !important; }
+      body.xray-mode .portal-intro h1 { color: #ffffff !important; }
+      body.xray-mode footer { background: rgba(2, 6, 23, 0.95) !important; border-top-color: rgba(0, 245, 212, 0.2) !important; color: #94a3b8 !important; }
+
+      @media (max-width: 680px) {
+        .xray-toggle { display: none; }
+      }
+      @media (max-width: 480px) {
+        .sound-toggle { display: none; }
+      }
+
     </style>
   </head>
   <body class="bg-tech-grid bg-wafer bg-silicon" data-artifact-mode="project-portal">
@@ -1120,6 +1330,9 @@
         </div>
 
         <div class="header-actions">
+          <button class="hud-btn cmd-trigger" id="cmdTrigger" type="button" aria-label="開啟全域架構指揮中心 (Open Command Palette)">⌘K</button>
+          <button class="hud-btn sound-toggle" id="soundToggle" type="button" data-sound="off" aria-label="切換晶片合成音效 (Toggle Audio)">🔊</button>
+          <button class="hud-btn xray-toggle" id="xrayToggle" type="button" aria-label="切換 X-Ray 晶圓光罩透視模式 (Toggle X-Ray)">X-RAY</button>
           <button class="language-toggle" id="languageToggle" type="button" aria-label="Switch to English (切換至英文)">
             <b data-lang-option="zh">中</b><i>/</i><b data-lang-option="en">EN</b>
           </button>
@@ -1314,5 +1527,33 @@
       <a href="#page-top"><span data-lang="zh">TOP ↑</span><span data-lang="en">TOP ↑</span></a>
       <small>© <span data-current-year>2026</span></small>
     </footer>
+  
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const cmdBtn = document.getElementById('cmdTrigger');
+        if (cmdBtn) {
+          cmdBtn.addEventListener('click', () => {
+            if (typeof window.openCommandPalette === 'function') window.openCommandPalette();
+          });
+        }
+        const soundBtn = document.getElementById('soundToggle');
+        if (soundBtn) {
+          soundBtn.addEventListener('click', () => {
+            if (window.SiliconAudio) {
+              const enabled = window.SiliconAudio.toggle();
+              soundBtn.setAttribute('data-sound', enabled ? 'on' : 'off');
+              soundBtn.setAttribute('title', enabled ? '音效: 開啟 (點擊關閉)' : '音效: 靜音 (點擊開啟)');
+            }
+          });
+        }
+        const xrayBtn = document.getElementById('xrayToggle');
+        if (xrayBtn) {
+          xrayBtn.addEventListener('click', () => {
+            document.body.classList.toggle('xray-mode');
+            if (window.SiliconAudio) window.SiliconAudio.playHud();
+          });
+        }
+      });
+    </script>
   </body>
 </html>

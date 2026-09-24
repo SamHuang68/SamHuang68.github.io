@@ -1,7 +1,6 @@
 /**
- * @fileoverview 水晶晶圓光子水波紋與 3D 折射微特效 (Photonic Liquid Ripple & 3D Specular Sheen)
- * 模組化設計：獨立負責 Canvas 水波紋物理動態、卡片 3D 透視磁吸光斑與 Tab 點擊漣漪
- * 符合規範：支援 prefers-reduced-motion 降級、零外溢位、高幀率 RAF 渲染
+ * @fileoverview 水晶晶圓光子水波紋、奈米電路脈衝與 3D 折射微特效 (Photonic Liquid Ripple & Circuit Pulses)
+ * 模組化設計：獨立負責 Canvas 水波紋、曼哈頓電路光脈衝、卡片 3D 透視磁吸光斑、音效串接與準心光標
  */
 
 (() => {
@@ -12,14 +11,17 @@
   if (prefersReducedMotion) return;
 
   /**
-   * 1. 互動式光子水波紋 (Photonic Liquid Ripples Canvas)
+   * 1. 互動式光子水波紋 + 曼哈頓電路光脈衝 Canvas
    */
   const initWaterRippleCanvas = () => {
-    const canvas = document.createElement('canvas');
-    canvas.id = 'rippleCanvas';
-    canvas.className = 'ripple-canvas';
-    canvas.setAttribute('aria-hidden', 'true');
-    document.body.prepend(canvas);
+    let canvas = document.getElementById('rippleCanvas');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'rippleCanvas';
+      canvas.className = 'ripple-canvas';
+      canvas.setAttribute('aria-hidden', 'true');
+      document.body.prepend(canvas);
+    }
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -41,14 +43,12 @@
     window.addEventListener('resize', resize, { passive: true });
     resize();
 
-    // 波紋粒子陣列
+    // 波紋陣列與電路光脈衝陣列
     const ripples = [];
+    const pulses = [];
 
     /**
-     * 創建一道光子水波紋
-     * @param {number} x - 觸發座標 X
-     * @param {number} y - 觸發座標 Y
-     * @param {boolean} isHeavy - 是否為大波紋（點擊觸發）
+     * 創建光子水波紋
      */
     const addRipple = (x, y, isHeavy = false) => {
       ripples.push({
@@ -60,7 +60,33 @@
         speed: isHeavy ? 3.6 : 1.8,
         lineWidth: isHeavy ? 2.5 : 1.2,
         rings: isHeavy ? 3 : 1,
-        hue: isHeavy ? 175 : 185, // 青綠與電路藍微色相
+      });
+
+      // 觸發音效
+      if (isHeavy && window.SiliconAudio) {
+        window.SiliconAudio.playDroplet();
+      }
+
+      if (!isAnimating) startLoop();
+    };
+
+    /**
+     * 創建曼哈頓光子電路脈衝 (Manhattan Circuit Pulses)
+     */
+    const spawnPulse = () => {
+      if (pulses.length >= 6) return;
+      const startX = Math.random() * width;
+      const startY = Math.random() * height;
+      const isHorizontal = Math.random() > 0.5;
+      pulses.push({
+        x: startX,
+        y: startY,
+        vx: isHorizontal ? (Math.random() > 0.5 ? 2.5 : -2.5) : 0,
+        vy: !isHorizontal ? (Math.random() > 0.5 ? 2.5 : -2.5) : 0,
+        life: 0,
+        maxLife: 60 + Math.random() * 80,
+        length: 24 + Math.random() * 20,
+        color: Math.random() > 0.3 ? 'rgba(15, 118, 110, ' : 'rgba(217, 119, 6, ',
       });
       if (!isAnimating) startLoop();
     };
@@ -71,10 +97,11 @@
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
+      // A. 繪製光子水波紋
       for (let i = ripples.length - 1; i >= 0; i--) {
         const r = ripples[i];
         r.radius += r.speed;
-        r.alpha *= 0.965; // 柔和指數淡出
+        r.alpha *= 0.965;
 
         for (let ring = 0; ring < r.rings; ring++) {
           const ringRadius = r.radius - ring * (r.speed * 4.5);
@@ -83,7 +110,6 @@
           ctx.beginPath();
           ctx.arc(r.x, r.y, ringRadius, 0, Math.PI * 2);
 
-          // 光子干涉漸變環形：外緣帶有極光青，內緣帶微弱琥珀金折射
           const grad = ctx.createRadialGradient(r.x, r.y, Math.max(0, ringRadius - 6), r.x, r.y, ringRadius + 4);
           grad.addColorStop(0, `rgba(15, 118, 110, 0)`);
           grad.addColorStop(0.5, `rgba(13, 148, 136, ${r.alpha * 0.8})`);
@@ -95,13 +121,42 @@
           ctx.stroke();
         }
 
-        // 若半徑達上限或透明度極低，移除該波紋
         if (r.radius >= r.maxRadius || r.alpha < 0.01) {
           ripples.splice(i, 1);
         }
       }
 
-      if (ripples.length > 0) {
+      // B. 繪製曼哈頓電路光脈衝
+      for (let j = pulses.length - 1; j >= 0; j--) {
+        const p = pulses[j];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life += 1;
+
+        const alpha = Math.sin((p.life / p.maxLife) * Math.PI) * 0.55;
+        const tailX = p.x - p.vx * (p.length / 2.5);
+        const tailY = p.y - p.vy * (p.length / 2.5);
+
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = `${p.color}${alpha})`;
+        ctx.lineWidth = 1.8;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // 頭部光亮光子點
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `${p.color}${alpha * 1.5})`;
+        ctx.fill();
+
+        if (p.life >= p.maxLife || p.x < 0 || p.x > width || p.y < 0 || p.y > height) {
+          pulses.splice(j, 1);
+        }
+      }
+
+      if (ripples.length > 0 || pulses.length > 0) {
         animId = requestAnimationFrame(render);
       } else {
         isAnimating = false;
@@ -115,7 +170,7 @@
       }
     };
 
-    // 游標移動微波紋 (滑鼠滑過時每隔 45px 產生一顆輕柔水波)
+    // 游標移動微波紋 (每隔 50px 產生微波)
     let lastMoveX = -999;
     let lastMoveY = -999;
     window.addEventListener(
@@ -131,7 +186,7 @@
       { passive: true },
     );
 
-    // 點擊衝擊水波 (任意點擊產生同心圓光子衝擊波)
+    // 點擊衝擊水波
     window.addEventListener(
       'pointerdown',
       (e) => {
@@ -140,7 +195,10 @@
       { passive: true },
     );
 
-    // 環境待機呼吸微波 (若無操作每 4 秒在晶片區域隨機泛起微波)
+    // 每 2.5 秒隨機產生一顆電路光脈衝
+    setInterval(spawnPulse, 2400);
+
+    // 環境待機呼吸微波
     let idleTimer = null;
     const triggerIdleRipple = () => {
       const x = width * (0.3 + Math.random() * 0.4);
@@ -159,34 +217,38 @@
   };
 
   /**
-   * 2. 卡片 3D 透視磁吸微傾斜與動態折射光斑 (3D Magnetic Tilt & Caustic Sheen)
+   * 2. 卡片 3D 透視磁吸微傾斜與動態折射光斑
    */
   const initCardTiltAndSheen = () => {
     const cards = document.querySelectorAll('.portal-card');
     cards.forEach((card) => {
+      let isHovered = false;
+
+      card.addEventListener('pointerenter', () => {
+        isHovered = true;
+        if (window.SiliconAudio) window.SiliconAudio.playHover();
+      });
+
       card.addEventListener('pointermove', (e) => {
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        // 計算相對於卡片中心的座標 (-1 到 1)
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
         const percentX = (x - centerX) / centerX;
         const percentY = (y - centerY) / centerY;
 
-        // 微角度傾斜 (最大 3.5 度)
-        const tiltX = -percentY * 3.5;
-        const tiltY = percentX * 3.5;
+        const tiltX = -percentY * 3.2;
+        const tiltY = percentX * 3.2;
 
         card.style.transform = `perspective(1000px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg) translateY(-4px)`;
-
-        // 更新 CSS 變數供折射鏡面光斑使用
         card.style.setProperty('--mouse-x', `${x}px`);
         card.style.setProperty('--mouse-y', `${y}px`);
       });
 
       card.addEventListener('pointerleave', () => {
+        isHovered = false;
         card.style.transform = '';
         card.style.removeProperty('--mouse-x');
         card.style.removeProperty('--mouse-y');
@@ -195,10 +257,10 @@
   };
 
   /**
-   * 3. Tab 按鈕水波點擊微動效 (Tab Liquid Ripple)
+   * 3. Tab 按鈕水波點擊微動效與音效
    */
   const initTabClickRipple = () => {
-    const tabButtons = document.querySelectorAll('.project-rail-btn, .language-toggle');
+    const tabButtons = document.querySelectorAll('.project-rail-btn, .language-toggle, .hud-btn');
     tabButtons.forEach((btn) => {
       btn.addEventListener('pointerdown', (e) => {
         const rect = btn.getBoundingClientRect();
@@ -212,6 +274,8 @@
 
         btn.appendChild(ripple);
         setTimeout(() => ripple.remove(), 600);
+
+        if (window.SiliconAudio) window.SiliconAudio.playClick();
       });
     });
   };
