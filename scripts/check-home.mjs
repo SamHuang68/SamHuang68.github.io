@@ -74,12 +74,12 @@ if (!/aria-label="專案入口"/.test(favicon)) fail('頁籤圖示缺少中性�
 if (/\bSam[\s-]+Huang\b|\bSH\b/i.test(favicon)) fail('頁籤圖示仍含個人署名');
 
 const requiredDestinations = [
-  'https://samhuang68.github.io/nvm-knowledge-hub/',
+  'https://hub.samhuang68.org/',
   'https://github.com/SamHuang68/secure-storage-oip-briefing',
-  'https://samhuang68.github.io/chu-han-realm-pages/',
-  'https://samhuang68.github.io/E-Learning/',
+  'https://arcade.samhuang68.org/',
+  'https://learn.samhuang68.org/',
   'https://github.com/SamHuang68/tw-pulse-terminal',
-  'https://samhuang68.github.io/my-hardware/',
+  'https://hardware.samhuang68.org/',
 ];
 
 for (const destination of requiredDestinations) {
