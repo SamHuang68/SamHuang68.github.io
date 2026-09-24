@@ -4,7 +4,7 @@ Sam Huang 的公開作品入口。最上層以個人識別統整五個作品領�
 
 NVM Knowledge System 是其中一個重點分類，連接核心知識、Secure Storage、AI Era 應用機會與 Whitepaper Decision Studio；其內容架構保留未來移轉至公司 SharePoint 的需求。
 
-公開站：<https://samhuang68.github.io/>
+公開站：<https://blog.samhuang68.org/>
 
 ## Local review
 
