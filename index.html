@@ -637,9 +637,10 @@
       
       
       
+      
       /* ==========================================================================
-         次世代晶圓極光白美學 (Luminous Silicon Wafer & Photonics Luxury Light Theme)
-         極致明亮高雅、純淨半導體光刻電路紋理、WCAG AA 嚴格高對比度 (>= 4.5:1)
+         次世代晶圓透光毛玻璃美學 (Luminous Silicon Crystal Glassmorphism)
+         通透磨砂玻璃質感、微米晶圓電路透光、游標 highlight 躍然顯現互動
          ========================================================================== */
       :root {
         --color-teal-deep: #0f766e;
@@ -648,12 +649,15 @@
         --color-sky-deep: #0369a1;
         --color-emerald-deep: #047857;
         --color-orange-deep: #c2410c;
+        --glass-bg: rgba(255, 255, 255, 0.82);
+        --glass-border: rgba(255, 255, 255, 0.85);
+        --glass-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
       }
 
       body {
         background-color: #f8fafc !important;
         background-image:
-          linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.9)),
+          linear-gradient(rgba(248, 250, 252, 0.72), rgba(241, 245, 249, 0.82)),
           url('./assets/luminous-wafer-bg.jpg') !important;
         background-size: cover !important;
         background-position: center top !important;
@@ -661,19 +665,21 @@
         color: #0f172a !important;
       }
 
-      /* 頂部 HUD 導覽列 (純淨高透白玉毛玻璃) */
+      /* 頂部 HUD 導覽列 (純淨高透水晶毛玻璃) */
       .site-header {
-        background: rgba(255, 255, 255, 0.92) !important;
-        backdrop-filter: blur(16px) saturate(1.2) !important;
-        border-bottom: 1px solid rgba(203, 213, 225, 0.8) !important;
-        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04) !important;
+        background: rgba(255, 255, 255, 0.78) !important;
+        backdrop-filter: blur(24px) saturate(1.8) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.85) !important;
+        box-shadow: 0 4px 24px rgba(15, 23, 42, 0.05) !important;
       }
 
       .monogram {
-        background: #f0fdfa !important;
+        background: rgba(240, 253, 250, 0.85) !important;
+        backdrop-filter: blur(12px) !important;
         border: 1px solid #0f766e !important;
         color: #0f766e !important;
-        box-shadow: 0 2px 8px rgba(15, 118, 110, 0.15) !important;
+        box-shadow: 0 2px 10px rgba(15, 118, 110, 0.18), inset 0 1px 1px #ffffff !important;
       }
 
       .identity-copy strong {
@@ -686,33 +692,38 @@
 
       .status-pill {
         color: #1e293b !important;
-        background: rgba(241, 245, 249, 0.9) !important;
-        border: 1px solid #cbd5e1 !important;
+        background: rgba(255, 255, 255, 0.8) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(226, 232, 240, 0.9) !important;
         padding: 4px 10px !important;
         border-radius: 9999px !important;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
       }
 
       .status-dot--live {
         background: #0f766e !important;
-        box-shadow: 0 0 6px #0f766e !important;
+        box-shadow: 0 0 8px #0f766e !important;
       }
 
       .status-dot--source {
         background: #92400e !important;
-        box-shadow: 0 0 6px #92400e !important;
+        box-shadow: 0 0 8px #92400e !important;
       }
 
       .language-toggle {
-        background: #ffffff !important;
-        border: 1px solid #cbd5e1 !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(203, 213, 225, 0.9) !important;
         color: #1e293b !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 1px #ffffff !important;
+        transition: all 0.2s ease !important;
       }
 
       .language-toggle:hover {
         border-color: #0f766e !important;
         color: #0f766e !important;
-        background: #f0fdfa !important;
+        background: rgba(240, 253, 250, 0.95) !important;
+        box-shadow: 0 4px 14px rgba(15, 118, 110, 0.2), inset 0 1px 1px #ffffff !important;
       }
 
       .language-toggle [data-lang-option="zh"] { color: #0f766e !important; }
@@ -721,15 +732,18 @@
       html[data-language="en"] .language-toggle [data-lang-option="en"] { color: #0f766e !important; }
 
       .github-profile {
-        background: #ffffff !important;
-        border: 1px solid #cbd5e1 !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(203, 213, 225, 0.9) !important;
         color: #0f172a !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 1px #ffffff !important;
+        transition: all 0.2s ease !important;
       }
 
       .github-profile:hover {
         border-color: #0f172a !important;
-        background: #f1f5f9 !important;
+        background: rgba(248, 250, 252, 0.98) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1), inset 0 1px 1px #ffffff !important;
       }
 
       /* Hero 標題區塊 */
@@ -754,15 +768,18 @@
         color: #334155 !important;
       }
 
-      /* 左側直立專案測條 (白玉精密 HUD) */
+      /* 左側 PROJECT LENS 直立測條 (通透白玉毛玻璃容器) */
       .project-vertical-rail {
-        background: #ffffff !important;
-        border: 1px solid rgba(226, 232, 240, 0.9) !important;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05) !important;
+        background: rgba(255, 255, 255, 0.78) !important;
+        backdrop-filter: blur(24px) saturate(1.6) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(1.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.9) !important;
+        box-shadow: 0 12px 36px rgba(15, 23, 42, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+        border-radius: 10px !important;
       }
 
       .rail-header {
-        border-bottom: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
       }
 
       .rail-title {
@@ -771,49 +788,57 @@
 
       .rail-badge-counter {
         color: #334155 !important;
-        background: #f1f5f9 !important;
+        background: rgba(241, 245, 249, 0.85) !important;
+        backdrop-filter: blur(8px) !important;
       }
 
+      /* ======================================================================
+         TAB 按鈕互動核心：平時溫潤通透，游標 highlight / active 到的 tab 才立體顯現！
+         ====================================================================== */
       .project-rail-btn {
-        background: #f8fafc !important;
-        border: 1px solid #e2e8f0 !important;
-        color: #334155 !important;
-      }
-
-      .project-rail-btn:hover {
-        background: #f0fdfa !important;
-        border-color: #0f766e !important;
-        color: #0f766e !important;
-      }
-
-      .project-rail-btn.active {
-        background: #f0fdfa !important;
-        border-color: #0f766e !important;
-        color: #0f766e !important;
-        box-shadow: 0 0 16px rgba(15, 118, 110, 0.15) !important;
+        background: rgba(255, 255, 255, 0.45) !important;
+        backdrop-filter: blur(8px) !important;
+        border: 1px solid rgba(226, 232, 240, 0.6) !important;
+        color: #475569 !important;
+        border-radius: 6px !important;
+        transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
       }
 
       .project-rail-code {
-        background: #e2e8f0 !important;
-        color: #0f172a !important;
+        background: rgba(226, 232, 240, 0.8) !important;
+        color: #334155 !important;
+        transition: all 0.24s ease !important;
       }
 
+      /* 游標 hover 或被選中 active 的 tab 才飽滿顯現！ */
+      .project-rail-btn:hover,
+      .project-rail-btn.active {
+        background: rgba(255, 255, 255, 0.96) !important;
+        border-color: #0f766e !important;
+        color: #0f766e !important;
+        box-shadow: 0 6px 20px rgba(15, 118, 110, 0.18), inset 0 1px 2px #ffffff !important;
+        transform: translateX(3px) !important;
+      }
+
+      .project-rail-btn:hover .project-rail-code,
       .project-rail-btn.active .project-rail-code {
         background: #0f766e !important;
         color: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(15, 118, 110, 0.35) !important;
       }
 
       .project-rail-sub {
-        color: #475569 !important;
+        color: #64748b !important;
       }
 
       .rail-stat-grid {
-        border-top: 1px solid #e2e8f0 !important;
+        border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
       }
 
       .rail-stat-cell {
-        background: #f8fafc !important;
-        border: 1px solid #e2e8f0 !important;
+        background: rgba(248, 250, 252, 0.7) !important;
+        backdrop-filter: blur(8px) !important;
+        border: 1px solid rgba(226, 232, 240, 0.8) !important;
       }
 
       .rail-stat-num {
@@ -824,26 +849,31 @@
         color: #475569 !important;
       }
 
-      /* 六大卡片矩陣 (徹底清除黑色漸層，呈現高雅純白光子晶圓卡片) */
+      /* ======================================================================
+         六大卡片：高級晶圓毛玻璃 (Frosted Crystal Glassmorphism)
+         平時溫潤通透，游標移入 (highlight) 該卡片時，專屬色彩光暈與引腳光條立即躍然顯現！
+         ====================================================================== */
       .portal-card {
-        background: #ffffff !important;
+        background: rgba(255, 255, 255, 0.82) !important;
         background-image: none !important;
-        border: 1px solid #e2e8f0 !important;
+        backdrop-filter: blur(20px) saturate(1.6) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(1.6) !important;
+        border: 1px solid rgba(226, 232, 240, 0.85) !important;
         border-radius: 8px !important;
-        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+        box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.95) !important;
         clip-path: none !important;
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease, background 0.28s ease !important;
       }
 
       .portal-card:hover {
-        transform: translateY(-2px) !important;
-        background: #ffffff !important;
+        transform: translateY(-3px) !important;
+        background: rgba(255, 255, 255, 0.97) !important;
         background-image: none !important;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12) !important;
       }
 
       .portal-card .card-signal {
         color: #334155 !important;
-        background: #f1f5f9 !important;
+        background: rgba(241, 245, 249, 0.85) !important;
         padding: 2px 6px !important;
         border-radius: 4px !important;
       }
@@ -857,86 +887,108 @@
       }
 
       .portal-card .card-bottom-row {
-        border-top: 1px solid #f1f5f9 !important;
+        border-top: 1px solid rgba(241, 245, 249, 0.9) !important;
       }
 
       .portal-card .card-chips {
         color: #475569 !important;
       }
 
-      /* 6 大卡片亮色系光子色譜 (全數通過 WCAG >= 4.5:1) */
+      /* 6 大卡片游標 highlight 顯現規則 (光子色彩強烈躍出) */
       /* Node-01: 極光青 */
-      .portal-card:nth-child(1) { border-color: rgba(15, 118, 110, 0.5) !important; }
-      .portal-card:nth-child(1):hover { border-color: #0f766e !important; box-shadow: 0 12px 30px rgba(15, 118, 110, 0.18) !important; }
+      .portal-card:nth-child(1) { border-color: rgba(15, 118, 110, 0.35) !important; }
+      .portal-card:nth-child(1):hover {
+        border-color: #0f766e !important;
+        box-shadow: 0 16px 36px rgba(15, 118, 110, 0.22), inset 0 1px 2px #ffffff !important;
+      }
       .portal-card:nth-child(1) .card-domain { color: #0f766e !important; font-weight: 700 !important; }
       .portal-card:nth-child(1) .card-enter { color: #0f766e !important; font-weight: 700 !important; }
 
       /* Node-02: 晶圓琥珀金 */
-      .portal-card:nth-child(2) { border-color: rgba(146, 64, 14, 0.5) !important; }
-      .portal-card:nth-child(2):hover { border-color: #92400e !important; box-shadow: 0 12px 30px rgba(146, 64, 14, 0.18) !important; }
+      .portal-card:nth-child(2) { border-color: rgba(146, 64, 14, 0.35) !important; }
+      .portal-card:nth-child(2):hover {
+        border-color: #92400e !important;
+        box-shadow: 0 16px 36px rgba(146, 64, 14, 0.22), inset 0 1px 2px #ffffff !important;
+      }
       .portal-card:nth-child(2) .card-domain { color: #92400e !important; font-weight: 700 !important; }
       .portal-card:nth-child(2) .card-enter { color: #92400e !important; font-weight: 700 !important; }
 
       /* Node-03: 量子靛紫 */
-      .portal-card:nth-child(3) { border-color: rgba(55, 48, 163, 0.5) !important; }
-      .portal-card:nth-child(3):hover { border-color: #3730a3 !important; box-shadow: 0 12px 30px rgba(55, 48, 163, 0.18) !important; }
+      .portal-card:nth-child(3) { border-color: rgba(55, 48, 163, 0.35) !important; }
+      .portal-card:nth-child(3):hover {
+        border-color: #3730a3 !important;
+        box-shadow: 0 16px 36px rgba(55, 48, 163, 0.22), inset 0 1px 2px #ffffff !important;
+      }
       .portal-card:nth-child(3) .card-domain { color: #3730a3 !important; font-weight: 700 !important; }
       .portal-card:nth-child(3) .card-enter { color: #3730a3 !important; font-weight: 700 !important; }
 
       /* Node-04: 電路天藍 */
-      .portal-card:nth-child(4) { border-color: rgba(3, 105, 161, 0.5) !important; }
-      .portal-card:nth-child(4):hover { border-color: #0369a1 !important; box-shadow: 0 12px 30px rgba(3, 105, 161, 0.18) !important; }
+      .portal-card:nth-child(4) { border-color: rgba(3, 105, 161, 0.35) !important; }
+      .portal-card:nth-child(4):hover {
+        border-color: #0369a1 !important;
+        box-shadow: 0 16px 36px rgba(3, 105, 161, 0.22), inset 0 1px 2px #ffffff !important;
+      }
       .portal-card:nth-child(4) .card-domain { color: #0369a1 !important; font-weight: 700 !important; }
       .portal-card:nth-child(4) .card-enter { color: #0369a1 !important; font-weight: 700 !important; }
 
       /* Node-05: 密碼翠綠 */
-      .portal-card:nth-child(5) { border-color: rgba(4, 120, 87, 0.5) !important; }
-      .portal-card:nth-child(5):hover { border-color: #047857 !important; box-shadow: 0 12px 30px rgba(4, 120, 87, 0.18) !important; }
+      .portal-card:nth-child(5) { border-color: rgba(4, 120, 87, 0.35) !important; }
+      .portal-card:nth-child(5):hover {
+        border-color: #047857 !important;
+        box-shadow: 0 16px 36px rgba(4, 120, 87, 0.22), inset 0 1px 2px #ffffff !important;
+      }
       .portal-card:nth-child(5) .card-domain { color: #047857 !important; font-weight: 700 !important; }
       .portal-card:nth-child(5) .card-enter { color: #047857 !important; font-weight: 700 !important; }
 
       /* Node-06: 終端琥珀橙 */
-      .portal-card:nth-child(6) { border-color: rgba(194, 65, 12, 0.5) !important; }
-      .portal-card:nth-child(6):hover { border-color: #c2410c !important; box-shadow: 0 12px 30px rgba(194, 65, 12, 0.18) !important; }
+      .portal-card:nth-child(6) { border-color: rgba(194, 65, 12, 0.35) !important; }
+      .portal-card:nth-child(6):hover {
+        border-color: #c2410c !important;
+        box-shadow: 0 16px 36px rgba(194, 65, 12, 0.22), inset 0 1px 2px #ffffff !important;
+      }
       .portal-card:nth-child(6) .card-domain { color: #c2410c !important; font-weight: 700 !important; }
       .portal-card:nth-child(6) .card-enter { color: #c2410c !important; font-weight: 700 !important; }
 
-      /* 狀態膠囊高亮白底微光 */
+      /* 狀態膠囊白玉磨砂 */
       .availability--live {
         color: #0f766e !important;
-        background: #f0fdfa !important;
+        background: rgba(240, 253, 250, 0.9) !important;
+        backdrop-filter: blur(8px) !important;
         border: 1px solid rgba(15, 118, 110, 0.4) !important;
         font-weight: 700 !important;
       }
       .availability--source {
         color: #92400e !important;
-        background: #fffbeb !important;
+        background: rgba(255, 251, 235, 0.9) !important;
+        backdrop-filter: blur(8px) !important;
         border: 1px solid rgba(146, 64, 14, 0.4) !important;
         font-weight: 700 !important;
       }
 
-      /* 頂部引腳飾條 */
+      /* 頂部鍍金/光子引腳飾條 (平時 1px 微亮，highlight 時展開 3px 發光) */
       .portal-card::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
-        height: 2px;
-        background: #e2e8f0;
-        transition: all 0.2s ease;
+        height: 1px;
+        background: rgba(203, 213, 225, 0.8);
+        transition: all 0.25s ease;
       }
-      .portal-card:nth-child(1):hover::before { height: 3px; background: #0f766e; }
-      .portal-card:nth-child(2):hover::before { height: 3px; background: #92400e; }
-      .portal-card:nth-child(3):hover::before { height: 3px; background: #3730a3; }
-      .portal-card:nth-child(4):hover::before { height: 3px; background: #0369a1; }
-      .portal-card:nth-child(5):hover::before { height: 3px; background: #047857; }
-      .portal-card:nth-child(6):hover::before { height: 3px; background: #c2410c; }
+      .portal-card:nth-child(1):hover::before { height: 3px; background: #0f766e; box-shadow: 0 0 10px #0f766e; }
+      .portal-card:nth-child(2):hover::before { height: 3px; background: #92400e; box-shadow: 0 0 10px #92400e; }
+      .portal-card:nth-child(3):hover::before { height: 3px; background: #3730a3; box-shadow: 0 0 10px #3730a3; }
+      .portal-card:nth-child(4):hover::before { height: 3px; background: #0369a1; box-shadow: 0 0 10px #0369a1; }
+      .portal-card:nth-child(5):hover::before { height: 3px; background: #047857; box-shadow: 0 0 10px #047857; }
+      .portal-card:nth-child(6):hover::before { height: 3px; background: #c2410c; box-shadow: 0 0 10px #c2410c; }
 
-      /* 底部 Footer */
+      /* 底部 Footer (透光毛玻璃) */
       footer {
-        background: rgba(255, 255, 255, 0.95) !important;
-        border-top: 1px solid #e2e8f0 !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
         color: #475569 !important;
       }
       .footer-brand strong { color: #0f172a !important; }
