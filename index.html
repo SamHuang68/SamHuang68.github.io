@@ -1,1559 +1,438 @@
-<!doctype html>
-<html lang="zh-Hant" data-language="zh" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#060b13" />
-    <title>半導體與系統專案入口｜Semiconductor &amp; Systems</title>
-    <meta name="description" content="半導體 IP、Secure Storage、NVM、系統工具與互動作品入口；清楚區分可執行網站與 Git 原始碼專案。" />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="zh_TW" />
-    <meta property="og:site_name" content="半導體與系統專案入口" />
-    <meta property="og:title" content="半導體與系統專案入口｜Semiconductor &amp; Systems" />
-    <meta property="og:description" content="Silicon IP, secure storage, memory systems and working project portals in one concise index." />
-    <meta property="og:url" content="https://blog.samhuang68.org/" />
-    <meta property="og:image" content="https://blog.samhuang68.org/assets/sam-huang-portfolio-architecture-v2.png" />
-    <meta property="og:image:width" content="1672" />
-    <meta property="og:image:height" content="941" />
-    <meta property="og:image:alt" content="半導體與系統架構主視覺" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="半導體與系統專案入口｜Semiconductor &amp; Systems" />
-    <meta name="twitter:description" content="Silicon IP, systems and working project portals in one concise index." />
-    <meta name="twitter:image" content="https://blog.samhuang68.org/assets/sam-huang-portfolio-architecture-v2.png" />
-    <link rel="canonical" href="https://blog.samhuang68.org/" />
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="preload" href="./fonts/noto-sans-tc-400.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="./fonts/noto-sans-tc-700.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="./assets/sam-huang-portfolio-architecture-v2.webp" as="image" type="image/webp" />
-    <link rel="stylesheet" href="./styles.css" />
-    <script>
-      (function() {
-        try {
-          var l = localStorage.getItem('portal_language') || localStorage.getItem('nvm-hub-language') || 'zh';
-          document.documentElement.setAttribute('data-language', l);
-        } catch(e) {}
-      })();
-    </script>
-    <script src="./audio-engine.js" defer></script>
-    <script src="./command-palette.js" defer></script>
-    <script src="./effects.js" defer></script>
-    <script src="./site.js?v=20260905-bilingual-v5" defer></script>
-    <style>
-      /* =======================================================
-         高可靠純前端中英雙語規則 (Single Source of Truth)
-         ======================================================= */
-      [data-lang="en"] { display: none !important; }
-      [data-lang="zh"] { display: inline !important; }
-
-      html[data-language="en"] [data-lang="zh"],
-      body[data-language="en"] [data-lang="zh"] { display: none !important; }
-      html[data-language="en"] [data-lang="en"],
-      body[data-language="en"] [data-lang="en"] { display: inline !important; }
-
-      /* =======================================================
-         極致工整單屏工作台佈局 (Precision Studio Workbench)
-         ======================================================= */
-      body {
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        background-color: #030a12;
-      }
-      main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        padding: clamp(32px, 7vh, 72px) 0 40px;
-      }
-
-      /* =======================================================
-         頂部精密 HUD 導航列 (64px 高度保障，杜絕切字與基線衝突)
-         ======================================================= */
-      .site-header {
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        height: 64px;
-        min-height: 64px;
-        background: rgba(4, 18, 28, 0.95);
-        backdrop-filter: blur(18px) saturate(1.2);
-        border-bottom: 1px solid rgba(113, 236, 227, 0.2);
-        box-sizing: border-box;
-      }
-      .header-inner {
-        height: 64px;
-        min-height: 64px;
-        padding: 0 24px;
-        max-width: 1440px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        box-sizing: border-box;
-      }
-
-      /* 左側品牌 Identity (垂直居中，文字與底部分隔線保持安全距離) */
-      .identity {
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        text-decoration: none;
-        flex-shrink: 0;
-      }
-      .monogram {
-        width: 38px;
-        height: 38px;
-        display: grid;
-        place-items: center;
-        border: 1px solid rgba(113, 236, 227, 0.45);
-        border-radius: 4px;
-        background: linear-gradient(145deg, rgba(17, 210, 208, 0.14), rgba(9, 34, 53, 0.4));
-        color: #71ece3;
-        font-family: var(--mono);
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        flex-shrink: 0;
-      }
-      .identity-copy {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 2px;
-        line-height: 1.1;
-      }
-      .identity-copy strong {
-        font-size: 16px;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        color: #f8fafc;
-        line-height: 1.15;
-      }
-      .identity-copy span {
-        margin-top: 2px;
-        color: #8eabb3;
-        font-family: var(--mono);
-        font-size: 8.5px;
-        letter-spacing: 0.14em;
-        line-height: 1;
-        white-space: nowrap;
-      }
-
-      /* 中間狀態標籤 (確保精確垂直對齊) */
-      .header-status {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        white-space: nowrap;
-      }
-      .status-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        font-family: var(--mono);
-        font-size: 10px;
-        color: #94a3b8;
-        letter-spacing: 0.06em;
-      }
-      .status-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-      }
-
-      /* 右側動作控制群組 (語系切換與 GitHub 按鈕高度統一為 44px) */
-      .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-shrink: 0;
-      }
-      .language-toggle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        height: 44px;
-        min-height: 44px;
-        padding: 0 12px;
-        border: 1px solid rgba(113, 236, 227, 0.3);
-        border-radius: 4px;
-        background: rgba(7, 29, 43, 0.85);
-        color: #94a3b8;
-        font-family: var(--mono);
-        font-size: 11px;
-        font-weight: 700;
-        cursor: pointer;
-        box-sizing: border-box;
-        transition: all 0.15s ease;
-      }
-      .language-toggle:hover {
-        border-color: #73eee4;
-        background: rgba(17, 210, 208, 0.16);
-        color: #ffffff;
-      }
-      .language-toggle b { font-weight: 800; }
-      .language-toggle i { color: rgba(255, 255, 255, 0.3); font-style: normal; margin: 0 2px; }
-      .language-toggle [data-lang-option="zh"] { color: #73eee4; }
-      .language-toggle [data-lang-option="en"] { color: #64748b; }
-      html[data-language="en"] .language-toggle [data-lang-option="zh"] { color: #64748b; }
-      html[data-language="en"] .language-toggle [data-lang-option="en"] { color: #73eee4; }
-
-      .github-profile {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 44px;
-        min-height: 44px;
-        padding: 0 14px;
-        border: 1px solid rgba(113, 236, 227, 0.28);
-        border-radius: 4px;
-        background: rgba(7, 29, 43, 0.6);
-        color: #c8d8dc;
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.1em;
-        text-decoration: none;
-        box-sizing: border-box;
-        transition: all 0.15s ease;
-      }
-      .github-profile:hover {
-        border-color: #73eee4;
-        background: rgba(17, 210, 208, 0.12);
-        color: #ffffff;
-      }
-
-
-
-      /* 恢復優雅層次的 Hero 區塊 (垂直分明，不擠在一行) */
-      .portal-intro {
-        padding: 8px 24px 24px;
-        margin: 0 auto;
-        max-width: 1440px;
-        width: 100%;
-      }
-      .portal-intro .intro-copy {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .portal-intro .eyebrow {
-        margin: 0;
-        font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.72rem;
-        letter-spacing: 0.1em;
-        color: #73eee4;
-      }
-      .portal-intro h1 {
-        margin: 0;
-        font-size: clamp(20px, 1.8vw, 26px);
-        font-weight: 700;
-        line-height: 1.25;
-        letter-spacing: -0.02em;
-        color: #f8fafc;
-      }
-      .portal-intro h1 em {
-        color: #73eee4;
-        font-style: normal;
-        margin-right: 10px;
-      }
-      .portal-intro h1 span {
-        font-size: clamp(28px, 2.5vw, 36px);
-        letter-spacing: -0.025em;
-        line-height: 1.3;
-      }
-      .portal-intro .hero-desc {
-        margin: 0;
-        font-family: var(--sans);
-        font-size: 15px;
-        line-height: 1.7;
-        color: #a8bec6;
-      }
-
-      /* 高密度工作台容器 (填滿一頁視窗，比例平衡) */
-      .portal-studio-container {
-        max-width: 1440px;
-        margin: 0 auto;
-        padding: 0 24px;
-        width: 100%;
-      }
-      .portal-studio-layout {
-        display: grid;
-        grid-template-columns: 260px minmax(0, 1fr);
-        gap: 20px;
-        align-items: stretch;
-      }
-      @media (max-width: 1024px) {
-        .portal-studio-layout {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      /* 左側直立專案測條 (與右側 6 大卡片等高平衡) */
-      .project-vertical-rail {
-        background: #061925;
-        border: 1px solid rgba(115, 238, 228, 0.22);
-        border-radius: 10px;
-        padding: 12px 14px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-      }
-      .rail-header {
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-        padding-bottom: 10px;
-        margin-bottom: 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .rail-title {
-        font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.72rem;
-        color: #73eee4;
-        letter-spacing: 0.1em;
-        font-weight: 700;
-      }
-      .rail-badge-counter {
-        font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.68rem;
-        color: #94a3b8;
-        background: rgba(255,255,255,0.06);
-        padding: 2px 6px;
-        border-radius: 4px;
-      }
-      .project-rail-nav {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .project-rail-btn {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 12px;
-        border-radius: 6px;
-        color: #94a3b8;
-        background: rgba(255,255,255,0.02);
-        border: 1px solid transparent;
-        cursor: pointer;
-        width: 100%;
-        text-align: left;
-        font-family: inherit;
-        transition: all 0.18s ease;
-      }
-      .project-rail-btn:hover {
-        color: #eaf3f2;
-        background: rgba(115, 238, 228, 0.08);
-        border-color: rgba(115, 238, 228, 0.25);
-      }
-      .project-rail-btn.active {
-        color: #73eee4;
-        background: rgba(115, 238, 228, 0.14);
-        border-color: #73eee4;
-        box-shadow: 0 0 16px rgba(115, 238, 228, 0.18);
-      }
-      .project-rail-code {
-        font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.7rem;
-        font-weight: 700;
-        padding: 2px 6px;
-        border-radius: 3px;
-        background: rgba(255,255,255,0.08);
-        color: #eaf3f2;
-      }
-      .project-rail-btn.active .project-rail-code {
-        background: #73eee4;
-        color: #061925;
-      }
-      .project-rail-desc {
-        display: flex;
-        flex-direction: column;
-      }
-      .project-rail-label {
-        font-size: 0.8rem;
-        font-weight: 600;
-        line-height: 1.25;
-      }
-      .project-rail-sub {
-        font-size: 0.65rem;
-        font-family: 'IBM Plex Mono', monospace;
-        color: #94a3b8;
-        margin-top: 2px;
-      }
-
-      /* 測條底部整合型 4-Metric Strip (工整 2x2 網格) */
-      .rail-stat-grid {
-        margin-top: 14px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255,255,255,0.08);
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-      .rail-stat-cell {
-        background: rgba(255,255,255,0.025);
-        border: 1px solid rgba(115,238,228,0.14);
-        border-radius: 6px;
-        padding: 8px 10px;
-      }
-      .rail-stat-num {
-        font-family: 'IBM Plex Mono', monospace;
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: #73eee4;
-        line-height: 1;
-      }
-      .rail-stat-lbl {
-        font-size: 0.65rem;
-        font-family: 'IBM Plex Mono', monospace;
-        color: #94a3b8;
-        line-height: 1.2;
-        margin-top: 3px;
-        display: block;
-      }
-
-      /* 右側 Stage：3 欄 x 2 列卡片網格 (文字完整呈現，高度協調) */
-      .portal-stage-main {
-        display: flex;
-        flex-direction: column;
-      }
-      .portal-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-      }
-      @media (max-width: 1200px) {
-        .portal-grid { grid-template-columns: repeat(2, 1fr); }
-      }
-      @media (max-width: 680px) {
-        .portal-grid { grid-template-columns: 1fr; }
-      }
-
-      /* 保留晶片卡片造型，讓文字與操作有充足空間 */
-      .portal-card {
-        display: grid;
-        min-height: 170px;
-        padding: 14px 16px;
-        background: linear-gradient(150deg, rgba(15, 23, 42, 0.9) 0%, rgba(3, 7, 18, 0.96) 100%);
-        border: 1px solid rgba(113, 236, 227, 0.18);
-        border-radius: 8px;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
-        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-        text-decoration: none;
-        color: inherit;
-        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-      }
-      .portal-card:hover {
-        transform: translateY(-2px);
-        border-color: rgba(115, 238, 228, 0.5);
-        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(115, 238, 228, 0.15);
-      }
-      .portal-card:focus-visible {
-        outline-offset: -4px;
-      }
-      .portal-card .card-top-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-      .portal-card .availability {
-        font-family: var(--sans);
-        font-size: 10px;
-        line-height: 1.4;
-      }
-      .portal-card .card-signal {
-        color: #94a3b8;
-        flex-shrink: 0;
-      }
-      .portal-card .card-domain {
-        font-family: var(--mono);
-        font-size: 0.68rem;
-        color: #73eee4;
-        letter-spacing: 0.08em;
-        margin-bottom: 6px;
-      }
-      .portal-card h3 {
-        font-size: 1.15rem;
-        font-weight: 700;
-        margin: 0 0 6px;
-        line-height: 1.4;
-        color: #f8fafc;
-      }
-      .portal-card p {
-        font-size: 15px;
-        line-height: 1.65;
-        margin: 0 0 14px;
-        color: #b2c0d0;
-        display: block;
-        overflow: visible;
-      }
-      .portal-card .card-bottom-row {
-        margin-top: auto;
-        padding-top: 10px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px 12px;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .portal-card .card-chips {
-        font-family: var(--mono);
-        font-size: 0.7rem;
-        color: #94a3b8;
-      }
-      .portal-card .card-enter {
-        font-family: var(--sans);
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #73eee4;
-        display: flex;
-        min-height: 28px;
-        margin-left: auto;
-        white-space: nowrap;
-        align-items: center;
-        gap: 4px;
-      }
-      .portal-card--source .card-enter {
-        color: #deb17b;
-      }
-
-      /* 底部微型 Footer (38px) */
-      footer {
-        height: 38px;
-        min-height: 38px;
-        padding: 0 24px;
-        max-width: 1440px;
-        width: 100%;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 0.72rem;
-        color: #64748b;
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
-      }
-      footer p { margin: 0; }
-
-      /* =======================================================
-         響應式佈局適配規則 (放置於樣式表末端確保權重優先)
-         ======================================================= */
-      @media (max-width: 1060px) {
-        .header-status { display: none; }
-      }
-      @media (max-width: 1024px) {
-        .project-rail-nav {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-        .rail-stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      }
-      @media (max-width: 768px) {
-        main { padding: 24px 0 32px; }
-        .portal-intro { padding: 8px 0 20px; }
-        .portal-studio-container { padding: 0; }
-        .project-vertical-rail { padding: 12px; }
-        .rail-header { padding-bottom: 8px; margin-bottom: 10px; }
-        .project-rail-code,
-        .project-rail-sub,
-        .rail-stat-grid { display: none; }
-        .project-rail-btn {
-          justify-content: center;
-          min-height: 44px;
-          padding: 8px 4px;
-          text-align: center;
-          white-space: normal;
-        }
-        .project-rail-label { font-size: 0.75rem; line-height: 1.5; }
-        .portal-studio-layout { grid-template-columns: 1fr; }
-        .portal-grid { grid-template-columns: 1fr; gap: 14px; }
-        .portal-card {
-          min-height: 155px;
-          padding: 12px 14px;
-        }
-        .portal-card h3 {
-          font-size: 1.15rem;
-          margin-bottom: 4px;
-        }
-      }
-      @media (max-width: 420px) {
-        .site-header {
-          height: 60px;
-          min-height: 60px;
-        }
-        .header-inner {
-          padding: 0 10px;
-          gap: 6px;
-        }
-        .identity {
-          gap: 6px;
-        }
-        .monogram {
-          width: 32px;
-          height: 32px;
-          font-size: 11px;
-        }
-        .identity-copy strong {
-          font-size: 14px;
-        }
-        .identity-copy span {
-          display: none;
-        }
-        .header-actions {
-          gap: 6px;
-        }
-        .language-toggle {
-          height: 44px;
-          min-height: 44px;
-          padding: 0 8px;
-          font-size: 10px;
-        }
-        .github-profile {
-          height: 44px;
-          min-height: 44px;
-          padding: 0 8px;
-          font-size: 10px;
-        }
-        .portal-intro {
-          padding: 6px 0 20px;
-        }
-        .portal-studio-container {
-          padding: 0;
-          width: 100%;
-        }
-        .portal-card {
-          min-height: 155px;
-          padding: 12px 14px;
-        }
-      }
-    
-      
-      
-      
-      
-      /* ==========================================================================
-         次世代晶圓透光毛玻璃美學 (Luminous Silicon Crystal Glassmorphism)
-         通透磨砂玻璃質感、微米晶圓電路透光、游標 highlight 躍然顯現互動
-         ========================================================================== */
-      :root {
-        --color-teal-deep: #0f766e;
-        --color-amber-deep: #92400e;
-        --color-indigo-deep: #3730a3;
-        --color-sky-deep: #0369a1;
-        --color-emerald-deep: #047857;
-        --color-orange-deep: #c2410c;
-        --glass-bg: rgba(255, 255, 255, 0.82);
-        --glass-border: rgba(255, 255, 255, 0.85);
-        --glass-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
-      }
-
-      body {
-        background-color: #f8fafc !important;
-        background-image:
-          linear-gradient(rgba(248, 250, 252, 0.72), rgba(241, 245, 249, 0.82)),
-          url('./assets/luminous-wafer-bg.jpg') !important;
-        background-size: cover !important;
-        background-position: center top !important;
-        background-attachment: fixed !important;
-        color: #0f172a !important;
-      }
-
-      /* 頂部 HUD 導覽列 (純淨高透水晶毛玻璃) */
-      .site-header {
-        background: rgba(255, 255, 255, 0.78) !important;
-        backdrop-filter: blur(24px) saturate(1.8) !important;
-        -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.85) !important;
-        box-shadow: 0 4px 24px rgba(15, 23, 42, 0.05) !important;
-      }
-
-      .monogram {
-        background: rgba(240, 253, 250, 0.85) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1px solid #0f766e !important;
-        color: #0f766e !important;
-        box-shadow: 0 2px 10px rgba(15, 118, 110, 0.18), inset 0 1px 1px #ffffff !important;
-      }
-
-      .identity-copy strong {
-        color: #0f172a !important;
-      }
-
-      .identity-copy span {
-        color: #475569 !important;
-      }
-
-      .status-pill {
-        color: #1e293b !important;
-        background: rgba(255, 255, 255, 0.8) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(226, 232, 240, 0.9) !important;
-        padding: 4px 10px !important;
-        border-radius: 9999px !important;
-        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
-      }
-
-      .status-dot--live {
-        background: #0f766e !important;
-        box-shadow: 0 0 8px #0f766e !important;
-      }
-
-      .status-dot--source {
-        background: #92400e !important;
-        box-shadow: 0 0 8px #92400e !important;
-      }
-
-      .language-toggle {
-        background: rgba(255, 255, 255, 0.85) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(203, 213, 225, 0.9) !important;
-        color: #1e293b !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 1px #ffffff !important;
-        transition: all 0.2s ease !important;
-      }
-
-      .language-toggle:hover {
-        border-color: #0f766e !important;
-        color: #0f766e !important;
-        background: rgba(240, 253, 250, 0.95) !important;
-        box-shadow: 0 4px 14px rgba(15, 118, 110, 0.2), inset 0 1px 1px #ffffff !important;
-      }
-
-      .language-toggle [data-lang-option="zh"] { color: #0f766e !important; }
-      .language-toggle [data-lang-option="en"] { color: #475569 !important; }
-      html[data-language="en"] .language-toggle [data-lang-option="zh"] { color: #475569 !important; }
-      html[data-language="en"] .language-toggle [data-lang-option="en"] { color: #0f766e !important; }
-
-      .github-profile {
-        background: rgba(255, 255, 255, 0.85) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(203, 213, 225, 0.9) !important;
-        color: #0f172a !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 1px #ffffff !important;
-        transition: all 0.2s ease !important;
-      }
-
-      .github-profile:hover {
-        border-color: #0f172a !important;
-        background: rgba(248, 250, 252, 0.98) !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1), inset 0 1px 1px #ffffff !important;
-      }
-
-      /* Hero 標題區塊 */
-      .portal-intro .eyebrow {
-        color: #0f766e !important;
-        font-weight: 700 !important;
-      }
-
-      .portal-intro h1 {
-        color: #0f172a !important;
-      }
-
-      .portal-intro h1 em {
-        color: #0f766e !important;
-      }
-
-      .portal-intro h1 span {
-        color: #0f172a !important;
-      }
-
-      .portal-intro .hero-desc {
-        color: #334155 !important;
-      }
-
-      /* 左側 PROJECT LENS 直立測條 (通透白玉毛玻璃容器) */
-      .project-vertical-rail {
-        background: rgba(255, 255, 255, 0.78) !important;
-        backdrop-filter: blur(24px) saturate(1.6) !important;
-        -webkit-backdrop-filter: blur(24px) saturate(1.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.9) !important;
-        box-shadow: 0 12px 36px rgba(15, 23, 42, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
-        border-radius: 10px !important;
-      }
-
-      .rail-header {
-        border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
-      }
-
-      .rail-title {
-        color: #0f766e !important;
-      }
-
-      .rail-badge-counter {
-        color: #334155 !important;
-        background: rgba(241, 245, 249, 0.85) !important;
-        backdrop-filter: blur(8px) !important;
-      }
-
-      /* ======================================================================
-         TAB 按鈕互動核心：平時溫潤通透，游標 highlight / active 到的 tab 才立體顯現！
-         ====================================================================== */
-      .project-rail-btn {
-        background: rgba(255, 255, 255, 0.45) !important;
-        backdrop-filter: blur(8px) !important;
-        border: 1px solid rgba(226, 232, 240, 0.6) !important;
-        color: #475569 !important;
-        border-radius: 6px !important;
-        transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
-      }
-
-      .project-rail-code {
-        background: rgba(226, 232, 240, 0.8) !important;
-        color: #334155 !important;
-        transition: all 0.24s ease !important;
-      }
-
-      /* 游標 hover 或被選中 active 的 tab 才飽滿顯現！ */
-      .project-rail-btn:hover,
-      .project-rail-btn.active {
-        background: rgba(255, 255, 255, 0.96) !important;
-        border-color: #0f766e !important;
-        color: #0f766e !important;
-        box-shadow: 0 6px 20px rgba(15, 118, 110, 0.18), inset 0 1px 2px #ffffff !important;
-        transform: translateX(3px) !important;
-      }
-
-      .project-rail-btn:hover .project-rail-code,
-      .project-rail-btn.active .project-rail-code {
-        background: #0f766e !important;
-        color: #ffffff !important;
-        box-shadow: 0 2px 8px rgba(15, 118, 110, 0.35) !important;
-      }
-
-      .project-rail-sub {
-        color: #64748b !important;
-      }
-
-      .rail-stat-grid {
-        border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
-      }
-
-      .rail-stat-cell {
-        background: rgba(248, 250, 252, 0.7) !important;
-        backdrop-filter: blur(8px) !important;
-        border: 1px solid rgba(226, 232, 240, 0.8) !important;
-      }
-
-      .rail-stat-num {
-        color: #0f766e !important;
-      }
-
-      .rail-stat-lbl {
-        color: #475569 !important;
-      }
-
-      /* ======================================================================
-         六大卡片：高級晶圓毛玻璃 (Frosted Crystal Glassmorphism)
-         平時溫潤通透，游標移入 (highlight) 該卡片時，專屬色彩光暈與引腳光條立即躍然顯現！
-         ====================================================================== */
-      .portal-card {
-        background: rgba(255, 255, 255, 0.82) !important;
-        background-image: none !important;
-        backdrop-filter: blur(20px) saturate(1.6) !important;
-        -webkit-backdrop-filter: blur(20px) saturate(1.6) !important;
-        border: 1px solid rgba(226, 232, 240, 0.85) !important;
-        border-radius: 8px !important;
-        box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.95) !important;
-        clip-path: none !important;
-        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease, background 0.28s ease !important;
-      }
-
-      .portal-card:hover {
-        transform: translateY(-3px) !important;
-        background: rgba(255, 255, 255, 0.97) !important;
-        background-image: none !important;
-      }
-
-      .portal-card .card-signal {
-        color: #334155 !important;
-        background: rgba(241, 245, 249, 0.85) !important;
-        padding: 2px 6px !important;
-        border-radius: 4px !important;
-      }
-
-      .portal-card h3 {
-        color: #0f172a !important;
-      }
-
-      .portal-card p {
-        color: #334155 !important;
-      }
-
-      .portal-card .card-bottom-row {
-        border-top: 1px solid rgba(241, 245, 249, 0.9) !important;
-      }
-
-      .portal-card .card-chips {
-        color: #475569 !important;
-      }
-
-      /* 6 大卡片游標 highlight 顯現規則 (光子色彩強烈躍出) */
-      /* Node-01: 極光青 */
-      .portal-card:nth-child(1) { border-color: rgba(15, 118, 110, 0.35) !important; }
-      .portal-card:nth-child(1):hover {
-        border-color: #0f766e !important;
-        box-shadow: 0 16px 36px rgba(15, 118, 110, 0.22), inset 0 1px 2px #ffffff !important;
-      }
-      .portal-card:nth-child(1) .card-domain { color: #0f766e !important; font-weight: 700 !important; }
-      .portal-card:nth-child(1) .card-enter { color: #0f766e !important; font-weight: 700 !important; }
-
-      /* Node-02: 晶圓琥珀金 */
-      .portal-card:nth-child(2) { border-color: rgba(146, 64, 14, 0.35) !important; }
-      .portal-card:nth-child(2):hover {
-        border-color: #92400e !important;
-        box-shadow: 0 16px 36px rgba(146, 64, 14, 0.22), inset 0 1px 2px #ffffff !important;
-      }
-      .portal-card:nth-child(2) .card-domain { color: #92400e !important; font-weight: 700 !important; }
-      .portal-card:nth-child(2) .card-enter { color: #92400e !important; font-weight: 700 !important; }
-
-      /* Node-03: 量子靛紫 */
-      .portal-card:nth-child(3) { border-color: rgba(55, 48, 163, 0.35) !important; }
-      .portal-card:nth-child(3):hover {
-        border-color: #3730a3 !important;
-        box-shadow: 0 16px 36px rgba(55, 48, 163, 0.22), inset 0 1px 2px #ffffff !important;
-      }
-      .portal-card:nth-child(3) .card-domain { color: #3730a3 !important; font-weight: 700 !important; }
-      .portal-card:nth-child(3) .card-enter { color: #3730a3 !important; font-weight: 700 !important; }
-
-      /* Node-04: 電路天藍 */
-      .portal-card:nth-child(4) { border-color: rgba(3, 105, 161, 0.35) !important; }
-      .portal-card:nth-child(4):hover {
-        border-color: #0369a1 !important;
-        box-shadow: 0 16px 36px rgba(3, 105, 161, 0.22), inset 0 1px 2px #ffffff !important;
-      }
-      .portal-card:nth-child(4) .card-domain { color: #0369a1 !important; font-weight: 700 !important; }
-      .portal-card:nth-child(4) .card-enter { color: #0369a1 !important; font-weight: 700 !important; }
-
-      /* Node-05: 密碼翠綠 */
-      .portal-card:nth-child(5) { border-color: rgba(4, 120, 87, 0.35) !important; }
-      .portal-card:nth-child(5):hover {
-        border-color: #047857 !important;
-        box-shadow: 0 16px 36px rgba(4, 120, 87, 0.22), inset 0 1px 2px #ffffff !important;
-      }
-      .portal-card:nth-child(5) .card-domain { color: #047857 !important; font-weight: 700 !important; }
-      .portal-card:nth-child(5) .card-enter { color: #047857 !important; font-weight: 700 !important; }
-
-      /* Node-06: 終端琥珀橙 */
-      .portal-card:nth-child(6) { border-color: rgba(194, 65, 12, 0.35) !important; }
-      .portal-card:nth-child(6):hover {
-        border-color: #c2410c !important;
-        box-shadow: 0 16px 36px rgba(194, 65, 12, 0.22), inset 0 1px 2px #ffffff !important;
-      }
-      .portal-card:nth-child(6) .card-domain { color: #c2410c !important; font-weight: 700 !important; }
-      .portal-card:nth-child(6) .card-enter { color: #c2410c !important; font-weight: 700 !important; }
-
-      /* 狀態膠囊白玉磨砂 */
-      .availability--live {
-        color: #0f766e !important;
-        background: rgba(240, 253, 250, 0.9) !important;
-        backdrop-filter: blur(8px) !important;
-        border: 1px solid rgba(15, 118, 110, 0.4) !important;
-        font-weight: 700 !important;
-      }
-      .availability--source {
-        color: #92400e !important;
-        background: rgba(255, 251, 235, 0.9) !important;
-        backdrop-filter: blur(8px) !important;
-        border: 1px solid rgba(146, 64, 14, 0.4) !important;
-        font-weight: 700 !important;
-      }
-
-      /* 頂部鍍金/光子引腳飾條 (平時 1px 微亮，highlight 時展開 3px 發光) */
-      .portal-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: rgba(203, 213, 225, 0.8);
-        transition: all 0.25s ease;
-      }
-      .portal-card:nth-child(1):hover::before { height: 3px; background: #0f766e; box-shadow: 0 0 10px #0f766e; }
-      .portal-card:nth-child(2):hover::before { height: 3px; background: #92400e; box-shadow: 0 0 10px #92400e; }
-      .portal-card:nth-child(3):hover::before { height: 3px; background: #3730a3; box-shadow: 0 0 10px #3730a3; }
-      .portal-card:nth-child(4):hover::before { height: 3px; background: #0369a1; box-shadow: 0 0 10px #0369a1; }
-      .portal-card:nth-child(5):hover::before { height: 3px; background: #047857; box-shadow: 0 0 10px #047857; }
-      .portal-card:nth-child(6):hover::before { height: 3px; background: #c2410c; box-shadow: 0 0 10px #c2410c; }
-
-      /* 底部 Footer (透光毛玻璃) */
-      footer {
-        background: rgba(255, 255, 255, 0.85) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
-        border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
-        color: #475569 !important;
-      }
-      .footer-brand strong { color: #0f172a !important; }
-      footer a { color: #0f766e !important; }
-
-      /* Focus 可視化邊框 */
-      .portal-card:focus-visible {
-        outline: 2px solid #0f766e !important;
-        outline-offset: 2px !important;
-      }
-
-      @media (max-width: 768px) {
-        main { padding: 8px 0 12px !important; }
-        .portal-intro { padding: 4px 10px 6px !important; }
-        .portal-studio-layout { gap: 8px !important; }
-        .portal-grid { gap: 8px !important; }
-        .portal-card {
-          min-height: 135px !important;
-          padding: 8px 12px !important;
-        }
-        .portal-card p {
-          margin-bottom: 4px !important;
-          font-size: 14px !important;
-          line-height: 1.4 !important;
-        }
-      }
-
-    
-      /* ==========================================================================
-         全域光子水波紋與 3D 鏡面光斑折射微特效 (Photonic Ripple & Specular Sheen)
-         ========================================================================== */
-      .ripple-canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        pointer-events: none;
-        z-index: 0;
-        overflow: hidden;
-      }
-
-      /* 卡片表面 3D 鏡面光斑折射 (隨游標動態凝聚) */
-      .portal-card {
-        position: relative;
-        overflow: hidden;
-      }
-      .portal-card::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        background: radial-gradient(circle 240px at var(--mouse-x, -999px) var(--mouse-y, -999px), rgba(255, 255, 255, 0.5), transparent 75%);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s ease;
-      }
-      .portal-card:hover::after {
-        opacity: 1;
-      }
-
-      /* Tab 與按鈕點擊水波擴散動效 */
-      .project-rail-btn,
-      .language-toggle {
-        position: relative;
-        overflow: hidden;
-      }
-      .tab-click-ripple {
-        position: absolute;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(15, 118, 110, 0.38) 0%, rgba(13, 148, 136, 0.15) 50%, transparent 80%);
-        transform: translate(-50%, -50%) scale(1);
-        animation: tabRippleAnim 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        pointer-events: none;
-      }
-      @keyframes tabRippleAnim {
-        0% {
-          transform: translate(-50%, -50%) scale(1);
-          opacity: 0.9;
-        }
-        100% {
-          transform: translate(-50%, -50%) scale(18);
-          opacity: 0;
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .ripple-canvas { display: none !important; }
-        .portal-card::after { display: none !important; }
-        .tab-click-ripple { display: none !important; }
-      }
-
-    
-      /* ======================================================================
-         HUD 按鈕群組 (⌘K, 音效, X-Ray)
-         ====================================================================== */
-      .hud-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 44px;
-        min-height: 44px;
-        padding: 0 10px;
-        border: 1px solid rgba(203, 213, 225, 0.9);
-        border-radius: 6px;
-        background: rgba(255, 255, 255, 0.85);
-        color: #1e293b;
-        font-family: var(--mono);
-        font-size: 11px;
-        font-weight: 700;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 1px #ffffff;
-        transition: all 0.2s ease;
-      }
-      .hud-btn:hover {
-        border-color: #0f766e;
-        color: #0f766e;
-        background: rgba(240, 253, 250, 0.95);
-        box-shadow: 0 4px 14px rgba(15, 118, 110, 0.18), inset 0 1px 1px #ffffff;
-      }
-      .hud-btn[data-sound="on"] {
-        border-color: #0f766e;
-        color: #0f766e;
-        background: #f0fdfa;
-        box-shadow: 0 0 10px rgba(15, 118, 110, 0.25);
-      }
-
-      /* Command Palette (⌘K) 全域指揮中心樣式 */
-      .cmd-palette-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.35);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        z-index: 1000;
-        display: none;
-        align-items: flex-start;
-        justify-content: center;
-        padding-top: clamp(40px, 12vh, 120px);
-        opacity: 0;
-        transition: opacity 0.2s ease;
-      }
-      .cmd-palette-backdrop.is-open {
-        display: flex;
-        opacity: 1;
-      }
-      .cmd-palette-box {
-        width: 100%;
-        max-width: 580px;
-        margin: 0 16px;
-        background: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(28px) saturate(1.8);
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        border-radius: 12px;
-        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18), inset 0 1px 1px #ffffff;
-        overflow: hidden;
-        animation: cmdPopAnim 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      @keyframes cmdPopAnim {
-        from { transform: scale(0.96) translateY(-10px); opacity: 0; }
-        to { transform: scale(1) translateY(0); opacity: 1; }
-      }
-      .cmd-palette-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 14px 18px;
-        border-bottom: 1px solid #e2e8f0;
-      }
-      .cmd-palette-icon {
-        font-family: var(--mono);
-        font-size: 16px;
-        color: #0f766e;
-      }
-      .cmd-palette-input {
-        flex: 1;
-        border: none;
-        outline: none;
-        background: transparent;
-        font-family: inherit;
-        font-size: 15px;
-        color: #0f172a;
-      }
-      .cmd-palette-input::placeholder {
-        color: #94a3b8;
-      }
-      .cmd-palette-esc {
-        font-family: var(--mono);
-        font-size: 10px;
-        padding: 2px 6px;
-        background: #f1f5f9;
-        border: 1px solid #cbd5e1;
-        border-radius: 4px;
-        color: #64748b;
-      }
-      .cmd-palette-list {
-        list-style: none;
-        margin: 0;
-        padding: 8px;
-        max-height: 320px;
-        overflow-y: auto;
-      }
-      .cmd-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 14px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      .cmd-item.is-selected {
-        background: #f0fdfa;
-        color: #0f766e;
-      }
-      .cmd-item-info {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-      .cmd-item-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: #0f172a;
-      }
-      .cmd-item.is-selected .cmd-item-title {
-        color: #0f766e;
-      }
-      .cmd-item-desc {
-        font-size: 11px;
-        color: #64748b;
-      }
-      .cmd-item-badge {
-        font-family: var(--mono);
-        font-size: 9px;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background: #f1f5f9;
-        color: #475569;
-        font-weight: 700;
-      }
-      .cmd-item.is-selected .cmd-item-badge {
-        background: #0f766e;
-        color: #ffffff;
-      }
-      .cmd-empty {
-        padding: 24px;
-        text-align: center;
-        color: #94a3b8;
-        font-size: 13px;
-      }
-      .cmd-palette-footer {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 8px 18px;
-        border-top: 1px solid #f1f5f9;
-        background: rgba(248, 250, 252, 0.8);
-        font-size: 11px;
-        color: #64748b;
-      }
-      .cmd-palette-footer kbd {
-        font-family: var(--mono);
-        background: #ffffff;
-        border: 1px solid #cbd5e1;
-        padding: 1px 4px;
-        border-radius: 3px;
-        font-size: 10px;
-      }
-
-      /* X-Ray 晶圓光罩走線透視模式 */
-      body.xray-mode {
-        background-color: #020617 !important;
-        background-image:
-          linear-gradient(rgba(2, 6, 23, 0.88), rgba(2, 6, 23, 0.94)),
-          url('./assets/luminous-wafer-bg.jpg') !important;
-        filter: contrast(1.15) !important;
-        color: #e2e8f0 !important;
-      }
-      body.xray-mode .portal-card {
-        background: rgba(15, 23, 42, 0.85) !important;
-        border-color: rgba(0, 245, 212, 0.45) !important;
-        box-shadow: 0 10px 30px rgba(0, 245, 212, 0.15) !important;
-      }
-      body.xray-mode .portal-card h3 { color: #ffffff !important; }
-      body.xray-mode .portal-card p { color: #94a3b8 !important; }
-      body.xray-mode .site-header { background: rgba(2, 6, 23, 0.9) !important; border-bottom-color: rgba(0, 245, 212, 0.3) !important; }
-      body.xray-mode .project-vertical-rail { background: rgba(15, 23, 42, 0.85) !important; border-color: rgba(0, 245, 212, 0.35) !important; }
-      body.xray-mode .hud-btn { background: rgba(15, 23, 42, 0.85) !important; border-color: rgba(0, 245, 212, 0.4) !important; color: #00f5d4 !important; }
-      body.xray-mode .identity-copy strong { color: #ffffff !important; }
-      body.xray-mode .portal-intro h1 { color: #ffffff !important; }
-      body.xray-mode footer { background: rgba(2, 6, 23, 0.95) !important; border-top-color: rgba(0, 245, 212, 0.2) !important; color: #94a3b8 !important; }
-
-      @media (max-width: 680px) {
-        .xray-toggle { display: none; }
-      }
-      @media (max-width: 480px) {
-        .sound-toggle { display: none; }
-      }
-
-    </style>
-  </head>
-  <body class="bg-tech-grid bg-wafer bg-silicon" data-artifact-mode="project-portal">
-    <a class="skip-link" href="#projectGrid"><span data-lang="zh">跳至主要專案矩陣</span><span data-lang="en">Skip to project matrix</span></a>
-
-    <!-- 背景動態環境光暈與晶圓架構 -->
-    <div class="ambient-architecture" aria-hidden="true">
-      <img src="./assets/sam-huang-portfolio-architecture-v2.webp" width="1672" height="941" alt="" />
-      <div class="glow-orb glow-orb--cyan"></div>
-      <div class="glow-orb glow-orb--emerald"></div>
-    </div>
-
-    <!-- 頂部精密 HUD 導航列 (48px) -->
-    <header class="site-header" id="page-top">
-      <div class="header-inner">
-        <a class="identity" href="./" aria-label="回到專案入口首頁">
-          <span class="monogram" aria-hidden="true">IP</span>
-          <span class="identity-copy">
-            <strong><b data-lang="zh">專案入口</b><b data-lang="en">Project Portal</b></strong>
-            <span>SEMICONDUCTOR IP · SYSTEMS</span>
-          </span>
+﻿<!doctype html>
+<html lang="zh-Hant" data-lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="??擃?蝟餌絞撠??亙嚚ilicon IP, secure storage, memory systems and working project portals in one concise index.">
+  <meta name="theme-color" content="#f7fafc">
+  <meta property="og:title" content="Sam Huang 繚 ??擃?蝟餌絞撠??亙 嚚?Semiconductor & Systems">
+  <meta property="og:description" content="Silicon IP, secure storage, memory systems and working project portals in one concise index.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://samhuang68.github.io/">
+  <title>??擃?蝟餌絞撠??亙嚚emiconductor & Systems ??Sam Huang</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-mode">
+  <!-- ?⊿?蝷歲頧?-->
+  <a class="skip-link" href="#projects">頝唾銝餉?撠??拚 Skip to project matrix</a>
+
+  <!-- ?鋆ˇ撅?(靽?蝯蝝嚗?皛踵???飛蝘?撅斗活) -->
+  <div class="ambient-layer" aria-hidden="true">
+    <div class="aurora-orb orb-teal"></div>
+    <div class="aurora-orb orb-sapphire"></div>
+    <div class="aurora-orb orb-amber"></div>
+    <div class="circuit-grid-pattern"></div>
+    <div class="wafer-radial-sheen"></div>
+    <div class="noise-texture"></div>
+  </div>
+
+  <!-- ??豢筑擏???閬賢? -->
+  <header class="cockpit-header" id="site-header">
+    <div class="cockpit-container">
+      <a class="brand-unit" href="#hero" aria-label="Sam Huang 擐?">
+        <div class="brand-chip-icon">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="30" height="30" rx="8" stroke="currentColor" stroke-width="2" class="chip-frame"/>
+            <rect x="9" y="9" width="18" height="18" rx="4" fill="currentColor" fill-opacity="0.12"/>
+            <circle cx="18" cy="18" r="3.5" fill="currentColor"/>
+            <!-- ?蝭暺?-->
+            <path d="M18 3V9M18 27V33M3 18H9M27 18H33" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
+            <circle cx="27" cy="9" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="27" r="1.5" fill="currentColor"/>
+            <circle cx="27" cy="27" r="1.5" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="brand-meta">
+          <span class="brand-title">SAM HUANG</span>
+          <span class="brand-sub" data-i18n="brand_sub">??擃?IP 繚 蝟餌絞?嗆?</span>
+        </div>
+      </a>
+
+      <!-- 敹恍?閬?-->
+      <nav class="cockpit-nav" aria-label="?典?撠汗">
+        <a href="#projects" class="nav-link" data-i18n="nav_projects">撠??拚</a>
+        <a href="#philosophy" class="nav-link" data-i18n="nav_philosophy">?嗆??脣飛</a>
+        <a href="https://github.com/SamHuang68" target="_blank" rel="noopener" class="nav-link ext-link">
+          <span>GitHub</span>
+          <svg class="icon-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 9.5L9.5 2.5M9.5 2.5H4M9.5 2.5V8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
+      </nav>
 
-        <!-- 狀態標籤摘要 -->
-        <div class="header-status" aria-label="公開專案狀態摘要">
-          <span class="status-pill status-pill--live">
-            <i class="status-dot status-dot--live status-dot--pulse" aria-hidden="true"></i>
-            <b>6</b> <span data-lang="zh">有效節點</span><span data-lang="en">ACTIVE NODES</span>
-          </span>
-          <span class="status-pill status-pill--source">
-            <i class="status-dot status-dot--source" aria-hidden="true"></i>
-            <b>2</b> <span data-lang="zh">儲存庫</span><span data-lang="en">REPOS</span>
-          </span>
+      <!-- ?銵函???隤頂 -->
+      <div class="cockpit-controls">
+        <div class="system-status-indicator" title="All systems operational">
+          <span class="pulse-ring"></span>
+          <span class="pulse-core"></span>
+          <span class="status-label" data-i18n="status_online">6 蝭暺停蝺?/span>
         </div>
 
-        <div class="header-actions">
-          <button class="hud-btn cmd-trigger" id="cmdTrigger" type="button" aria-label="開啟全域架構指揮中心 (Open Command Palette)">⌘K</button>
-          <button class="hud-btn sound-toggle" id="soundToggle" type="button" data-sound="off" aria-label="切換晶片合成音效 (Toggle Audio)">🔊</button>
-          <button class="hud-btn xray-toggle" id="xrayToggle" type="button" aria-label="切換 X-Ray 晶圓光罩透視模式 (Toggle X-Ray)">X-RAY</button>
-          <button class="language-toggle" id="languageToggle" type="button" aria-label="Switch to English (切換至英文)">
-            <b data-lang-option="zh">中</b><i>/</i><b data-lang-option="en">EN</b>
-          </button>
-          <a class="github-profile" href="https://github.com/SamHuang68" target="_blank" rel="noopener noreferrer" aria-label="前往 GitHub 專案主頁">GITHUB <span aria-hidden="true">↗</span></a>
+        <div class="lang-selector" role="group" aria-label="隤???">
+          <button type="button" class="lang-switch-btn active" data-target-lang="zh" aria-pressed="true">銝剜?</button>
+          <span class="lang-divider" aria-hidden="true">/</span>
+          <button type="button" class="lang-switch-btn" data-target-lang="en" aria-pressed="false">EN</button>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <main>
-      <!-- 工整層次的 Hero 區塊 -->
-      <section class="portal-intro" aria-labelledby="portal-title">
-        <div class="intro-copy">
-          <p class="eyebrow"><span>PROJECT PORTAL</span><b> · <span data-lang="zh">台灣 · 2026</span><span data-lang="en">TAIWAN · 2026</span></b></p>
-          <h1 id="portal-title"><em data-lang="zh">專案入口</em><em data-lang="en">Project Portal</em><span data-lang="zh">從矽智財到可執行系統</span><span data-lang="en">From Silicon IP to Working Systems</span></h1>
-          <p class="hero-desc"><span data-lang="zh">從架構規劃到可執行系統 · 半導體 IP · 安全儲存 (Secure Storage)</span><span data-lang="en">From architecture to working systems · Semiconductor IP · Secure Storage</span></p>
+  <!-- 銝餉?閬?HERO ???-->
+  <main id="main-content">
+    <section class="hero-stage" id="hero">
+      <!-- 鈭?撘?撠?靽∟??怠? -->
+      <canvas id="silicon-canvas" class="hero-canvas" aria-hidden="true"></canvas>
+
+      <div class="hero-wrapper">
+        <div class="telemetry-badge">
+          <span class="badge-dot"></span>
+          <span class="badge-text" data-i18n="hero_telemetry">PROJECT PORTAL 繚 TAIWAN 2026 繚 SILICON ARCHITECTURE</span>
         </div>
-      </section>
 
-      <!-- =======================================================
-           高密度直立測條工作台 (EXECUTIVE STUDIO WORKBENCH)
-           ======================================================= -->
-      <div class="portal-studio-container">
-        <div class="portal-studio-layout">
+        <h1 class="hero-statement">
+          <span class="headline-block" data-i18n="hero_headline_1">敺瑽???/span>
+          <span class="headline-gradient" data-i18n="hero_headline_2">?啁?甇??瑁??頂蝯?/span>
+        </h1>
 
-          <!-- 左側直立專案測條 (Vertical Project Rail) -->
-          <aside class="project-vertical-rail" aria-label="專案分類直立測條">
-            <div>
-              <div class="rail-header">
-                <span class="rail-title">PROJECT LENS</span>
-                <span class="rail-badge-counter" id="matrix-count">06</span>
-              </div>
-              <nav class="project-rail-nav" role="tablist" aria-label="專案分類切換">
-                <button type="button" role="tab" aria-selected="true" id="tab-all" class="project-rail-btn tab-btn active" onclick="switchTab('all')">
-                  <span class="project-rail-code">00</span>
-                  <div class="project-rail-desc">
-                    <span class="project-rail-label"><span data-lang="zh">全部節點 (06)</span><span data-lang="en">All Nodes (06)</span></span>
-                    <span class="project-rail-sub">ALL CATEGORIES</span>
-                  </div>
-                </button>
-                <button type="button" role="tab" aria-selected="false" id="tab-live" class="project-rail-btn tab-btn" onclick="switchTab('live')">
-                  <span class="project-rail-code">01</span>
-                  <div class="project-rail-desc">
-                    <span class="project-rail-label"><span data-lang="zh">可執行網站 (04)</span><span data-lang="en">Runnable Web (04)</span></span>
-                    <span class="project-rail-sub">LIVE WEBSITES</span>
-                  </div>
-                </button>
-                <button type="button" role="tab" aria-selected="false" id="tab-git" class="project-rail-btn tab-btn" onclick="switchTab('git')">
-                  <span class="project-rail-code">02</span>
-                  <div class="project-rail-desc">
-                    <span class="project-rail-label"><span data-lang="zh">僅 Git 專案 (02)</span><span data-lang="en">Open Repos (02)</span></span>
-                    <span class="project-rail-sub">SOURCE ONLY</span>
-                  </div>
-                </button>
-              </nav>
-            </div>
+        <p class="hero-mission" data-i18n="hero_mission">
+          ?游? Silicon IP???典摮?Secure Storage嚗??AI ???嗆????芋?砍極蝔??祇??銵??嗚誑撖西??豢???撖阡?銵皞???        </p>
 
-            <!-- 整合型 4-Metric Telemetry Strip -->
-            <div class="rail-stat-grid">
-              <div class="rail-stat-cell">
-                <div class="rail-stat-num">06</div>
-                <span class="rail-stat-lbl"><span data-lang="zh">活躍節點</span><span data-lang="en">NODES</span></span>
-              </div>
-              <div class="rail-stat-cell">
-                <div class="rail-stat-num">04</div>
-                <span class="rail-stat-lbl"><span data-lang="zh">線上網站</span><span data-lang="en">LIVE</span></span>
-              </div>
-              <div class="rail-stat-cell">
-                <div class="rail-stat-num">02</div>
-                <span class="rail-stat-lbl"><span data-lang="zh">程式庫</span><span data-lang="en">REPOS</span></span>
-              </div>
-              <div class="rail-stat-cell">
-                <div class="rail-stat-num">2026</div>
-                <span class="rail-stat-lbl"><span data-lang="zh">架構基準</span><span data-lang="en">SPEC</span></span>
-              </div>
-            </div>
-          </aside>
+        <!-- 銵???蝯?-->
+        <div class="hero-cta-cluster">
+          <a href="#projects" class="btn btn-primary">
+            <span class="btn-text" data-i18n="cta_explore">?Ｙ揣撠?蝭暺?/span>
+            <svg class="btn-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8H13M13 8L8.5 3.5M13 8L8.5 12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a href="https://github.com/SamHuang68" target="_blank" rel="noopener" class="btn btn-secondary">
+            <svg class="btn-icon-prefix" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            <span data-i18n="cta_github">GitHub 蝮質汗 ??/span>
+          </a>
+        </div>
 
-          <!-- 右側主工作台：3x2 高密度卡片矩陣 (文字充實不截斷) -->
-          <section class="portal-stage-main portal-section" id="project-portals" aria-labelledby="project-matrix-title">
-            <h2 id="project-matrix-title" class="sr-only">半導體 IP 與系統矩陣</h2>
-
-            <div class="portal-grid" id="projectGrid">
-              <!-- 專案 01: NVM Knowledge Hub (Live · Cyan) -->
-              <a class="portal-card portal-card--live portal-card--research pkg-card chip-card hud-card" href="https://hub.samhuang68.org/" data-type="live" aria-label="進入 NVM Knowledge Hub，可執行研究與白皮書入口">
-                <div class="pin-strip" aria-hidden="true"></div>
-                <div class="card-top-row">
-                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i><span data-lang="zh">可執行網站 · LIVE WEB</span><span data-lang="en">LIVE WEB</span></span>
-                  <span class="card-signal font-mono" aria-hidden="true">NODE-01</span>
-                </div>
-                <span class="card-domain">SEMICONDUCTOR IP · RESEARCH</span>
-                <h3>NVM Knowledge Hub</h3>
-                <p><span data-lang="zh">整合 Secure Storage、AI 時代應用與 NVM 白皮書工作室的完整半導體研究門戶。</span><span data-lang="en">Semiconductor research portal for Secure Storage, AI-era nodes, and NVM architecture.</span></p>
-                <div class="card-bottom-row">
-                  <span class="card-chips font-mono">OTP · MTP · eFlash · PUF</span>
-                  <span class="card-enter"><span data-lang="zh">進入門戶</span><span data-lang="en">Open Hub</span> <b aria-hidden="true">↗</b></span>
-                </div>
-              </a>
-
-              <!-- 專案 02: 多元遊戲大廳 (Live · Amber) -->
-              <a class="portal-card portal-card--live portal-card--game pkg-card chip-card hud-card" href="https://arcade.samhuang68.org/" data-type="live" aria-label="進入多元遊戲大廳，可執行互動遊戲網站">
-                <div class="pin-strip" aria-hidden="true"></div>
-                <div class="card-top-row">
-                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i><span data-lang="zh">可執行網站 · LIVE WEB</span><span data-lang="en">LIVE WEB</span></span>
-                  <span class="card-signal font-mono" aria-hidden="true">NODE-02</span>
-                </div>
-                <span class="card-domain">INTERACTIVE SYSTEMS · ARCADE</span>
-                <h3><span data-lang="zh">多元遊戲大廳</span><span data-lang="en">Interactive Game Arcade</span></h3>
-                <p><span data-lang="zh">涵蓋 3D 棋盤對弈、策略模擬、復古街機與休閒益智等 21 款主題領域的互動遊戲合輯。</span><span data-lang="en">Interactive gaming suite featuring 21 titles across 3D chess, strategy, arcade, and puzzles.</span></p>
-                <div class="card-bottom-row">
-                  <span class="card-chips font-mono">21 Games · 3D · Web Audio</span>
-                  <span class="card-enter"><span data-lang="zh">進入大廳</span><span data-lang="en">Enter Arcade</span> <b aria-hidden="true">↗</b></span>
-                </div>
-              </a>
-
-              <!-- 專案 03: E-Learning (Live · Indigo) -->
-              <a class="portal-card portal-card--live portal-card--learning pkg-card chip-card hud-card" href="https://learn.samhuang68.org/" data-type="live" aria-label="進入 E-Learning，可執行學習網站">
-                <div class="pin-strip" aria-hidden="true"></div>
-                <div class="card-top-row">
-                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i><span data-lang="zh">可執行網站 · LIVE WEB</span><span data-lang="en">LIVE WEB</span></span>
-                  <span class="card-signal font-mono" aria-hidden="true">NODE-03</span>
-                </div>
-                <span class="card-domain">LEARNING ENGINE · 8 TRACKS</span>
-                <h3>E‑Learning</h3>
-                <p><span data-lang="zh">數學、微積分、物理、化學、計算機概論、日語、多益與臺灣華語，八軌整合的學習引擎。</span><span data-lang="en">Eight tracks: Taiwan Math, Calculus, Physics, Chemistry, Computer Science, Japanese, TOEIC, and Taiwan Mandarin.</span></p>
-                <div class="card-bottom-row">
-                  <span class="card-chips font-mono">Math · JLPT · TOEIC · FSRS</span>
-                  <span class="card-enter"><span data-lang="zh">開始學習</span><span data-lang="en">Start Learning</span> <b aria-hidden="true">↗</b></span>
-                </div>
-              </a>
-
-              <!-- 專案 04: Hardware Profile (Live · Violet) -->
-              <a class="portal-card portal-card--live portal-card--hardware pkg-card chip-card hud-card" href="https://hardware.samhuang68.org/" data-type="live" aria-label="進入 Hardware Profile，可執行硬體網站">
-                <div class="pin-strip" aria-hidden="true"></div>
-                <div class="card-top-row">
-                  <span class="availability availability--live"><i class="status-dot status-dot--live" aria-hidden="true"></i><span data-lang="zh">可執行網站 · LIVE WEB</span><span data-lang="en">LIVE WEB</span></span>
-                  <span class="card-signal font-mono" aria-hidden="true">NODE-04</span>
-                </div>
-                <span class="card-domain">HARDWARE · ENGINEERING PROFILE</span>
-                <h3>Hardware Profile</h3>
-                <p><span data-lang="zh">AI 工作站、RTX 5080 eGPU、開發環境與工程硬體資產規格的可互動檢視紀錄。</span><span data-lang="en">Interactive asset profile detailing AI workstations, RTX 5080 eGPU, and dev environments.</span></p>
-                <div class="card-bottom-row">
-                  <span class="card-chips font-mono">Ultra 9 · RTX 5080 · 96GB</span>
-                  <span class="card-enter"><span data-lang="zh">查看硬體</span><span data-lang="en">View Rig</span> <b aria-hidden="true">↗</b></span>
-                </div>
-              </a>
-
-              <!-- 專案 05: Secure Storage OIP (Git · Slate) -->
-              <a class="portal-card portal-card--source portal-card--research pkg-card chip-card hud-card" href="https://github.com/SamHuang68/secure-storage-oip-briefing" target="_blank" rel="noopener noreferrer" data-type="git" aria-label="查看 Secure Storage OIP Briefing Git 原始碼專案">
-                <div class="pin-strip" aria-hidden="true"></div>
-                <div class="card-top-row">
-                  <span class="availability availability--source"><i aria-hidden="true"></i><span data-lang="zh">僅 Git 專案 · SOURCE ONLY</span><span data-lang="en">SOURCE ONLY</span></span>
-                  <span class="card-signal font-mono" aria-hidden="true">NODE-05</span>
-                </div>
-                <span class="card-domain">SECURE STORAGE · OIP BRIEFING</span>
-                <h3>Secure Storage OIP</h3>
-                <p><span data-lang="zh">Secure Storage 與 OIP 技術溝通的公開原始碼、技術簡報與硬體架構實作。</span><span data-lang="en">Open codebase, technical briefings, and silicon reference for Secure Storage and TSMC OIP.</span></p>
-                <div class="card-bottom-row">
-                  <span class="card-chips font-mono">Hardware IP · OIP · Crypto</span>
-                  <span class="card-enter"><span data-lang="zh">查看原始碼</span><span data-lang="en">View Repo</span> <b aria-hidden="true">↗</b></span>
-                </div>
-              </a>
-
-              <!-- 專案 06: TW Pulse Terminal (Git · Slate) -->
-              <a class="portal-card portal-card--source portal-card--data pkg-card chip-card hud-card" href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener noreferrer" data-type="git" aria-label="查看 TW Pulse Terminal Git 原始碼專案">
-                <div class="pin-strip" aria-hidden="true"></div>
-                <div class="card-top-row">
-                  <span class="availability availability--source"><i aria-hidden="true"></i><span data-lang="zh">僅 Git 專案 · SOURCE ONLY</span><span data-lang="en">SOURCE ONLY</span></span>
-                  <span class="card-signal font-mono" aria-hidden="true">NODE-06</span>
-                </div>
-                <span class="card-domain">DATA INTERFACE · TERMINAL</span>
-                <h3>TW Pulse Terminal</h3>
-                <p><span data-lang="zh">以終端命令語彙重組台灣脈動資訊與技術數據介面的開源 Python/Web 專案。</span><span data-lang="en">Open-source terminal synthesizing Taiwan market indicators and real-time data telemetry.</span></p>
-                <div class="card-bottom-row">
-                  <span class="card-chips font-mono">Python · CLI · REST API</span>
-                  <span class="card-enter"><span data-lang="zh">查看原始碼</span><span data-lang="en">View Repo</span> <b aria-hidden="true">↗</b></span>
-                </div>
-              </a>
-            </div>
-          </section>
-
+        <!-- 鈭株蝎曉?蝘?閮?銵冽 -->
+        <div class="telemetry-grid-card">
+          <div class="telemetry-cell">
+            <span class="metric-value" data-count="6">0</span>
+            <span class="metric-caption" data-i18n="metric_nodes">蝟餌絞蝭暺?(Nodes)</span>
+          </div>
+          <div class="telemetry-cell">
+            <span class="metric-value" data-count="4">0</span>
+            <span class="metric-caption" data-i18n="metric_live">蝺?撖阡??? (Live Web)</span>
+          </div>
+          <div class="telemetry-cell">
+            <span class="metric-value" data-count="21">0</span>
+            <span class="metric-caption" data-i18n="metric_arcade">銵???撘???(Engines)</span>
+          </div>
+          <div class="telemetry-cell">
+            <span class="metric-value" data-count="8">0</span>
+            <span class="metric-caption" data-i18n="metric_tracks">憭??摮貊? (Tracks)</span>
+          </div>
         </div>
       </div>
-    </main>
 
-    <!-- 底部微型 Footer (38px) -->
-    <footer>
-      <div class="footer-brand">
-        <strong><b data-lang="zh">專案入口</b><b data-lang="en">Project Portal</b></strong>
-        <span>SEMICONDUCTOR IP · SYSTEMS</span>
+      <div class="scroll-prompter" aria-hidden="true">
+        <span class="prompter-text">SCROLL TO NODES</span>
+        <div class="prompter-pill">
+          <div class="prompter-dot"></div>
+        </div>
       </div>
-      <p><span data-lang="zh">從架構與證據，走到可以使用的成果。</span><span data-lang="en">From architecture and evidence to working systems.</span></p>
-      <a href="#page-top"><span data-lang="zh">TOP ↑</span><span data-lang="en">TOP ↑</span></a>
-      <small>© <span data-current-year>2026</span></small>
-    </footer>
-  
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        const cmdBtn = document.getElementById('cmdTrigger');
-        if (cmdBtn) {
-          cmdBtn.addEventListener('click', () => {
-            if (typeof window.openCommandPalette === 'function') window.openCommandPalette();
-          });
-        }
-        const soundBtn = document.getElementById('soundToggle');
-        if (soundBtn) {
-          soundBtn.addEventListener('click', () => {
-            if (window.SiliconAudio) {
-              const enabled = window.SiliconAudio.toggle();
-              soundBtn.setAttribute('data-sound', enabled ? 'on' : 'off');
-              soundBtn.setAttribute('title', enabled ? '音效: 開啟 (點擊關閉)' : '音效: 靜音 (點擊開啟)');
-            }
-          });
-        }
-        const xrayBtn = document.getElementById('xrayToggle');
-        if (xrayBtn) {
-          xrayBtn.addEventListener('click', () => {
-            document.body.classList.toggle('xray-mode');
-            if (window.SiliconAudio) window.SiliconAudio.playHud();
-          });
-        }
-      });
-    </script>
-  </body>
+    </section>
+
+    <!-- 撠??拚?畾?-->
+    <section class="projects-matrix-section" id="projects">
+      <div class="content-container">
+        <header class="matrix-heading reveal">
+          <div class="heading-kicker">
+            <span class="kicker-indicator"></span>
+            <span data-i18n="matrix_kicker">ACTIVE PRODUCTION HUBS & CODEBASES</span>
+          </div>
+          <h2 class="matrix-title" data-i18n="matrix_title">?剖之?詨?撠??拚</h2>
+          <p class="matrix-subtitle" data-i18n="matrix_subtitle">
+            瘥???暺??箏歇?澆?銝?蝥雁霅瑚??舐蝡?蝞頂蝯梧?瘨菔??脣?撠?????????啁隞???瑽?          </p>
+        </header>
+
+        <div class="nodes-bento-grid">
+          <!-- NODE 01: NVM Knowledge Hub (Featured Double Width) -->
+          <article class="node-card card-featured reveal" data-node="01">
+            <div class="card-specular-glow" aria-hidden="true"></div>
+            <div class="card-header-bar">
+              <span class="node-serial">NODE-01</span>
+              <span class="node-badge badge-live">
+                <span class="badge-beacon"></span>
+                <span data-i18n="badge_live">?臬銵雯蝡?繚 LIVE WEB</span>
+              </span>
+            </div>
+
+            <div class="card-content-body">
+              <span class="node-domain" data-i18n="node01_domain">SEMICONDUCTOR IP 繚 RESEARCH</span>
+              <h3 class="node-headline">NVM Knowledge Hub</h3>
+              <p class="node-summary" data-i18n="node01_desc">
+                ?游? Secure Storage?I ?誨?脰ˊ蝔??刻? NVM ?賜?詨極雿恕???游?撠??弦??嗚頂蝯勗??圾 OTP?TP?Flash ??PUF 蝑敹瑽?              </p>
+
+              <div class="chip-pill-collection">
+                <span class="chip-pill">OTP / MTP</span>
+                <span class="chip-pill">eFlash</span>
+                <span class="chip-pill">PUF Security</span>
+                <span class="chip-pill">Silicon IP</span>
+                <span class="chip-pill">Knowledge Base</span>
+              </div>
+            </div>
+
+            <div class="card-action-bar">
+              <span class="card-action-hint" data-i18n="node01_action">?脣??擃霅???/span>
+              <a href="https://hub.samhuang68.org/" target="_blank" rel="noopener" class="node-action-btn" aria-label="?脣 NVM Knowledge Hub">
+                <span data-i18n="open_hub">?脣???Open Hub</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- NODE 02: Interactive Game Arcade -->
+          <article class="node-card reveal" data-node="02">
+            <div class="card-specular-glow" aria-hidden="true"></div>
+            <div class="card-header-bar">
+              <span class="node-serial">NODE-02</span>
+              <span class="node-badge badge-live">
+                <span class="badge-beacon"></span>
+                <span data-i18n="badge_live">?臬銵雯蝡?繚 LIVE WEB</span>
+              </span>
+            </div>
+
+            <div class="card-content-body">
+              <span class="node-domain" data-i18n="node02_domain">INTERACTIVE SYSTEMS 繚 ARCADE</span>
+              <h3 class="node-headline" data-i18n="node02_title">憭??憭批輒</h3>
+              <p class="node-summary" data-i18n="node02_desc">
+                瘨菔? 3D 璉撠????交芋?研儔?方?璈?隡??蝑?21 甈曆蜓憿???鈭???摩嚗?豢?函??垢擃??賢?敶Ｚ??唾?撖虫???              </p>
+
+              <div class="chip-pill-collection">
+                <span class="chip-pill">21 Games</span>
+                <span class="chip-pill">3D Canvas</span>
+                <span class="chip-pill">Web Audio</span>
+                <span class="chip-pill">Physics Engine</span>
+              </div>
+            </div>
+
+            <div class="card-action-bar">
+              <span class="card-action-hint" data-i18n="node02_action">???璅⊥憭批輒</span>
+              <a href="https://arcade.samhuang68.org/" target="_blank" rel="noopener" class="node-action-btn" aria-label="?脣憭??憭批輒">
+                <span data-i18n="enter_arcade">?脣憭批輒 Enter Arcade</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- NODE 03: E-Learning -->
+          <article class="node-card reveal" data-node="03">
+            <div class="card-specular-glow" aria-hidden="true"></div>
+            <div class="card-header-bar">
+              <span class="node-serial">NODE-03</span>
+              <span class="node-badge badge-live">
+                <span class="badge-beacon"></span>
+                <span data-i18n="badge_live">?臬銵雯蝡?繚 LIVE WEB</span>
+              </span>
+            </div>
+
+            <div class="card-content-body">
+              <span class="node-domain" data-i18n="node03_domain">LEARNING ENGINE 繚 8 TRACKS</span>
+              <h3 class="node-headline">E?earning</h3>
+              <p class="node-summary" data-i18n="node03_desc">
+                ?詨飛?凝蝛????摮詻?蝞?璁??隤????箇?航?嚗頠??瞍賊脣?隤摮貊?撘????嗆?蝞?撖虫???              </p>
+
+              <div class="chip-pill-collection">
+                <span class="chip-pill">STEM Engine</span>
+                <span class="chip-pill">FSRS Algorithm</span>
+                <span class="chip-pill">JLPT / TOEIC</span>
+                <span class="chip-pill">Adaptive Track</span>
+              </div>
+            </div>
+
+            <div class="card-action-bar">
+              <span class="card-action-hint" data-i18n="node03_action">???芯蜓摮貊?撘?</span>
+              <a href="https://learn.samhuang68.org/" target="_blank" rel="noopener" class="node-action-btn" aria-label="?? E-Learning">
+                <span data-i18n="start_learning">??摮貊? Start Learning</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- NODE 04: Hardware Profile -->
+          <article class="node-card reveal" data-node="04">
+            <div class="card-specular-glow" aria-hidden="true"></div>
+            <div class="card-header-bar">
+              <span class="node-serial">NODE-04</span>
+              <span class="node-badge badge-live">
+                <span class="badge-beacon"></span>
+                <span data-i18n="badge_live">?臬銵雯蝡?繚 LIVE WEB</span>
+              </span>
+            </div>
+
+            <div class="card-content-body">
+              <span class="node-domain" data-i18n="node04_domain">HARDWARE 繚 ENGINEERING PROFILE</span>
+              <h3 class="node-headline">Hardware Profile</h3>
+              <p class="node-summary" data-i18n="node04_desc">
+                AI 撌乩?蝡?Intel Core Ultra 9 285H嚗TX 5080 eGPU??6GB RAM ??啣??極蝔′擃??Ｚ??潛??臭??炎閬???????皜???              </p>
+
+              <div class="chip-pill-collection">
+                <span class="chip-pill">Ultra 9 285H</span>
+                <span class="chip-pill">RTX 5080 16GB</span>
+                <span class="chip-pill">96GB DDR5</span>
+                <span class="chip-pill">CUDA Local Rig</span>
+              </div>
+            </div>
+
+            <div class="card-action-bar">
+              <span class="card-action-hint" data-i18n="node04_action">瑼Ｚ??祆?蝖祇??蔭</span>
+              <a href="https://hardware.samhuang68.org/" target="_blank" rel="noopener" class="node-action-btn" aria-label="?亦?蝖祇? Profile">
+                <span data-i18n="view_rig">?亦?蝖祇? View Rig</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- NODE 05: Secure Storage OIP Briefing -->
+          <article class="node-card reveal" data-node="05">
+            <div class="card-specular-glow" aria-hidden="true"></div>
+            <div class="card-header-bar">
+              <span class="node-serial">NODE-05</span>
+              <span class="node-badge badge-source">
+                <span data-i18n="badge_source">??Git 撠? 繚 SOURCE ONLY</span>
+              </span>
+            </div>
+
+            <div class="card-content-body">
+              <span class="node-domain" data-i18n="node05_domain">SECURE STORAGE 繚 OIP BRIEFING</span>
+              <h3 class="node-headline">Secure Storage OIP</h3>
+              <p class="node-summary" data-i18n="node05_desc">
+                Secure Storage ?蝛 OIP ?銵????祇???蝣潦?銵陛?梯?蝖祇?摰?嗆?撖虫??閮′擃靽∩遙嚗oT嚗?閮擃?摰蝳艾?              </p>
+
+              <div class="chip-pill-collection">
+                <span class="chip-pill">Hardware IP</span>
+                <span class="chip-pill">TSMC OIP</span>
+                <span class="chip-pill">Root of Trust</span>
+                <span class="chip-pill">Cryptography</span>
+              </div>
+            </div>
+
+            <div class="card-action-bar">
+              <span class="card-action-hint" data-i18n="node05_action">?汗?銵澈?陛??/span>
+              <a href="https://github.com/SamHuang68/secure-storage-oip-briefing" target="_blank" rel="noopener" class="node-action-btn" aria-label="?亦? Secure Storage OIP ??蝣?>
+                <span data-i18n="view_repo">?亦???蝣?View Repo</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- NODE 06: TW Pulse Terminal -->
+          <article class="node-card reveal" data-node="06">
+            <div class="card-specular-glow" aria-hidden="true"></div>
+            <div class="card-header-bar">
+              <span class="node-serial">NODE-06</span>
+              <span class="node-badge badge-source">
+                <span data-i18n="badge_source">??Git 撠? 繚 SOURCE ONLY</span>
+              </span>
+            </div>
+
+            <div class="card-content-body">
+              <span class="node-domain" data-i18n="node06_domain">DATA INTERFACE 繚 TERMINAL</span>
+              <h3 class="node-headline">TW Pulse Terminal</h3>
+              <p class="node-summary" data-i18n="node06_desc">
+                隞亦?蝡臬隞方?敶?蝯?????閮??銵???Ｙ??? Python/Web 撠???憭??豢?瘚??擃?閮?摨衣??單?蝯垢?銵具?              </p>
+
+              <div class="chip-pill-collection">
+                <span class="chip-pill">Python CLI</span>
+                <span class="chip-pill">Real-time Telemetry</span>
+                <span class="chip-pill">Terminal UX</span>
+                <span class="chip-pill">REST Protocol</span>
+              </div>
+            </div>
+
+            <div class="card-action-bar">
+              <span class="card-action-hint" data-i18n="node06_action">瑼Ｚ? Python 蝯垢撖虫?</span>
+              <a href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener" class="node-action-btn" aria-label="?亦? TW Pulse Terminal ??蝣?>
+                <span data-i18n="view_repo">?亦???蝣?View Repo</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ?嗆??脣飛?祕霅?敹萄?畾?(Philosophy & Evidence) -->
+    <section class="philosophy-section" id="philosophy">
+      <div class="content-container">
+        <div class="philosophy-card reveal">
+          <div class="philosophy-content">
+            <div class="kicker-tag" data-i18n="philo_kicker">ENGINEERING MANIFESTO</div>
+            <h2 class="philo-heading" data-i18n="philo_heading">敺瑽?霅?嚗粥?啣隞乩蝙?函?????/h2>
+            <p class="philo-text" data-i18n="philo_p1">
+              ? Sam Huang嚗?啁撠釣?澆?撠? IP ?嗆????典摮′擃身閮??芯蜓摮貊?璅⊥蝟餌絞??銵?閰脣?舀?敶梁?銝??孵??????瑕??Ⅱ????嗉????葫閰虫???銝行?蝯?啁瘥犖?質撖行????頂蝯晞?            </p>
+            <p class="philo-text" data-i18n="philo_p2">
+              敺?箄瓷?摮?銵??啁垢 96GB 憭批捆??AI ?刻??啣?嚗?澆?飛??璅??怨?摮貊?撘???銝??獢?臬????釭撌亦??賢???瑁?撖西???            </p>
+            <div class="philo-foot-meta">
+              <span class="meta-tag">LOCATION: TAIWAN</span>
+              <span class="meta-tag">FOUNDATION: SILICON IP & SYSTEMS</span>
+              <span class="meta-tag">STATUS: PRODUCTION VERIFIED</span>
+            </div>
+          </div>
+
+          <div class="wafer-schematic-visual" aria-hidden="true">
+            <div class="schematic-die die-1">
+              <span class="die-label">CORE-01</span>
+              <div class="die-trace-lines"></div>
+            </div>
+            <div class="schematic-die die-2">
+              <span class="die-label">NVM-CELL</span>
+              <div class="die-trace-lines"></div>
+            </div>
+            <div class="schematic-die die-3">
+              <span class="die-label">CRYPTO-ROT</span>
+              <div class="die-trace-lines"></div>
+            </div>
+            <div class="schematic-die die-4">
+              <span class="die-label">COMPUTE-AI</span>
+              <div class="die-trace-lines"></div>
+            </div>
+            <div class="bus-connection-lines"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 摨?銵?閮?撠?-->
+  <footer class="cockpit-footer">
+    <div class="content-container footer-flex">
+      <div class="footer-identity">
+        <div class="footer-brand-title">SAM HUANG</div>
+        <div class="footer-desc" data-i18n="footer_desc">
+          ??擃?蝟餌絞撠??亙 繚 Silicon IP, Secure Storage & Systems 繚 Taiwan 2026
+        </div>
+      </div>
+
+      <div class="footer-nav-groups">
+        <div class="footer-links">
+          <a href="https://hub.samhuang68.org/" target="_blank" rel="noopener">NVM Hub</a>
+          <a href="https://arcade.samhuang68.org/" target="_blank" rel="noopener">Game Arcade</a>
+          <a href="https://learn.samhuang68.org/" target="_blank" rel="noopener">E-Learning</a>
+          <a href="https://hardware.samhuang68.org/" target="_blank" rel="noopener">Hardware</a>
+          <a href="https://github.com/SamHuang68" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <a href="#hero" class="back-to-top" id="backToTop" aria-label="???">
+          <span data-i18n="back_to_top">??垢 TOP</span>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3M7 3L3 7M7 3L11 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom-bar">
+      <div class="content-container">
+        <span>穢 2026 Sam Huang. Designed with semiconductor precision. All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
 </html>
