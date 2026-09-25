@@ -1,10 +1,10 @@
 {
   "name": "sam-huang-project-index",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node scripts/check-home.mjs && node --check site.js",
+    "check": "node scripts/check-home.mjs && node --check app.js",
     "serve": "node scripts/serve-local.mjs",
     "qa:render": "node scripts/qa-home.mjs",
     "qa": "npm run check && npm run qa:render"

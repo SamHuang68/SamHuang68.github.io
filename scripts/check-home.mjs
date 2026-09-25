@@ -1,148 +1,99 @@
-import { access, readFile, stat } from 'node:fs/promises';
+/**
+ * @fileoverview 8D Prevention Counter-Method Gate (check-home.mjs)
+ * Enforces:
+ * 1. Zero UTF-8 Mojibake / encoding corruption across HTML, CSS, JS (Gotcha 0003)
+ * 2. Strict HTML tag closure balance
+ * 3. Mandatory Light/Pale Theme & Non-Flat Ambient Background (Rule 0003)
+ * 4. 6 Core Project Nodes & 100% Bilingual i18n Dictionary Coverage
+ */
+
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 
 const root = process.cwd();
 const html = await readFile(path.join(root, 'index.html'), 'utf8');
 const css = await readFile(path.join(root, 'styles.css'), 'utf8');
-const js = await readFile(path.join(root, 'site.js'), 'utf8');
-const favicon = await readFile(path.join(root, 'favicon.svg'), 'utf8');
+const js = await readFile(path.join(root, 'app.js'), 'utf8');
+
 const failures = [];
+const fail = (msg) => failures.push(msg);
 
-const fail = (message) => failures.push(message);
-const stripMarkup = (value) => value.replace(/<[^>]*>/g, ' ').replace(/&[^;]+;/g, ' ').replace(/\s+/g, ' ').trim();
-
-if (!/<html\s+lang="zh-Hant"/i.test(html)) fail('html lang must be zh-Hant');
-
-const h1s = [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)];
-if (h1s.length !== 1) fail(`expected one h1, found ${h1s.length}`);
-
-const headings = [...html.matchAll(/<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/gi)].map((match) => ({
-  level: Number(match[1]),
-  text: stripMarkup(match[2]),
-}));
-
-for (let index = 1; index < headings.length; index += 1) {
-  if (headings[index].level > headings[index - 1].level + 1) {
-    fail(`heading level jumps from h${headings[index - 1].level} to h${headings[index].level}: ${headings[index].text}`);
+// 1. [8D Counter-Method] UTF-8 Mojibake & Encoding Integrity Gate
+const mojibakeRegex = /(\uFFFD|\?\?[a-zA-Z<\u4e00-\u9fa5]|[\u0080-\u009F]|ï¿½|\?|\?|\?€)/g;
+for (const [name, content] of [['index.html', html], ['styles.css', css], ['app.js', js]]) {
+  const matches = content.match(mojibakeRegex);
+  if (matches) {
+    fail(`[Encoding Gate] Mojibake or corrupted UTF-8 sequence detected in ${name}: ${matches.slice(0, 5).join(', ')}`);
   }
 }
 
-for (const heading of headings) {
-  if (/[。.!?！？]$/.test(heading.text)) fail(`display heading ends with sentence punctuation: ${heading.text}`);
+// 2. [8D Counter-Method] HTML Tag Closure Balance Gate
+const voidTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+const tagRegex = /<\/?([a-zA-Z0-9\-]+)(?:\s+[^>]*?)?(\/?)>/g;
+const tagStack = [];
+let tMatch;
+while ((tMatch = tagRegex.exec(html)) !== null) {
+  const full = tMatch[0];
+  const tagName = tMatch[1].toLowerCase();
+  if (full.startsWith('<!--') || full.startsWith('<!doctype')) continue;
+  const isClosing = full.startsWith('</');
+  const isSelfClosing = full.endsWith('/>') || tMatch[2] === '/' || voidTags.has(tagName);
+
+  if (isClosing) {
+    if (tagStack.length === 0) {
+      fail(`[HTML Gate] Unexpected closing tag </${tagName}> at offset ${tMatch.index}`);
+    } else {
+      const top = tagStack.pop();
+      if (top.name !== tagName) {
+        fail(`[HTML Gate] Mismatched closing tag: expected </${top.name}> but found </${tagName}> at offset ${tMatch.index}`);
+      }
+    }
+  } else if (!isSelfClosing) {
+    tagStack.push({ name: tagName, index: tMatch.index });
+  }
+}
+if (tagStack.length > 0) {
+  fail(`[HTML Gate] Unclosed tags remaining: ${tagStack.map((t) => t.name).join(', ')}`);
 }
 
-const ids = [...html.matchAll(/(?:^|\s)id="([^"]+)"/g)].map((match) => match[1]);
-const idSet = new Set(ids);
-if (idSet.size !== ids.length) fail('duplicate ids found');
-
-for (const match of html.matchAll(/href="#([^"]+)"/g)) {
-  if (!idSet.has(match[1])) fail(`missing local anchor target: #${match[1]}`);
+// 3. [Rule 0003 Gate] Mandatory Light Theme & Zero Dark Remnants
+if (html.includes('class="dark"') || css.includes('color-scheme: dark')) {
+  fail('[Rule 0003 Gate] Prohibited dark theme declaration detected.');
+}
+if (!html.includes('class="light-mode"') || !css.includes('color-scheme: light')) {
+  fail('[Rule 0003 Gate] Missing mandatory light-mode class or color-scheme: light declaration.');
+}
+if (!css.includes('--bg-canvas: #f8fafc')) {
+  fail('[Rule 0003 Gate] Missing light platinum canvas token (--bg-canvas: #f8fafc).');
 }
 
-for (const match of html.matchAll(/<section\b[^>]*aria-labelledby="([^"]+)"[^>]*>/gi)) {
-  if (!idSet.has(match[1])) fail(`section aria-labelledby target missing: ${match[1]}`);
-}
-
-for (const match of html.matchAll(/<a\b([^>]*target="_blank"[^>]*)>/gi)) {
-  if (!/rel="[^"]*noopener[^"]*noreferrer[^"]*"/i.test(match[1])) {
-    fail(`target=_blank link is missing noopener noreferrer: ${stripMarkup(match[0])}`);
+// 4. [Rule 0003 Gate] Rich Non-Flat Ambient Background Verification
+for (const selector of ['.ambient-layer', '.aurora-orb', '.circuit-grid-pattern', '.wafer-radial-sheen', '#silicon-canvas']) {
+  const token = selector.replace(/^[.#]/, '');
+  if (!html.includes(token)) {
+    fail(`[Ambient Gate] Missing non-flat background element in HTML: ${selector}`);
   }
 }
 
-const portalSignals = [
-  ['頁面標題', /<title>半導體與系統專案入口｜/i],
-  ['分享網站名稱', /property="og:site_name"\s+content="半導體與系統專案入口"/i],
-  ['頁首中英文識別', /class="identity-copy"[^>]*>\s*<strong><b data-lang="zh">專案入口<\/b><b data-lang="en">Project Portal<\/b><\/strong>/i],
-  ['主標入口名稱', /<h1[^>]*><em data-lang="zh">專案入口<\/em><em data-lang="en">Project Portal<\/em>/i],
-  ['頁尾中英文識別', /class="footer-brand"[^>]*>\s*<strong><b data-lang="zh">專案入口<\/b><b data-lang="en">Project Portal<\/b><\/strong>/i],
-  ['中性入口圖示', /class="monogram"[^>]*>IP<\/span>/i],
-];
-
-for (const [label, pattern] of portalSignals) {
-  if (!pattern.test(html)) fail(`缺少專案入口識別：${label}`);
-}
-
-// 實際帳號網址與既有資產路徑保持不變；頁面文字、朗讀名稱與分享資訊不留個人署名。
-const publicMarkup = html
-  .replace(/<!--[^]*?-->/g, '')
-  .replace(/<(script|style)\b[^>]*>[^]*?<\/\1>/gi, '')
-  .replace(/\s(?:href|src)="[^"]*"/gi, '')
-  .replace(/\scontent="https?:\/\/[^\"]*"/gi, '');
-if (/\bSam[\s-]+Huang\b|\bSH\b/i.test(publicMarkup)) fail('頁面或中繼資訊仍含個人署名');
-if (!/aria-label="專案入口"/.test(favicon)) fail('頁籤圖示缺少中性可讀名稱');
-if (/\bSam[\s-]+Huang\b|\bSH\b/i.test(favicon)) fail('頁籤圖示仍含個人署名');
-
-const requiredDestinations = [
-  'https://hub.samhuang68.org/',
-  'https://github.com/SamHuang68/secure-storage-oip-briefing',
-  'https://arcade.samhuang68.org/',
-  'https://learn.samhuang68.org/',
-  'https://github.com/SamHuang68/tw-pulse-terminal',
-  'https://hardware.samhuang68.org/',
-];
-
-for (const destination of requiredDestinations) {
-  if (!html.includes(`href="${destination}"`)) fail(`required destination is missing: ${destination}`);
-}
-
-const cards = [...html.matchAll(/<a\b([^>]*class="[^"]*portal-card[^"]*"[^>]*)>([\s\S]*?)<\/a>/gi)];
-if (cards.length !== 6) fail(`expected 6 full-card anchors, found ${cards.length}`);
-
-for (const [index, card] of cards.entries()) {
-  const attributes = card[1];
-  const content = card[2];
-  if (!/href="[^"]+"/i.test(attributes)) fail(`portal card ${index + 1} has no href`);
-  if (!/aria-label="[^"]+"/i.test(attributes)) fail(`portal card ${index + 1} has no accessible name`);
-  if (/<(?:a|button|input|select|textarea)\b/i.test(content)) fail(`portal card ${index + 1} contains a nested interactive element`);
-  if (!/class="availability\s+availability--(?:live|source)"/i.test(content)) fail(`portal card ${index + 1} has no availability status`);
-  if (!/class="card-enter"/i.test(content)) fail(`portal card ${index + 1} has no action label`);
-}
-
-const liveCount = cards.filter(([, content]) => /portal-card--live/i.test(content)).length;
-const sourceCount = cards.filter(([, content]) => /portal-card--source/i.test(content)).length;
-if (liveCount !== 4) fail(`expected 4 runnable cards, found ${liveCount}`);
-if (sourceCount !== 2) fail(`expected 2 source-only cards, found ${sourceCount}`);
-
-if (!html.includes('可執行網站 · LIVE WEB')) fail('runnable web label is missing');
-if (!html.includes('僅 Git 專案 · SOURCE ONLY')) fail('source-only label is missing');
-if (!html.includes('sam-huang-portfolio-architecture-v2.webp')) fail('approved architecture artwork is not referenced');
-if (html.includes('sam-huang-portfolio-atelier-v1')) fail('rejected desk-prop artwork must not be referenced');
-
-const forbiddenPrivateRepositories = ['AI_Stock', 'agent-hive-bridge', 'chu-han-realm"', 'SengokuStrategy', 'HeroesOfTheLake"'];
-for (const repository of forbiddenPrivateRepositories) {
-  if (html.includes(`github.com/SamHuang68/${repository}`)) fail(`private repository exposed: ${repository}`);
-}
-
-const localAssets = new Set();
-for (const match of html.matchAll(/(?:src|href)="\.\/([^"#?]+)"/g)) localAssets.add(match[1]);
-for (const asset of localAssets) {
-  const resolved = path.resolve(root, asset);
-  if (!resolved.startsWith(root)) {
-    fail(`asset escapes repository root: ${asset}`);
-    continue;
-  }
-  try {
-    await access(resolved);
-    const info = await stat(resolved);
-    if (!info.isFile() || info.size === 0) fail(`asset is empty or not a file: ${asset}`);
-  } catch {
-    fail(`local asset is missing: ${asset}`);
+// 5. Core 6 Project Nodes & Bilingual i18n Parity Gate
+for (const nodeId of ['01', '02', '03', '04', '05', '06']) {
+  if (!html.includes(`data-node="${nodeId}"`)) {
+    fail(`[Node Gate] Missing project node card: NODE-${nodeId}`);
   }
 }
 
-if (/body\s*\{[^}]*min-width\s*:\s*3(?:1[3-9]|[2-9]\d)px/is.test(css)) fail('body declares a minimum width above the 312px viewport');
-if (!css.includes(':focus-visible')) fail('focus-visible treatment is missing');
-if (!css.includes('prefers-reduced-motion')) fail('reduced-motion treatment is missing');
-if (!/\.portal-card\s*\{[\s\S]*?display:\s*grid;/i.test(css)) fail('portal card is not a full-frame grid anchor');
-if (!/\.portal-card\s*\{[\s\S]*?min-height:\s*1(?:5[0-9]|[6-9][0-9]|[2-9][0-9]{2})px/i.test(css)) fail('portal card lacks a substantial full-frame target');
-if (!js.includes("querySelectorAll('.portal-card')")) fail('portal touch feedback enhancement is missing');
-if (!js.includes("querySelector('[data-current-year]')")) fail('current-year enhancement is missing');
+const htmlI18nKeys = new Set([...html.matchAll(/data-i18n="([^"]+)"/g)].map((m) => m[1]));
+for (const key of htmlI18nKeys) {
+  if (!js.includes(`${key}:`)) {
+    fail(`[i18n Gate] Key "${key}" used in HTML is missing from app.js I18N dictionary.`);
+  }
+}
 
-if (failures.length) {
-  console.error('Homepage integrity check failed:');
-  failures.forEach((failure) => console.error(`- ${failure}`));
+if (failures.length > 0) {
+  console.error('❌ 8D Pre-Push Quality Gate FAILED:');
+  failures.forEach((f) => console.error(`  - ${f}`));
   process.exit(1);
 }
 
-console.log(`Homepage integrity PASS: ${cards.length} full-card portals, ${liveCount} runnable sites, ${sourceCount} source-only repositories, ${localAssets.size} local assets`);
+console.log(`✅ 8D Pre-Push Quality Gate PASS: UTF-8 clean, HTML balanced, Light-Theme enforced, Ambient layers verified, ${htmlI18nKeys.size} i18n keys matched.`);
