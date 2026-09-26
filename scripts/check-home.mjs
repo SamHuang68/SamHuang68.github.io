@@ -90,6 +90,17 @@ for (const key of htmlI18nKeys) {
   }
 }
 
+// 6. [Full-Card Link & Single-Page Gate] Every node-card must be a full-frame <a> with no nested <a>
+const nodeCardAnchors = [...html.matchAll(/<a\s+[^>]*class="[^"]*\bnode-card\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)];
+if (nodeCardAnchors.length !== 6) {
+  fail(`[Full-Card Gate] Expected 6 full-frame <a class="node-card"> elements, found ${nodeCardAnchors.length}`);
+}
+for (const [idx, match] of nodeCardAnchors.entries()) {
+  if (/<a\b/i.test(match[1])) {
+    fail(`[Full-Card Gate] NODE-0${idx + 1} contains nested <a> tag inside full-frame card anchor`);
+  }
+}
+
 if (failures.length > 0) {
   console.error('❌ 8D Pre-Push Quality Gate FAILED:');
   failures.forEach((f) => console.error(`  - ${f}`));

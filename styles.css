@@ -1192,3 +1192,291 @@ button {
     animation: none !important;
   }
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SINGLE-PAGE CONDENSED VIEWPORT & FULL-CARD LINK OVERRIDES (2026-09-26)
+   維持既有晶圓光學淡色版面風格，濃縮為一頁呈現，且每張子網頁卡片全框可點擊
+   ══════════════════════════════════════════════════════════════════════════════ */
+.cockpit-header {
+  position: sticky;
+  top: 0;
+  padding: 8px 0;
+}
+
+.cockpit-container {
+  padding: 6px 16px;
+}
+
+.hero-stage {
+  min-height: auto;
+  padding: 8px 24px 8px;
+}
+
+.hero-wrapper {
+  width: min(calc(100% - 24px), var(--max-content-width));
+  max-width: var(--max-content-width);
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 10px 24px;
+  align-items: center;
+  text-align: left;
+}
+
+.telemetry-badge {
+  grid-column: 1 / 2;
+  justify-self: start;
+  padding: 3px 12px;
+  margin-bottom: 2px;
+}
+
+.hero-statement {
+  grid-column: 1 / 2;
+  font-size: clamp(24px, 2.5vw, 34px);
+  line-height: 1.18;
+  margin-bottom: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 10px;
+  align-items: baseline;
+}
+
+.headline-block,
+.headline-gradient {
+  display: inline;
+}
+
+.hero-mission {
+  grid-column: 1 / 2;
+  max-width: 100%;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+.hero-cta-cluster,
+.scroll-prompter {
+  display: none;
+}
+
+.telemetry-grid-card {
+  grid-column: 2 / 3;
+  grid-row: 1 / 4;
+  max-width: 100%;
+}
+
+.telemetry-cell {
+  padding: 10px 8px;
+  gap: 3px;
+}
+
+.metric-value {
+  font-size: clamp(20px, 2vw, 26px);
+}
+
+.metric-caption {
+  font-size: 11px;
+  text-align: center;
+}
+
+.projects-matrix-section {
+  padding: 6px 0 8px;
+}
+
+.matrix-heading {
+  max-width: 100%;
+  margin: 0 auto 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+  text-align: left;
+}
+
+.heading-kicker {
+  margin-bottom: 0;
+}
+
+.matrix-title {
+  font-size: clamp(18px, 1.8vw, 22px);
+  margin-bottom: 0;
+}
+
+.matrix-subtitle {
+  font-size: 14px;
+  line-height: 1.45;
+  margin-left: auto;
+}
+
+.nodes-bento-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+a.node-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px 18px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+a.node-card.card-featured {
+  grid-column: span 1;
+}
+
+a.node-card:focus-visible {
+  outline: 3px solid var(--silicon-teal);
+  outline-offset: 2px;
+}
+
+a.node-card:hover .node-action-btn,
+a.node-card:focus-visible .node-action-btn {
+  background: var(--silicon-teal);
+  color: #ffffff;
+  border-color: var(--silicon-teal);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+}
+
+.card-header-bar {
+  margin-bottom: 6px;
+}
+
+.card-content-body {
+  margin-bottom: 8px;
+}
+
+.node-domain {
+  font-size: 10px;
+  margin-bottom: 2px;
+}
+
+.node-headline,
+.node-card.card-featured .node-headline {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.node-summary {
+  font-size: 14px;
+  line-height: 1.42;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.chip-pill-collection {
+  gap: 5px;
+}
+
+.chip-pill {
+  font-size: 10px;
+  padding: 2px 7px;
+}
+
+.card-action-bar {
+  padding-top: 8px;
+}
+
+.card-action-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.node-action-btn {
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
+.philosophy-section {
+  padding: 4px 0 6px;
+}
+
+.philosophy-card {
+  padding: 10px 18px;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+}
+
+.kicker-tag,
+.philo-text,
+.wafer-schematic-visual {
+  display: none;
+}
+
+.philo-heading {
+  font-size: 14px;
+  margin-bottom: 0;
+  display: inline;
+}
+
+.philo-foot-meta {
+  margin-top: 0;
+  gap: 8px;
+}
+
+.meta-tag {
+  font-size: 10px;
+  padding: 3px 8px;
+}
+
+.cockpit-footer {
+  padding-top: 8px;
+}
+
+.footer-flex {
+  padding-bottom: 6px;
+  gap: 12px;
+}
+
+.footer-identity {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-bottom-bar {
+  display: none;
+}
+
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+@media (max-width: 1024px) {
+  .hero-wrapper {
+    grid-template-columns: 1fr;
+  }
+  .telemetry-grid-card {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+  .nodes-bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  a.node-card.card-featured {
+    grid-column: span 1;
+  }
+  .philosophy-card {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nodes-bento-grid {
+    grid-template-columns: 1fr;
+  }
+  .footer-identity {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
