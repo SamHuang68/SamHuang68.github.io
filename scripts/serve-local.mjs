@@ -11,6 +11,8 @@ const mime = new Map([
   ['.css', 'text/css; charset=utf-8'],
   ['.js', 'text/javascript; charset=utf-8'],
   ['.webp', 'image/webp'],
+  ['.jpg', 'image/jpeg'],
+  ['.jpeg', 'image/jpeg'],
   ['.png', 'image/png'],
   ['.woff2', 'font/woff2'],
 ]);

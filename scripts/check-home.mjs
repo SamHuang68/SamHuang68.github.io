@@ -68,12 +68,15 @@ if (!css.includes('--bg-canvas: #f8fafc')) {
   fail('[Rule 0003 Gate] Missing light platinum canvas token (--bg-canvas: #f8fafc).');
 }
 
-// 4. [Rule 0003 Gate] Rich Non-Flat Ambient Background Verification
-for (const selector of ['.ambient-layer', '.aurora-orb', '.circuit-grid-pattern', '.wafer-radial-sheen', '#silicon-canvas']) {
+// 4. [Rule 0003 Gate] Rich Non-Flat Ambient Background & Wafer Artwork Verification
+for (const selector of ['.ambient-layer', '.wafer-bg-artwork', '.aurora-orb', '.circuit-grid-pattern', '.wafer-radial-sheen', '#silicon-canvas']) {
   const token = selector.replace(/^[.#]/, '');
   if (!html.includes(token)) {
     fail(`[Ambient Gate] Missing non-flat background element in HTML: ${selector}`);
   }
+}
+if (!css.includes('assets/luminous-wafer-bg.jpg')) {
+  fail('[Ambient Gate] Missing professional wafer background image (assets/luminous-wafer-bg.jpg) in styles.css');
 }
 
 // 5. Core 6 Project Nodes & Bilingual i18n Parity Gate

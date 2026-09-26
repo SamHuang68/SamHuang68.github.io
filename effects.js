@@ -220,7 +220,7 @@
    * 2. 卡片 3D 透視磁吸微傾斜與動態折射光斑
    */
   const initCardTiltAndSheen = () => {
-    const cards = document.querySelectorAll('.portal-card');
+    const cards = document.querySelectorAll('.portal-card, .node-card');
     cards.forEach((card) => {
       let isHovered = false;
 
@@ -239,8 +239,8 @@
         const percentX = (x - centerX) / centerX;
         const percentY = (y - centerY) / centerY;
 
-        const tiltX = -percentY * 3.2;
-        const tiltY = percentX * 3.2;
+        const tiltX = -percentY * 2.4;
+        const tiltY = percentX * 2.4;
 
         card.style.transform = `perspective(1000px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg) translateY(-4px)`;
         card.style.setProperty('--mouse-x', `${x}px`);
@@ -260,7 +260,7 @@
    * 3. Tab 按鈕水波點擊微動效與音效
    */
   const initTabClickRipple = () => {
-    const tabButtons = document.querySelectorAll('.project-rail-btn, .language-toggle, .hud-btn');
+    const tabButtons = document.querySelectorAll('.project-rail-btn, .filter-tab-btn, .topology-node-chip, .lang-switch-btn, .language-toggle, .hud-btn');
     tabButtons.forEach((btn) => {
       btn.addEventListener('pointerdown', (e) => {
         const rect = btn.getBoundingClientRect();

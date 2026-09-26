@@ -110,7 +110,10 @@
   let activeIndex = 0;
   let filteredCommands = [...COMMANDS];
 
-  const getLang = () => document.documentElement.getAttribute('data-language') || 'zh';
+  const getLang = () =>
+    document.documentElement.getAttribute('data-lang') ||
+    document.documentElement.getAttribute('data-language') ||
+    'zh';
 
   const createPaletteDom = () => {
     modalEl = document.createElement('div');

@@ -14,6 +14,8 @@ const mime = new Map([
   ['.css', 'text/css; charset=utf-8'],
   ['.js', 'text/javascript; charset=utf-8'],
   ['.webp', 'image/webp'],
+  ['.jpg', 'image/jpeg'],
+  ['.jpeg', 'image/jpeg'],
   ['.svg', 'image/svg+xml'],
   ['.png', 'image/png'],
   ['.woff2', 'font/woff2'],
@@ -63,7 +65,7 @@ try {
       if (message.type() === 'error') runtimeErrors.push(`console: ${message.text()}`);
     });
 
-    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+    await page.goto(baseUrl, { waitUntil: 'networkidle' });
     await page.waitForTimeout(150);
 
     const metrics = await page.evaluate(() => {
@@ -105,6 +107,10 @@ try {
       const focusStyle = firstCard ? getComputedStyle(firstCard) : null;
       const matrixTitleStyle = getComputedStyle(document.querySelector('.matrix-title'));
       const metricValueStyle = getComputedStyle(document.querySelector('.metric-value'));
+      const waferArtwork = document.querySelector('.wafer-bg-artwork');
+      const waferBgImage = waferArtwork ? getComputedStyle(waferArtwork).backgroundImage : '';
+      const auroraOrb = document.querySelector('.aurora-orb');
+      const auroraOpacity = auroraOrb ? Number(getComputedStyle(auroraOrb).opacity) : 0;
 
       return {
         document: {
@@ -121,6 +127,8 @@ try {
         },
         cards,
         summaryOverflowEn,
+        waferBgImage,
+        auroraOpacity,
         matrixTitleAlign: matrixTitleStyle.textAlign,
         metricNumericVariant: metricValueStyle.fontVariantNumeric,
         headerPosition: getComputedStyle(document.querySelector('.cockpit-header')).position,
@@ -137,8 +145,14 @@ try {
     if (metrics.cards.filter((c) => c.live).length !== 4 || metrics.cards.filter((c) => c.source).length !== 2) {
       failures.push(`${width}px live/source badge counts mismatch`);
     }
-    if (metrics.cards.some((c) => !c.beacon || c.bgColor !== 'rgb(255, 255, 255)')) {
-      failures.push(`${width}px card missing beacon or not pure #FFFFFF background`);
+    if (metrics.cards.some((c) => !c.beacon || (!c.bgColor.startsWith('rgb(255, 255, 255)') && !c.bgColor.startsWith('rgba(255, 255, 255,')))) {
+      failures.push(`${width}px card missing beacon or not frosted/pure white background`);
+    }
+    if (!metrics.waferBgImage.includes('luminous-wafer-bg.jpg')) {
+      failures.push(`${width}px missing wafer background image: ${metrics.waferBgImage}`);
+    }
+    if (metrics.auroraOpacity < 0.5) {
+      failures.push(`${width}px aurora orb glow opacity too low: ${metrics.auroraOpacity}`);
     }
     if (metrics.matrixTitleAlign !== 'left') {
       failures.push(`${width}px .matrix-title is not left-aligned (${metrics.matrixTitleAlign})`);
