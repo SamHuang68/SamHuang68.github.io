@@ -12,8 +12,8 @@
   <title>半導體與系統專案入口｜Semiconductor & Systems — Sam Huang</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260926-onepage-v2">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260927-surgical-v1">
 </head>
 <body class="light-mode">
   <!-- 無障礙跳轉 -->
@@ -114,19 +114,19 @@
         <div class="telemetry-grid-card">
           <div class="telemetry-cell">
             <span class="metric-value" data-count="6">0</span>
-            <span class="metric-caption" data-i18n="metric_nodes">系統節點 (Nodes)</span>
+            <span class="metric-caption" data-i18n="metric_nodes">Active Nodes</span>
           </div>
           <div class="telemetry-cell">
             <span class="metric-value" data-count="4">0</span>
-            <span class="metric-caption" data-i18n="metric_live">線上實體服務 (Live Web)</span>
+            <span class="metric-caption" data-i18n="metric_live">Live Hubs</span>
           </div>
           <div class="telemetry-cell">
             <span class="metric-value" data-count="21">0</span>
-            <span class="metric-caption" data-i18n="metric_arcade">街機與對弈引擎 (Engines)</span>
+            <span class="metric-caption" data-i18n="metric_arcade">Engines</span>
           </div>
           <div class="telemetry-cell">
             <span class="metric-value" data-count="8">0</span>
-            <span class="metric-caption" data-i18n="metric_tracks">多軌研發學程 (Tracks)</span>
+            <span class="metric-caption" data-i18n="metric_tracks">Study Tracks</span>
           </div>
         </div>
       </div>
@@ -145,11 +145,11 @@
         <header class="matrix-heading reveal">
           <div class="heading-kicker">
             <span class="kicker-indicator"></span>
-            <span data-i18n="matrix_kicker">ACTIVE PRODUCTION HUBS & CODEBASES</span>
+            <span data-i18n="matrix_kicker">[01 // REPOSITORIES &amp; HUBS]</span>
           </div>
           <h2 class="matrix-title" data-i18n="matrix_title">六大核心專案矩陣</h2>
           <p class="matrix-subtitle" data-i18n="matrix_subtitle">
-            每一個節點皆為已發布且持續維護之可獨立運算系統，涵蓋先進半導體、分散式運算到現代互動架構。
+            每個節點皆為已發布且獨立運作之系統，涵蓋先進半導體、本機 AI 算力與現代互動架構。
           </p>
         </header>
 
@@ -161,7 +161,7 @@
               <span class="node-serial">NODE-01</span>
               <span class="node-badge badge-live">
                 <span class="badge-beacon"></span>
-                <span data-i18n="badge_live">可執行網站 · LIVE WEB</span>
+                <span data-i18n="badge_live">LIVE WEB PORTAL</span>
               </span>
             </div>
 
@@ -169,7 +169,7 @@
               <span class="node-domain" data-i18n="node01_domain">SEMICONDUCTOR IP · RESEARCH</span>
               <h3 class="node-headline">NVM Knowledge Hub</h3>
               <p class="node-summary" data-i18n="node01_desc">
-                整合 Secure Storage、AI 時代先進製程應用與 NVM 白皮書工作室的完整半導體研究門戶。系統化拆解 OTP、MTP、eFlash 與 PUF 等核心架構。
+                整合 Secure Storage、先進製程與白皮書工作室的半導體門戶，系統化拆解 OTP、MTP、eFlash 與 PUF 架構。
               </p>
 
               <div class="chip-pill-collection">
@@ -182,10 +182,10 @@
             </div>
 
             <div class="card-action-bar">
-              <span class="card-action-hint" data-i18n="node01_action">進入半導體知識門戶</span>
+              <span class="card-action-hint" data-i18n="node01_action">NODE://NVM-HUB</span>
               <span class="node-action-btn">
-                <span data-i18n="open_hub">進入門戶 Open Hub</span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span data-i18n="open_hub">Open Hub</span>
+                <span class="action-arrow" aria-hidden="true">↗</span>
               </span>
             </div>
           </a>
@@ -197,7 +197,7 @@
               <span class="node-serial">NODE-02</span>
               <span class="node-badge badge-live">
                 <span class="badge-beacon"></span>
-                <span data-i18n="badge_live">可執行網站 · LIVE WEB</span>
+                <span data-i18n="badge_live">LIVE WEB PORTAL</span>
               </span>
             </div>
 
@@ -205,7 +205,7 @@
               <span class="node-domain" data-i18n="node02_domain">INTERACTIVE SYSTEMS · ARCADE</span>
               <h3 class="node-headline" data-i18n="node02_title">多元遊戲大廳</h3>
               <p class="node-summary" data-i18n="node02_desc">
-                涵蓋 3D 棋盤對弈、策略模擬、復古街機與休閒益智等 21 款主題領域的互動遊戲合輯，全數採用純前端高效能圖形與音訊實作。
+                涵蓋 3D 棋盤、策略牌桌、空間益智與街機冒險等 21 款互動遊戲，全數以純前端圖形與合成音訊打造。
               </p>
 
               <div class="chip-pill-collection">
@@ -217,10 +217,10 @@
             </div>
 
             <div class="card-action-bar">
-              <span class="card-action-hint" data-i18n="node02_action">啟動遊戲模擬大廳</span>
+              <span class="card-action-hint" data-i18n="node02_action">NODE://ARCADE-SUITE</span>
               <span class="node-action-btn">
-                <span data-i18n="enter_arcade">進入大廳 Enter Arcade</span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span data-i18n="enter_arcade">Enter Arcade</span>
+                <span class="action-arrow" aria-hidden="true">↗</span>
               </span>
             </div>
           </a>
@@ -232,7 +232,7 @@
               <span class="node-serial">NODE-03</span>
               <span class="node-badge badge-live">
                 <span class="badge-beacon"></span>
-                <span data-i18n="badge_live">可執行網站 · LIVE WEB</span>
+                <span data-i18n="badge_live">LIVE WEB PORTAL</span>
               </span>
             </div>
 
@@ -240,7 +240,7 @@
               <span class="node-domain" data-i18n="node03_domain">LEARNING ENGINE · 8 TRACKS</span>
               <h3 class="node-headline">E‑Learning</h3>
               <p class="node-summary" data-i18n="node03_desc">
-                數學、微積分、物理、化學、計算機概論、日語、多益與臺灣華語，八軌整合的漸進式認知學習引擎與記憶演算法實作。
+                整合數學、微積分、理化、計概、日語、多益與臺灣華語八大軌道，搭載 FSRS 自適應記憶排程演算法。
               </p>
 
               <div class="chip-pill-collection">
@@ -252,10 +252,10 @@
             </div>
 
             <div class="card-action-bar">
-              <span class="card-action-hint" data-i18n="node03_action">開啟自主學習引擎</span>
+              <span class="card-action-hint" data-i18n="node03_action">NODE://E-LEARNING</span>
               <span class="node-action-btn">
-                <span data-i18n="start_learning">開始學習 Start Learning</span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span data-i18n="start_learning">Start Learning</span>
+                <span class="action-arrow" aria-hidden="true">↗</span>
               </span>
             </div>
           </a>
@@ -267,7 +267,7 @@
               <span class="node-serial">NODE-04</span>
               <span class="node-badge badge-live">
                 <span class="badge-beacon"></span>
-                <span data-i18n="badge_live">可執行網站 · LIVE WEB</span>
+                <span data-i18n="badge_live">LIVE WEB PORTAL</span>
               </span>
             </div>
 
@@ -275,7 +275,7 @@
               <span class="node-domain" data-i18n="node04_domain">HARDWARE · ENGINEERING PROFILE</span>
               <h3 class="node-headline">Hardware Profile</h3>
               <p class="node-summary" data-i18n="node04_desc">
-                AI 工作站（Intel Core Ultra 9 285H）、RTX 5080 eGPU、96GB RAM 開發環境與工程硬體資產規格的可互動檢視紀錄與運算邊界清冊。
+                記錄 Core Ultra 9 285H、RTX 5080 eGPU 與 96GB DDR5 開發環境，提供可檢索的硬體規格與本機算力清冊。
               </p>
 
               <div class="chip-pill-collection">
@@ -287,10 +287,10 @@
             </div>
 
             <div class="card-action-bar">
-              <span class="card-action-hint" data-i18n="node04_action">檢視本機硬體配置</span>
+              <span class="card-action-hint" data-i18n="node04_action">NODE://HARDWARE-RIG</span>
               <span class="node-action-btn">
-                <span data-i18n="view_rig">查看硬體 View Rig</span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span data-i18n="view_rig">View Rig</span>
+                <span class="action-arrow" aria-hidden="true">↗</span>
               </span>
             </div>
           </a>
@@ -301,7 +301,8 @@
             <div class="card-header-bar">
               <span class="node-serial">NODE-05</span>
               <span class="node-badge badge-source">
-                <span data-i18n="badge_source">僅 Git 專案 · SOURCE ONLY</span>
+                <span class="badge-beacon"></span>
+                <span data-i18n="badge_source">SOURCE REPOSITORY ONLY</span>
               </span>
             </div>
 
@@ -309,7 +310,7 @@
               <span class="node-domain" data-i18n="node05_domain">SECURE STORAGE · OIP BRIEFING</span>
               <h3 class="node-headline">Secure Storage OIP</h3>
               <p class="node-summary" data-i18n="node05_desc">
-                Secure Storage 與台積電 OIP 技術溝通的公開原始碼、技術簡報與硬體安全架構實作。探討硬體根信任（RoT）與記憶體資安防禦。
+                公開 Secure Storage 與台積電 OIP 技術簡報及參考架構，聚焦硬體信任根（RoT）與非揮發性記憶體防禦。
               </p>
 
               <div class="chip-pill-collection">
@@ -321,10 +322,10 @@
             </div>
 
             <div class="card-action-bar">
-              <span class="card-action-hint" data-i18n="node05_action">瀏覽技術庫與簡報</span>
+              <span class="card-action-hint" data-i18n="node05_action">NODE://OIP-BRIEFING</span>
               <span class="node-action-btn">
-                <span data-i18n="view_repo">查看原始碼 View Repo</span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span data-i18n="view_repo">View Repo</span>
+                <span class="action-arrow" aria-hidden="true">↗</span>
               </span>
             </div>
           </a>
@@ -335,7 +336,8 @@
             <div class="card-header-bar">
               <span class="node-serial">NODE-06</span>
               <span class="node-badge badge-source">
-                <span data-i18n="badge_source">僅 Git 專案 · SOURCE ONLY</span>
+                <span class="badge-beacon"></span>
+                <span data-i18n="badge_source">SOURCE REPOSITORY ONLY</span>
               </span>
             </div>
 
@@ -343,7 +345,7 @@
               <span class="node-domain" data-i18n="node06_domain">DATA INTERFACE · TERMINAL</span>
               <h3 class="node-headline">TW Pulse Terminal</h3>
               <p class="node-summary" data-i18n="node06_desc">
-                以終端命令語彙重組台灣脈動資訊與技術數據介面的開源 Python/Web 專案。將多元數據流轉化為高資訊密度的即時終端儀表。
+                以現代終端機語彙重構台灣即時脈動與市場指標的開源工具，將多源數據串流轉化為高密度觀測面板。
               </p>
 
               <div class="chip-pill-collection">
@@ -355,10 +357,10 @@
             </div>
 
             <div class="card-action-bar">
-              <span class="card-action-hint" data-i18n="node06_action">檢視 Python 終端實作</span>
+              <span class="card-action-hint" data-i18n="node06_action">NODE://TW-PULSE</span>
               <span class="node-action-btn">
-                <span data-i18n="view_repo">查看原始碼 View Repo</span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H5M13 3V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span data-i18n="view_repo">View Repo</span>
+                <span class="action-arrow" aria-hidden="true">↗</span>
               </span>
             </div>
           </a>
@@ -441,6 +443,6 @@
     </div>
   </footer>
 
-  <script src="app.js?v=20260926-onepage-v2"></script>
+  <script src="app.js?v=20260927-surgical-v1"></script>
 </body>
 </html>

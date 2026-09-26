@@ -73,6 +73,8 @@ try {
       };
       const cards = [...document.querySelectorAll('.node-card')].filter(visible).map((card) => {
         const rect = card.getBoundingClientRect();
+        const summary = card.querySelector('.node-summary');
+        const style = getComputedStyle(card);
         return {
           tag: card.tagName,
           width: rect.width,
@@ -81,15 +83,28 @@ try {
           ariaLabel: card.getAttribute('aria-label'),
           live: Boolean(card.querySelector('.badge-live')),
           source: Boolean(card.querySelector('.badge-source')),
+          beacon: Boolean(card.querySelector('.badge-beacon')),
           nestedInteractive: card.querySelectorAll('a, button, input, select, textarea').length,
-          cursor: getComputedStyle(card).cursor,
+          cursor: style.cursor,
+          bgColor: style.backgroundColor,
+          summaryOverflowZh: summary ? summary.scrollHeight > summary.clientHeight + 2 : false,
           bottom: rect.bottom,
         };
       });
 
+      const enBtn = document.querySelector('.lang-switch-btn[data-target-lang="en"]');
+      enBtn?.click();
+      const summaryOverflowEn = [...document.querySelectorAll('.node-card .node-summary')].map(
+        (s) => s.scrollHeight > s.clientHeight + 2
+      );
+      const zhBtn = document.querySelector('.lang-switch-btn[data-target-lang="zh"]');
+      zhBtn?.click();
+
       const firstCard = document.querySelector('.node-card');
       firstCard?.focus();
       const focusStyle = firstCard ? getComputedStyle(firstCard) : null;
+      const matrixTitleStyle = getComputedStyle(document.querySelector('.matrix-title'));
+      const metricValueStyle = getComputedStyle(document.querySelector('.metric-value'));
 
       return {
         document: {
@@ -105,6 +120,9 @@ try {
           backgroundColor: getComputedStyle(document.body).backgroundColor,
         },
         cards,
+        summaryOverflowEn,
+        matrixTitleAlign: matrixTitleStyle.textAlign,
+        metricNumericVariant: metricValueStyle.fontVariantNumeric,
         headerPosition: getComputedStyle(document.querySelector('.cockpit-header')).position,
         focusOutline: focusStyle ? { style: focusStyle.outlineStyle, width: focusStyle.outlineWidth } : null,
       };
@@ -119,6 +137,15 @@ try {
     if (metrics.cards.filter((c) => c.live).length !== 4 || metrics.cards.filter((c) => c.source).length !== 2) {
       failures.push(`${width}px live/source badge counts mismatch`);
     }
+    if (metrics.cards.some((c) => !c.beacon || c.bgColor !== 'rgb(255, 255, 255)')) {
+      failures.push(`${width}px card missing beacon or not pure #FFFFFF background`);
+    }
+    if (metrics.matrixTitleAlign !== 'left') {
+      failures.push(`${width}px .matrix-title is not left-aligned (${metrics.matrixTitleAlign})`);
+    }
+    if (!metrics.metricNumericVariant.includes('tabular-nums')) {
+      failures.push(`${width}px .metric-value missing tabular-nums (${metrics.metricNumericVariant})`);
+    }
     if (metrics.cards.some((c) => c.tag !== 'A' || !c.href || !c.ariaLabel || c.nestedInteractive !== 0)) {
       failures.push(`${width}px a .node-card is not a single full-frame accessible <a> anchor`);
     }
@@ -131,6 +158,9 @@ try {
       }
       if (Math.max(...metrics.cards.map((c) => c.bottom)) > height) {
         failures.push(`${width}x${height} cards exceed initial viewport bottom`);
+      }
+      if (metrics.cards.some((c) => c.summaryOverflowZh) || metrics.summaryOverflowEn.some(Boolean)) {
+        failures.push(`${width}x${height} .node-summary overflows 2-line clamp in ZH (${metrics.cards.map((c) => c.summaryOverflowZh)}) or EN (${metrics.summaryOverflowEn})`);
       }
     }
     runtimeErrors.forEach((error) => failures.push(`${width}px ${error}`));

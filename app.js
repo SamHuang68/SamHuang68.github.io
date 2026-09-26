@@ -18,55 +18,55 @@ const I18N = {
     hero_telemetry: "PROJECT PORTAL · TAIWAN 2026 · SILICON ARCHITECTURE",
     hero_headline_1: "從架構規劃",
     hero_headline_2: "到真正可執行的系統",
-    hero_mission: "整合 Silicon IP、安全儲存（Secure Storage）、本地 AI 運算架構與互動模擬工程的公開技術門戶。以實證數據與真實運行為準則。",
+    hero_mission: "整合 Silicon IP、安全儲存（Secure Storage）、本地 AI 運算架構與互動模擬工程的公開技術門戶，以實證數據與真實運行為準則。",
     cta_explore: "探索專案節點",
     cta_github: "GitHub 總覽 ↗",
-    metric_nodes: "系統節點 (Nodes)",
-    metric_live: "線上實體服務 (Live Web)",
-    metric_arcade: "街機與對弈引擎 (Engines)",
-    metric_tracks: "多軌研發學程 (Tracks)",
-    matrix_kicker: "ACTIVE PRODUCTION HUBS & CODEBASES",
+    metric_nodes: "Active Nodes",
+    metric_live: "Live Hubs",
+    metric_arcade: "Engines",
+    metric_tracks: "Study Tracks",
+    matrix_kicker: "[01 // REPOSITORIES & HUBS]",
     matrix_title: "六大核心專案矩陣",
-    matrix_subtitle: "每一個節點皆為已發布且持續維護之可獨立運算系統，涵蓋先進半導體、分散式運算到現代互動架構。",
-    badge_live: "可執行網站 · LIVE WEB",
-    badge_source: "僅 Git 專案 · SOURCE ONLY",
+    matrix_subtitle: "每個節點皆為已發布且獨立運作之系統，涵蓋先進半導體、本機 AI 算力與現代互動架構。",
+    badge_live: "LIVE WEB PORTAL",
+    badge_source: "SOURCE REPOSITORY ONLY",
     // NODE 01
     node01_domain: "SEMICONDUCTOR IP · RESEARCH",
-    node01_desc: "整合 Secure Storage、AI 時代先進製程應用與 NVM 白皮書工作室的完整半導體研究門戶。系統化拆解 OTP、MTP、eFlash 與 PUF 等核心架構。",
-    node01_action: "進入半導體知識門戶",
-    open_hub: "進入門戶 Open Hub",
+    node01_desc: "整合 Secure Storage、先進製程與白皮書工作室的半導體門戶，系統化拆解 OTP、MTP、eFlash 與 PUF 架構。",
+    node01_action: "NODE://NVM-HUB",
+    open_hub: "Open Hub",
     // NODE 02
     node02_domain: "INTERACTIVE SYSTEMS · ARCADE",
     node02_title: "多元遊戲大廳",
-    node02_desc: "涵蓋 3D 棋盤對弈、策略模擬、復古街機與休閒益智等 21 款主題領域的互動遊戲合輯，全數採用純前端高效能圖形與音訊實作。",
-    node02_action: "啟動遊戲模擬大廳",
-    enter_arcade: "進入大廳 Enter Arcade",
+    node02_desc: "涵蓋 3D 棋盤、策略牌桌、空間益智與街機冒險等 21 款互動遊戲，全數以純前端圖形與合成音訊打造。",
+    node02_action: "NODE://ARCADE-SUITE",
+    enter_arcade: "Enter Arcade",
     // NODE 03
     node03_domain: "LEARNING ENGINE · 8 TRACKS",
-    node03_desc: "數學、微積分、物理、化學、計算機概論、日語、多益與臺灣華語，八軌整合的漸進式認知學習引擎與記憶演算法實作。",
-    node03_action: "開啟自主學習引擎",
-    start_learning: "開始學習 Start Learning",
+    node03_desc: "整合數學、微積分、理化、計概、日語、多益與臺灣華語八大軌道，搭載 FSRS 自適應記憶排程演算法。",
+    node03_action: "NODE://E-LEARNING",
+    start_learning: "Start Learning",
     // NODE 04
     node04_domain: "HARDWARE · ENGINEERING PROFILE",
-    node04_desc: "AI 工作站（Intel Core Ultra 9 285H）、RTX 5080 eGPU、96GB RAM 開發環境與工程硬體資產規格的可互動檢視紀錄與運算邊界清冊。",
-    node04_action: "檢視本機硬體配置",
-    view_rig: "查看硬體 View Rig",
+    node04_desc: "記錄 Core Ultra 9 285H、RTX 5080 eGPU 與 96GB DDR5 開發環境，提供可檢索的硬體規格與本機算力清冊。",
+    node04_action: "NODE://HARDWARE-RIG",
+    view_rig: "View Rig",
     // NODE 05
     node05_domain: "SECURE STORAGE · OIP BRIEFING",
-    node05_desc: "Secure Storage 與台積電 OIP 技術溝通的公開原始碼、技術簡報與硬體安全架構實作。探討硬體根信任（RoT）與記憶體資安防禦。",
-    node05_action: "瀏覽技術庫與簡報",
-    view_repo: "查看原始碼 View Repo",
+    node05_desc: "公開 Secure Storage 與台積電 OIP 技術簡報及參考架構，聚焦硬體信任根（RoT）與非揮發性記憶體防禦。",
+    node05_action: "NODE://OIP-BRIEFING",
+    view_repo: "View Repo",
     // NODE 06
     node06_domain: "DATA INTERFACE · TERMINAL",
-    node06_desc: "以終端命令語彙重組台灣脈動資訊與技術數據介面的開源 Python/Web 專案。將多元數據流轉化為高資訊密度的即時終端儀表。",
-    node06_action: "檢視 Python 終端實作",
+    node06_desc: "以現代終端機語彙重構台灣即時脈動與市場指標的開源工具，將多源數據串流轉化為高密度觀測面板。",
+    node06_action: "NODE://TW-PULSE",
     // PHILOSOPHY
     philo_kicker: "ENGINEERING MANIFESTO",
     philo_heading: "從架構與證據，走到可以使用的成果。",
-    philo_p1: "我是 Sam Huang，在台灣專注於半導體 IP 架構、安全儲存硬體設計與自主學習模擬系統。技術不該只是投影片上的方塊圖，而應具備明確的物理限制考量、可重現的測試依據，並最終落地為每個人都能實機操作的系統。",
-    philo_p2: "從矽智財的儲存胞行為、本地端 96GB 大容量 AI 推論環境，到兼具教學與娛樂的八軌學習引擎——每一項專案都是對「高品質工程落地」的執著實踐。",
+    philo_p1: "我是 Sam Huang，在台灣專注於半導體 IP 架構、安全儲存硬體設計與自主學習模擬系統。",
+    philo_p2: "每一項專案都是對「高品質工程落地」的執著實踐。",
     footer_desc: "半導體與系統專案入口 · Silicon IP, Secure Storage & Systems · Taiwan 2026",
-    back_to_top: "回到頂端 TOP"
+    back_to_top: "TOP"
   },
   en: {
     brand_sub: "Silicon IP · Systems Architecture",
@@ -76,55 +76,55 @@ const I18N = {
     hero_telemetry: "PROJECT PORTAL · TAIWAN 2026 · SILICON ARCHITECTURE",
     hero_headline_1: "From Architecture",
     hero_headline_2: "To Verifiable Working Systems",
-    hero_mission: "A unified technical portal synthesizing Silicon IP, Secure Storage, local AI acceleration, and interactive systems. Grounded in empirical evidence and production-grade execution.",
+    hero_mission: "A unified technical portal for Silicon IP, Secure Storage, local AI compute, and interactive systems—grounded in empirical evidence.",
     cta_explore: "Explore Project Nodes",
     cta_github: "GitHub Overview ↗",
-    metric_nodes: "Active System Nodes",
-    metric_live: "Live Production Hubs",
-    metric_arcade: "Interactive Arcade Engines",
-    metric_tracks: "Research & Study Tracks",
-    matrix_kicker: "ACTIVE PRODUCTION HUBS & CODEBASES",
+    metric_nodes: "Active Nodes",
+    metric_live: "Live Hubs",
+    metric_arcade: "Engines",
+    metric_tracks: "Study Tracks",
+    matrix_kicker: "[01 // REPOSITORIES & HUBS]",
     matrix_title: "Core Project Matrix",
-    matrix_subtitle: "Each node represents an independently operating, maintained system spanning advanced semiconductor research to modern interactive architectures.",
+    matrix_subtitle: "Independently operating systems spanning semiconductor IP research, local AI compute, and interactive web engines.",
     badge_live: "LIVE WEB PORTAL",
     badge_source: "SOURCE REPOSITORY ONLY",
     // NODE 01
     node01_domain: "SEMICONDUCTOR IP · RESEARCH",
-    node01_desc: "Comprehensive semiconductor research hub integrating Secure Storage, AI-era nodes, and NVM Whitepaper Studio. Rigorously analyzing OTP, MTP, eFlash, and PUF architectures.",
-    node01_action: "Enter Research Portal",
-    open_hub: "Open Hub ↗",
+    node01_desc: "Semiconductor research portal for Secure Storage and advanced nodes, covering OTP, MTP, eFlash, and PUF IP.",
+    node01_action: "NODE://NVM-HUB",
+    open_hub: "Open Hub",
     // NODE 02
     node02_domain: "INTERACTIVE SYSTEMS · ARCADE",
     node02_title: "Interactive Game Arcade",
-    node02_desc: "Interactive suite featuring 21 titles across 3D chess, strategy simulations, retro arcade, and brain teasers. Built purely on modern web canvas and Web Audio engines.",
-    node02_action: "Launch Arcade Suite",
-    enter_arcade: "Enter Arcade ↗",
+    node02_desc: "Twenty-one playable titles across 3D chess, tabletop strategy, spatial puzzles, and arcade action on web canvas.",
+    node02_action: "NODE://ARCADE-SUITE",
+    enter_arcade: "Enter Arcade",
     // NODE 03
     node03_domain: "LEARNING ENGINE · 8 TRACKS",
-    node03_desc: "Eight progressive study tracks: Taiwan Math, Calculus, Physics, Chemistry, CS, Japanese, TOEIC, and Mandarin, powered by adaptive memory algorithms.",
-    node03_action: "Start Learning Engine",
-    start_learning: "Start Learning ↗",
+    node03_desc: "Eight progressive tracks across STEM, CS, Japanese, TOEIC, and Mandarin, driven by FSRS memory scheduling.",
+    node03_action: "NODE://E-LEARNING",
+    start_learning: "Start Learning",
     // NODE 04
     node04_domain: "HARDWARE · ENGINEERING PROFILE",
-    node04_desc: "Interactive hardware inventory detailing local Intel Core Ultra 9 285H AI rig, RTX 5080 eGPU dock, 96GB RAM dev workspace, and schedulable compute boundaries.",
-    node04_action: "Inspect Hardware Rig",
-    view_rig: "View Rig ↗",
+    node04_desc: "Hardware inventory for the Core Ultra 9 285H workstation, RTX 5080 eGPU dock, and 96GB DDR5 local AI rig.",
+    node04_action: "NODE://HARDWARE-RIG",
+    view_rig: "View Rig",
     // NODE 05
     node05_domain: "SECURE STORAGE · OIP BRIEFING",
-    node05_desc: "Open-source reference and briefing collateral for Secure Storage and TSMC OIP technical integration. Covering hardware Root of Trust (RoT) and memory security.",
-    node05_action: "Browse Code & Briefings",
-    view_repo: "View Repo ↗",
+    node05_desc: "Reference architecture and TSMC OIP briefing collateral focused on hardware Root of Trust and NVM security.",
+    node05_action: "NODE://OIP-BRIEFING",
+    view_repo: "View Repo",
     // NODE 06
     node06_domain: "DATA INTERFACE · TERMINAL",
-    node06_desc: "Open-source terminal synthesizing Taiwan market telemetry and indicator streams through modern terminal UX and Python REST data feeds.",
-    node06_action: "Inspect Python CLI",
+    node06_desc: "Python and web telemetry terminal synthesizing real-time Taiwan market indicators into a high-density CLI view.",
+    node06_action: "NODE://TW-PULSE",
     // PHILOSOPHY
     philo_kicker: "ENGINEERING MANIFESTO",
     philo_heading: "From architecture and evidence to working systems.",
-    philo_p1: "I am Sam Huang, an engineer based in Taiwan specializing in semiconductor IP architecture, secure memory design, and interactive simulation systems. Technology must transcend conceptual block diagrams to deliver verified, tangible implementations under real physical constraints.",
-    philo_p2: "From non-volatile storage cell dynamics to 96GB local AI inference pipelines and multi-track educational engines, each project is a testament to rigorous engineering craft.",
+    philo_p1: "I am Sam Huang, an engineer in Taiwan specializing in semiconductor IP architecture and secure memory systems.",
+    philo_p2: "Every node is built as a verifiable, production-grade implementation.",
     footer_desc: "Semiconductor & Systems Project Portal · Silicon IP, Secure Storage & Systems · Taiwan 2026",
-    back_to_top: "TOP ↑"
+    back_to_top: "TOP"
   }
 };
 
@@ -226,7 +226,7 @@ function initSiliconCanvas() {
         vy: (Math.random() - 0.5) * 0.35,
         radius: Math.random() * 1.8 + 1.2,
         baseAlpha: Math.random() * 0.3 + 0.15,
-        color: Math.random() > 0.4 ? "rgba(13, 148, 136, " : "rgba(37, 99, 235, "
+        color: Math.random() > 0.4 ? "rgba(37, 99, 235, " : "rgba(100, 116, 139, "
       });
     }
   }
@@ -265,7 +265,7 @@ function initSiliconCanvas() {
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y);
           ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = `rgba(13, 148, 136, ${alpha})`;
+          ctx.strokeStyle = `rgba(37, 99, 235, ${alpha * 0.75})`;
           ctx.lineWidth = 0.8;
           ctx.stroke();
         }
