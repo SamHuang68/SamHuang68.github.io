@@ -96,7 +96,7 @@ const I18N = {
     // NODE 02
     node02_domain: "INTERACTIVE SYSTEMS · ARCADE",
     node02_title: "Interactive Game Arcade",
-    node02_desc: "Twenty-one playable titles across 3D chess, tabletop strategy, spatial puzzles, and arcade action on web canvas.",
+    node02_desc: "21 playable web titles across 3D chess, tabletop strategy, spatial puzzles, and arcade action.",
     node02_action: "NODE://ARCADE-SUITE",
     enter_arcade: "Enter Arcade",
     // NODE 03
@@ -316,13 +316,21 @@ function initTelemetryCounters() {
   const targets = document.querySelectorAll("[data-count]");
   if (!targets.length) return;
 
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    targets.forEach((el) => {
+      const targetValue = parseInt(el.getAttribute("data-count"), 10);
+      if (!isNaN(targetValue)) el.textContent = String(targetValue);
+    });
+    return;
+  }
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         const el = entry.target;
         const targetValue = parseInt(el.getAttribute("data-count"), 10);
         if (!isNaN(targetValue)) {
-          animateValue(el, 0, targetValue, 1300);
+          animateValue(el, 0, targetValue, 900);
           observer.unobserve(el);
         }
       }
