@@ -14,6 +14,7 @@ const mime = new Map([
   ['.jpg', 'image/jpeg'],
   ['.jpeg', 'image/jpeg'],
   ['.png', 'image/png'],
+  ['.svg', 'image/svg+xml'],
   ['.woff2', 'font/woff2'],
 ]);
 

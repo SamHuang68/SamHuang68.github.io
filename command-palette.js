@@ -47,19 +47,19 @@
       id: 'node-oip',
       titleZh: 'Node-05: Secure Storage OIP',
       titleEn: 'Node-05: Secure Storage OIP',
-      descZh: 'Secure Storage 與 OIP 技術溝通公開原始碼',
-      descEn: 'Open codebase, briefings and silicon architecture',
+      descZh: 'Secure Storage 與 OIP 技術簡報，需 GitHub 存取權限',
+      descEn: 'Private repository; GitHub access required',
       action: () => (window.location.href = 'https://github.com/SamHuang68/secure-storage-oip-briefing'),
-      badge: 'REPO',
+      badge: 'PRIVATE',
     },
     {
       id: 'node-pulse',
       titleZh: 'Node-06: TW Pulse Terminal',
       titleEn: 'Node-06: TW Pulse Terminal',
-      descZh: '以終端命令語彙重組台灣脈動數據之開源專案',
-      descEn: 'Terminal synthesizing Taiwan market telemetry',
+      descZh: '台灣市場終端工具，需 GitHub 存取權限',
+      descEn: 'Taiwan market terminal; GitHub access required',
       action: () => (window.location.href = 'https://github.com/SamHuang68/tw-pulse-terminal'),
-      badge: 'REPO',
+      badge: 'PRIVATE',
     },
     {
       id: 'act-lang',
@@ -104,162 +104,148 @@
     },
   ];
 
-  let modalEl = null;
-  let inputEl = null;
-  let listEl = null;
+  const COPY = {
+    zh: { title: '搜尋與指令', search: '搜尋專案或指令', close: '關閉搜尋', list: '專案與指令', empty: '沒有符合的專案或指令', hint: '↑ ↓ 選擇 · Enter 執行 · Esc 關閉', count: n => `${n} 個結果` },
+    en: { title: 'Search & commands', search: 'Search projects or commands', close: 'Close search', list: 'Projects and commands', empty: 'No matching projects or commands', hint: '↑ ↓ Choose · Enter Run · Esc Close', count: n => `${n} ${n === 1 ? 'result' : 'results'}` },
+  };
+  let modalEl, inputEl, listEl, statusEl;
+  let returnFocus;
   let activeIndex = 0;
   let filteredCommands = [...COMMANDS];
+  const getLang = () => document.documentElement.dataset.lang === 'en' ? 'en' : 'zh';
+  const closePalette = () => { if (modalEl?.open) modalEl.close(); };
 
-  const getLang = () =>
-    document.documentElement.getAttribute('data-lang') ||
-    document.documentElement.getAttribute('data-language') ||
-    'zh';
-
-  const createPaletteDom = () => {
-    modalEl = document.createElement('div');
-    modalEl.id = 'commandPaletteModal';
-    modalEl.className = 'cmd-palette-backdrop';
-    modalEl.setAttribute('aria-modal', 'true');
-    modalEl.setAttribute('role', 'dialog');
-    modalEl.setAttribute('aria-hidden', 'true');
-    modalEl.innerHTML = `
-      <div class="cmd-palette-box">
-        <div class="cmd-palette-header">
-          <span class="cmd-palette-icon" aria-hidden="true">⌘</span>
-          <input type="text" class="cmd-palette-input" id="cmdPaletteInput" placeholder="搜尋專案、指令或架構節點 (Type a command or node)..." autocomplete="off" spellcheck="false" />
-          <kbd class="cmd-palette-esc">ESC</kbd>
-        </div>
-        <div class="cmd-palette-body">
-          <ul class="cmd-palette-list" id="cmdPaletteList" role="listbox"></ul>
-        </div>
-        <div class="cmd-palette-footer">
-          <span><kbd>↑</kbd> <kbd>↓</kbd> 選擇</span>
-          <span><kbd>↵</kbd> 執行</span>
-          <span><kbd>ESC</kbd> 關閉</span>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modalEl);
-
-    inputEl = modalEl.querySelector('#cmdPaletteInput');
-    listEl = modalEl.querySelector('#cmdPaletteList');
-
-    modalEl.addEventListener('click', (e) => {
-      if (e.target === modalEl) closePalette();
+  const select = index => {
+    activeIndex = index;
+    listEl.querySelectorAll('[role="option"]').forEach((item, i) => {
+      item.classList.toggle('is-selected', i === index);
+      item.setAttribute('aria-selected', String(i === index));
     });
-
-    inputEl.addEventListener('input', () => {
-      const q = inputEl.value.trim().toLowerCase();
-      const lang = getLang();
-      filteredCommands = COMMANDS.filter((cmd) => {
-        const title = (lang === 'zh' ? cmd.titleZh : cmd.titleEn).toLowerCase();
-        const desc = (lang === 'zh' ? cmd.descZh : cmd.descEn).toLowerCase();
-        return title.includes(q) || desc.includes(q) || cmd.id.includes(q);
-      });
-      activeIndex = 0;
-      renderList();
-    });
-
-    inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        activeIndex = (activeIndex + 1) % Math.max(1, filteredCommands.length);
-        renderList();
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        activeIndex = (activeIndex - 1 + filteredCommands.length) % Math.max(1, filteredCommands.length);
-        renderList();
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (filteredCommands[activeIndex]) {
-          const action = filteredCommands[activeIndex].action;
-          closePalette();
-          action();
-        }
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        closePalette();
-      }
-    });
+    const selected = listEl.children[index];
+    if (selected) inputEl.setAttribute('aria-activedescendant', selected.id);
+    else inputEl.removeAttribute('aria-activedescendant');
   };
-
+  const execute = index => {
+    const command = filteredCommands[index];
+    if (command) { closePalette(); command.action(); }
+  };
   const renderList = () => {
-    if (!listEl) return;
     const lang = getLang();
-    if (filteredCommands.length === 0) {
-      listEl.innerHTML = `<li class="cmd-empty">${lang === 'zh' ? '無匹配的架構指令' : 'No matching commands'}</li>`;
-      return;
-    }
-
-    listEl.innerHTML = filteredCommands
-      .map((cmd, idx) => {
-        const isSelected = idx === activeIndex;
-        const title = lang === 'zh' ? cmd.titleZh : cmd.titleEn;
-        const desc = lang === 'zh' ? cmd.descZh : cmd.descEn;
-        return `
-        <li class="cmd-item ${isSelected ? 'is-selected' : ''}" role="option" aria-selected="${isSelected}" data-index="${idx}">
-          <div class="cmd-item-info">
-            <span class="cmd-item-title">${title}</span>
-            <span class="cmd-item-desc">${desc}</span>
-          </div>
-          <span class="cmd-item-badge">${cmd.badge}</span>
-        </li>
-      `;
-      })
-      .join('');
-
-    listEl.querySelectorAll('.cmd-item').forEach((item) => {
-      item.addEventListener('mouseenter', () => {
-        activeIndex = Number(item.getAttribute('data-index'));
-        renderList();
-      });
-      item.addEventListener('click', () => {
-        const idx = Number(item.getAttribute('data-index'));
-        if (filteredCommands[idx]) {
-          const action = filteredCommands[idx].action;
-          closePalette();
-          action();
-        }
-      });
+    listEl.replaceChildren();
+    filteredCommands.forEach((command, index) => {
+      const item = document.createElement('li');
+      item.id = `command-${command.id}`;
+      item.className = 'cmd-item';
+      item.setAttribute('role', 'option');
+      const info = document.createElement('span');
+      info.className = 'cmd-item-info';
+      const title = document.createElement('span');
+      title.className = 'cmd-item-title';
+      title.textContent = lang === 'zh' ? command.titleZh : command.titleEn;
+      const description = document.createElement('span');
+      description.className = 'cmd-item-desc';
+      description.textContent = lang === 'zh' ? command.descZh : command.descEn;
+      const badge = document.createElement('span');
+      badge.className = 'cmd-item-badge';
+      badge.textContent = command.badge;
+      if (command.id === 'act-audio' || command.id === 'act-xray') {
+        const enabled = command.id === 'act-audio' ? window.SiliconAudio?.isEnabled() : document.body.classList.contains('xray-mode');
+        badge.textContent = lang === 'zh' ? (enabled ? '已開啟' : '已關閉') : (enabled ? 'ON' : 'OFF');
+      }
+      info.append(title, description);
+      item.append(info, badge);
+      item.addEventListener('pointermove', () => select(index));
+      item.addEventListener('click', () => execute(index));
+      listEl.append(item);
     });
+    select(activeIndex);
+    statusEl.textContent = filteredCommands.length ? COPY[lang].count(filteredCommands.length) : COPY[lang].empty;
   };
-
-  const openPalette = () => {
-    if (!modalEl) createPaletteDom();
-    filteredCommands = [...COMMANDS];
+  const filterCommands = () => {
+    const query = inputEl.value.trim().toLocaleLowerCase();
+    filteredCommands = COMMANDS.filter(command =>
+      [command.titleZh, command.titleEn, command.descZh, command.descEn, command.id]
+        .some(value => value.toLocaleLowerCase().includes(query)));
     activeIndex = 0;
     renderList();
-    modalEl.classList.add('is-open');
-    modalEl.setAttribute('aria-hidden', 'false');
+  };
+  const translate = () => {
+    if (!modalEl) return;
+    const copy = COPY[getLang()];
+    modalEl.querySelector('#cmdPaletteTitle').textContent = copy.title;
+    inputEl.placeholder = copy.search;
+    inputEl.setAttribute('aria-label', copy.search);
+    listEl.setAttribute('aria-label', copy.list);
+    modalEl.querySelector('.cmd-palette-close').setAttribute('aria-label', copy.close);
+    modalEl.querySelector('.cmd-palette-hint').textContent = copy.hint;
+    filterCommands();
+  };
+  const createPalette = () => {
+    modalEl = document.createElement('dialog');
+    modalEl.id = 'commandPaletteModal';
+    modalEl.className = 'cmd-palette';
+    modalEl.setAttribute('aria-labelledby', 'cmdPaletteTitle');
+    modalEl.innerHTML = `
+      <div class="cmd-palette-header">
+        <h2 id="cmdPaletteTitle"></h2>
+        <button type="button" class="cmd-palette-close">×</button>
+      </div>
+      <input type="text" class="cmd-palette-input" id="cmdPaletteInput" role="combobox" aria-expanded="true" aria-autocomplete="list" aria-controls="cmdPaletteList" autocomplete="off" spellcheck="false" autofocus>
+      <ul class="cmd-palette-list" id="cmdPaletteList" role="listbox"></ul>
+      <div class="cmd-palette-footer"><span id="cmdPaletteStatus" role="status" aria-live="polite"></span><span class="cmd-palette-hint"></span></div>`;
+    document.body.append(modalEl);
+    inputEl = modalEl.querySelector('#cmdPaletteInput');
+    listEl = modalEl.querySelector('#cmdPaletteList');
+    statusEl = modalEl.querySelector('#cmdPaletteStatus');
+    modalEl.querySelector('.cmd-palette-close').addEventListener('click', closePalette);
+    modalEl.addEventListener('click', event => {
+      const box = modalEl.getBoundingClientRect();
+      if (event.target === modalEl && (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom)) closePalette();
+    });
+    modalEl.addEventListener('close', () => {
+      if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
+    });
+    modalEl.addEventListener('keydown', event => {
+      if (event.key !== 'Tab') return;
+      const close = modalEl.querySelector('.cmd-palette-close');
+      if (event.shiftKey && document.activeElement === close) {
+        event.preventDefault(); inputEl.focus();
+      } else if (!event.shiftKey && document.activeElement === inputEl) {
+        event.preventDefault(); close.focus();
+      }
+    });
+    inputEl.addEventListener('input', filterCommands);
+    inputEl.addEventListener('keydown', event => {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const count = filteredCommands.length;
+        if (!count) return;
+        select((activeIndex + (event.key === 'ArrowDown' ? 1 : -1) + count) % count);
+        listEl.children[activeIndex]?.scrollIntoView({ block: 'nearest' });
+      } else if (event.key === 'Enter' && !event.isComposing) {
+        event.preventDefault();
+        execute(activeIndex);
+      }
+    });
+  };
+  const openPalette = () => {
+    if (!modalEl) createPalette();
+    if (modalEl.open) return;
+    returnFocus = document.activeElement;
+    inputEl.value = '';
+    translate();
+    modalEl.showModal();
+    inputEl.focus();
     if (window.SiliconAudio) window.SiliconAudio.playHud();
-    setTimeout(() => {
-      if (inputEl) {
-        inputEl.value = '';
-        inputEl.focus();
-      }
-    }, 50);
   };
-
-  const closePalette = () => {
-    if (modalEl) {
-      modalEl.classList.remove('is-open');
-      modalEl.setAttribute('aria-hidden', 'true');
-    }
-  };
-
-  // 全域鍵盤監聽: Ctrl+K / Cmd+K
-  window.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault();
-      if (modalEl && modalEl.classList.contains('is-open')) {
-        closePalette();
-      } else {
-        openPalette();
-      }
-    } else if (e.key === 'Escape' && modalEl && modalEl.classList.contains('is-open')) {
-      closePalette();
+  window.addEventListener('keydown', event => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      if (modalEl?.open) closePalette(); else openPalette();
     }
   });
-
+  document.addEventListener('portal-languagechange', translate);
+  createPalette();
+  translate();
   window.openCommandPalette = openPalette;
 })();

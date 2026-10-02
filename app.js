@@ -12,6 +12,12 @@
 const I18N = {
   zh: {
     brand_sub: "半導體 IP · 系統架構",
+    skip_projects: "跳至主要專案矩陣",
+    home_label: "Sam Huang 首頁",
+    nav_label: "全域導覽",
+    language_label: "語言切換",
+    top_label: "回到頁首",
+    command_label: "搜尋與指令",
     nav_projects: "專案矩陣",
     nav_philosophy: "架構哲學",
     status_online: "6 節點就緒",
@@ -70,6 +76,12 @@ const I18N = {
   },
   en: {
     brand_sub: "Silicon IP · Systems Architecture",
+    skip_projects: "Skip to project matrix",
+    home_label: "Sam Huang home",
+    nav_label: "Main navigation",
+    language_label: "Language",
+    top_label: "Back to top",
+    command_label: "Search & commands",
     nav_projects: "Projects",
     nav_philosophy: "Philosophy",
     status_online: "6 Nodes Ready",
@@ -133,6 +145,7 @@ let currentLang = "zh";
 function applyLanguage(lang) {
   const dict = I18N[lang];
   if (!dict) return;
+  currentLang = lang;
 
   document.documentElement.lang = lang === "zh" ? "zh-Hant" : "en";
   document.documentElement.setAttribute("data-lang", lang);
@@ -143,6 +156,15 @@ function applyLanguage(lang) {
       el.textContent = dict[key];
     }
   });
+
+  document.querySelectorAll("[data-i18n-label]").forEach((el) => {
+    el.setAttribute("aria-label", dict[el.dataset.i18nLabel]);
+  });
+  document.querySelectorAll(".node-card").forEach((card) => {
+    const title = card.querySelector(".node-headline").textContent;
+    card.setAttribute("aria-label", `${title} — ${card.querySelector(".badge-source") ? dict.view_repo : (lang === "zh" ? "開啟網站" : "Open website")}`);
+  });
+  document.dispatchEvent(new Event("portal-languagechange"));
 
   document.querySelectorAll(".lang-switch-btn").forEach((btn) => {
     const isTarget = btn.getAttribute("data-target-lang") === lang;
@@ -156,6 +178,8 @@ function applyLanguage(lang) {
     // 忽略隱私模式限制
   }
 }
+
+window.toggleLanguage = () => applyLanguage(currentLang === "zh" ? "en" : "zh");
 
 function initLanguage() {
   try {
@@ -398,8 +422,28 @@ function initScrollInteractions() {
   revealElements.forEach((el) => revealObserver.observe(el));
 }
 
+function initNavigation() {
+  const header = document.getElementById("site-header");
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty("--header-height", header.getBoundingClientRect().height + "px");
+  }).observe(header);
+  const revealPhilosophy = () => {
+    if (location.hash === "#philosophy") {
+      document.querySelector(".philosophy-disclosure").open = true;
+      document.getElementById("philosophy").scrollIntoView();
+    }
+  };
+  document.querySelector('a[href="#philosophy"]').addEventListener("click", () => {
+    document.querySelector(".philosophy-disclosure").open = true;
+  });
+  window.addEventListener("hashchange", revealPhilosophy);
+  revealPhilosophy();
+  document.getElementById("commandTrigger").addEventListener("click", () => window.openCommandPalette());
+}
+
 function bootstrap() {
   initLanguage();
+  initNavigation();
   initSiliconCanvas();
   initTelemetryCounters();
   initCardSpecularGlow();
