@@ -66,10 +66,10 @@
 
       <!-- 儀表狀態與語系 -->
       <div class="cockpit-controls">
-        <div class="system-status-indicator" title="All systems operational">
+        <div class="system-status-indicator">
           <span class="pulse-ring"></span>
           <span class="pulse-core"></span>
-          <span class="status-label" data-i18n="status_online">6 節點就緒</span>
+          <span class="status-label" data-i18n="status_online">6 專案資源</span>
         </div>
 
         <div class="lang-selector" role="group" aria-label="語言切換" data-i18n-label="language_label">
@@ -117,7 +117,7 @@
         <div class="telemetry-grid-card">
           <div class="telemetry-cell">
             <span class="metric-value" data-count="6">6</span>
-            <span class="metric-caption" data-i18n="metric_nodes">Active Nodes</span>
+            <span class="metric-caption" data-i18n="metric_nodes">Project Nodes</span>
           </div>
           <div class="telemetry-cell">
             <span class="metric-value" data-count="4">4</span>
@@ -152,7 +152,7 @@
           </div>
           <h2 class="matrix-title" data-i18n="matrix_title">六大核心專案矩陣</h2>
           <p class="matrix-subtitle" data-i18n="matrix_subtitle">
-            每個節點皆為已發布且獨立運作之系統，涵蓋先進半導體、本機 AI 算力與現代互動架構。
+            四個公開網站與兩個私人專案資源，涵蓋半導體、本機 AI 算力與互動介面。
           </p>
         </header>
 
@@ -310,10 +310,10 @@
             </div>
 
             <div class="card-content-body">
-              <span class="node-domain" data-i18n="node05_domain">SECURE STORAGE · OIP BRIEFING</span>
+              <span class="node-domain" data-i18n="node05_domain">私人簡報 · 本機展示</span>
               <h3 class="node-headline">Secure Storage OIP</h3>
               <p class="node-summary" data-i18n="node05_desc">
-                Secure Storage 與台積電 OIP 技術簡報及參考架構，聚焦硬體信任根（RoT）與非揮發性記憶體防禦。
+                Secure Storage／OIP 私人技術簡報與本機展示工作區，整理硬體信任根（RoT）及非揮發性記憶體安全參考架構。
               </p>
 
               <div class="chip-pill-collection">
@@ -345,17 +345,17 @@
             </div>
 
             <div class="card-content-body">
-              <span class="node-domain" data-i18n="node06_domain">DATA INTERFACE · TERMINAL</span>
+              <span class="node-domain" data-i18n="node06_domain">私人介面原型 · 模擬資料</span>
               <h3 class="node-headline">TW Pulse Terminal</h3>
               <p class="node-summary" data-i18n="node06_desc">
-                以現代終端機語彙重構台灣即時脈動與市場指標的工具，將多源數據串流轉化為高密度觀測面板。
+                私人終端介面原型，包含 13 個模組，僅使用模擬資料展示台灣市場觀測介面；未提供真實行情服務。
               </p>
 
               <div class="chip-pill-collection">
-                <span class="chip-pill">Python CLI</span>
-                <span class="chip-pill">Real-time Telemetry</span>
+                <span class="chip-pill" data-i18n="node06_tag_modules">13 個模組</span>
+                <span class="chip-pill" data-i18n="node06_tag_data">模擬資料</span>
                 <span class="chip-pill">Terminal UX</span>
-                <span class="chip-pill">REST Protocol</span>
+                <span class="chip-pill" data-i18n="node06_tag_prototype">介面原型</span>
               </div>
             </div>
 
@@ -384,12 +384,12 @@
               我是 Sam Huang，在台灣專注於半導體 IP 架構、安全儲存硬體設計與自主學習模擬系統。技術不該只是投影片上的方塊圖，而應具備明確的物理限制考量、可重現的測試依據，並最終落地為每個人都能實機操作的系統。
             </p>
             <p class="philo-text" data-i18n="philo_p2">
-              從矽智財的儲存胞行為、本地端 96GB 大容量 AI 推論環境，到兼具教學與娛樂的八軌學習引擎——每一項專案都是對「高品質工程落地」的執著實踐。
+              專案涵蓋已發布網站、私人技術簡報與介面原型。
             </p>
             <div class="philo-foot-meta">
               <span class="meta-tag">LOCATION: TAIWAN</span>
               <span class="meta-tag">FOUNDATION: SILICON IP & SYSTEMS</span>
-              <span class="meta-tag">STATUS: PRODUCTION VERIFIED</span>
+              <span class="meta-tag">SCOPE: SITES · BRIEFINGS · PROTOTYPES</span>
             </div>
           </div>
 
@@ -451,7 +451,7 @@
 
   <script src="audio-engine.js?v=20261003-navigation-v1"></script>
   <script src="effects.js?v=20261003-navigation-v1"></script>
-  <script src="command-palette.js?v=20261003-navigation-v1"></script>
-  <script src="app.js?v=20261003-navigation-v1"></script>
+  <script src="command-palette.js?v=20261003-project-status-v2"></script>
+  <script src="app.js?v=20261003-project-status-v2"></script>
 </body>
 </html>
