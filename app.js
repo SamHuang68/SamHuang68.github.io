@@ -29,7 +29,7 @@ const I18N = {
     matrix_title: "六大核心專案矩陣",
     matrix_subtitle: "每個節點皆為已發布且獨立運作之系統，涵蓋先進半導體、本機 AI 算力與現代互動架構。",
     badge_live: "LIVE WEB PORTAL",
-    badge_source: "SOURCE REPOSITORY ONLY",
+    badge_source: "私人儲存庫",
     // NODE 01
     node01_domain: "SEMICONDUCTOR IP · RESEARCH",
     node01_desc: "整合 Secure Storage、先進製程與白皮書工作室的半導體門戶，系統化拆解 OTP、MTP、eFlash 與 PUF 架構。",
@@ -53,12 +53,12 @@ const I18N = {
     view_rig: "View Rig",
     // NODE 05
     node05_domain: "SECURE STORAGE · OIP BRIEFING",
-    node05_desc: "公開 Secure Storage 與台積電 OIP 技術簡報及參考架構，聚焦硬體信任根（RoT）與非揮發性記憶體防禦。",
+    node05_desc: "Secure Storage 與台積電 OIP 技術簡報及參考架構，聚焦硬體信任根（RoT）與非揮發性記憶體防禦。",
     node05_action: "NODE://OIP-BRIEFING",
-    view_repo: "View Repo",
+    view_repo: "需 GitHub 存取權限",
     // NODE 06
     node06_domain: "DATA INTERFACE · TERMINAL",
-    node06_desc: "以現代終端機語彙重構台灣即時脈動與市場指標的開源工具，將多源數據串流轉化為高密度觀測面板。",
+    node06_desc: "以現代終端機語彙重構台灣即時脈動與市場指標的工具，將多源數據串流轉化為高密度觀測面板。",
     node06_action: "NODE://TW-PULSE",
     // PHILOSOPHY
     philo_kicker: "ENGINEERING MANIFESTO",
@@ -87,7 +87,7 @@ const I18N = {
     matrix_title: "Core Project Matrix",
     matrix_subtitle: "Independently operating systems spanning semiconductor IP research, local AI compute, and interactive web engines.",
     badge_live: "LIVE WEB PORTAL",
-    badge_source: "SOURCE REPOSITORY ONLY",
+    badge_source: "PRIVATE REPOSITORY",
     // NODE 01
     node01_domain: "SEMICONDUCTOR IP · RESEARCH",
     node01_desc: "Semiconductor research portal for Secure Storage and advanced nodes, covering OTP, MTP, eFlash, and PUF IP.",
@@ -113,7 +113,7 @@ const I18N = {
     node05_domain: "SECURE STORAGE · OIP BRIEFING",
     node05_desc: "Reference architecture and TSMC OIP briefing collateral focused on hardware Root of Trust and NVM security.",
     node05_action: "NODE://OIP-BRIEFING",
-    view_repo: "View Repo",
+    view_repo: "GitHub Access Required",
     // NODE 06
     node06_domain: "DATA INTERFACE · TERMINAL",
     node06_desc: "Python and web telemetry terminal synthesizing real-time Taiwan market indicators into a high-density CLI view.",
