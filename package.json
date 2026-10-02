@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node scripts/check-home.mjs && node --check app.js",
+    "check": "node scripts/check-home.mjs && node --check app.js && node --check command-palette.js",
     "serve": "node scripts/serve-local.mjs",
     "qa:render": "node scripts/qa-home.mjs",
     "qa": "npm run check && npm run qa:render"

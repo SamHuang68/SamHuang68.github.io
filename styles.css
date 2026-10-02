@@ -1753,11 +1753,7 @@ a.node-card:hover .node-headline {
   line-height: 1.45;
   color: #334155;
   margin-bottom: 8px;
-  display: -webkit-box;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display: block;
 }
 
 .chip-pill-collection {
@@ -1848,7 +1844,8 @@ a.node-card:focus-visible .action-arrow {
 
 /* 6. Single-Page Footer & Responsive Breakpoints */
 .philosophy-section {
-  display: none;
+  display: block;
+  padding: 0 0 10px;
 }
 
 .cockpit-footer {
@@ -1958,4 +1955,52 @@ a.node-card:focus-visible .action-arrow {
     align-items: flex-start;
     gap: 4px;
   }
+}
+
+/* Navigation remains available on touch screens and at increased zoom. */
+:root { --header-height: 60px; }
+#projects, #philosophy, #hero { scroll-margin-top: calc(var(--header-height) + 16px); }
+.nav-link, .lang-switch-btn { min-height: 36px; }
+.command-trigger { font: inherit; cursor: pointer; border: 1px solid #cbd5e1; background: #fff; white-space: nowrap; }
+.cockpit-controls { gap: 12px; }
+.philosophy-disclosure > summary { padding: 10px 16px; color: #334155; cursor: pointer; font-size: 13px; font-weight: 600; border-radius: 10px; background: rgba(255,255,255,.8); border: 1px solid #e2e8f0; }
+.philosophy-disclosure[open] > summary { margin-bottom: 10px; }
+.philosophy-card { padding: 28px; gap: 24px; }
+.philo-heading { font-size: clamp(22px, 2.2vw, 28px); }
+.card-action-hint { color: #64748b; }
+button:focus-visible, summary:focus-visible, input:focus-visible, .nav-link:focus-visible, .brand-unit:focus-visible, .back-to-top:focus-visible { outline: 3px solid #245cf5; outline-offset: 3px; }
+.cmd-palette { width: min(640px, calc(100% - 24px)); max-height: calc(100dvh - 32px); margin: auto; padding: 18px; border: 1px solid #cbd5e1; border-radius: 18px; color: #0f172a; background: #f8fafc; box-shadow: 0 24px 80px #0f172a40; overflow: auto; }
+.cmd-palette::backdrop { background: #0f172a70; backdrop-filter: blur(5px); }
+.xray-mode .wafer-bg-artwork, .xray-mode .aurora-orb { opacity: 0.12; }
+.xray-mode .circuit-grid-pattern { opacity: 1; background-size: 24px 24px, 24px 24px, 120px 120px; }
+.xray-mode .node-card { border-color: #245cf5; box-shadow: 0 0 0 1px #245cf533; }
+.cmd-palette-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.cmd-palette-header h2 { font-size: 18px; }
+.cmd-palette-close { width: 44px; height: 44px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; color: #334155; font-size: 24px; cursor: pointer; flex-shrink: 0; }
+.cmd-palette-input { width: 100%; padding: 12px; border: 1px solid #94a3b8; border-radius: 10px; font: inherit; font-size: 16px; color: #0f172a; background: #fff; }
+.cmd-palette-list { list-style: none; padding: 0; margin: 12px 0; max-height: min(50dvh, 440px); overflow-y: auto; overscroll-behavior: contain; }
+.cmd-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; }
+.cmd-item.is-selected { background: #e8efff; border-color: #245cf5; }
+.cmd-item-info { display: grid; gap: 4px; min-width: 0; }
+.cmd-item-title { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.cmd-item-desc { font-size: 12px; color: #475569; }
+.cmd-item-badge { margin-left: auto; font: 10px var(--font-mono); color: #475569; flex-shrink: 0; }
+.cmd-palette-footer { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: #475569; }
+@media (max-width: 1100px) {
+  .cockpit-container, .cockpit-header.scrolled .cockpit-container { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; }
+  .cockpit-nav { display: flex; grid-row: 2; grid-column: 1 / -1; justify-content: center; flex-wrap: wrap; }
+  .cockpit-controls { grid-column: 2; grid-row: 1; }
+}
+@media (max-width: 600px) {
+  .cockpit-container, .cockpit-header.scrolled .cockpit-container { width: calc(100% - 32px); }
+  .system-status-indicator { display: none; }
+  .nav-link { padding: 8px; font-size: 12px; }
+  .cockpit-nav { gap: 4px; justify-content: space-between; }
+  .lang-switch-btn { min-height: 40px; min-width: 36px; padding: 4px; }
+  .brand-sub { max-width: 160px; }
+  .philosophy-card { padding: 20px; grid-template-columns: 1fr; }
+  .philo-foot-meta { overflow-wrap: anywhere; }
+  .cmd-palette { padding: 12px; }
+  .cmd-item { padding: 10px 8px; gap: 6px; }
+  .cmd-item-badge { font-size: 9px; }
 }

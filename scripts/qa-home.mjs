@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import path from 'node:path';
 import process from 'node:process';
 import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
 
 const root = process.cwd();
 const outputDir = path.join(root, 'qa', 'home-renders');
@@ -48,9 +49,10 @@ const viewports = [
   [1024, 900],
   [768, 1024],
   [390, 844],
+  [320, 740],
 ];
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: process.env.HEADED !== '1', channel: process.env.PLAYWRIGHT_CHANNEL || undefined, args: ['--mute-audio'] });
 const failures = [];
 const records = [];
 
@@ -166,15 +168,15 @@ try {
     if (metrics.cards.some((c) => c.height < 120 || c.width < 240)) {
       failures.push(`${width}px a .node-card is too small: ${JSON.stringify(metrics.cards.map((c) => [c.width, c.height]))}`);
     }
+    if (metrics.cards.some((c) => c.summaryOverflowZh) || metrics.summaryOverflowEn.some(Boolean)) {
+      failures.push(`${width}px project descriptions are clipped in Chinese or English`);
+    }
     if (width >= 1280) {
       if (metrics.document.scrollHeight > height) {
         failures.push(`${width}x${height} page does not fit in a single screen: scrollHeight=${metrics.document.scrollHeight}px > ${height}px`);
       }
       if (Math.max(...metrics.cards.map((c) => c.bottom)) > height) {
         failures.push(`${width}x${height} cards exceed initial viewport bottom`);
-      }
-      if (metrics.cards.some((c) => c.summaryOverflowZh) || metrics.summaryOverflowEn.some(Boolean)) {
-        failures.push(`${width}x${height} .node-summary overflows 2-line clamp in ZH (${metrics.cards.map((c) => c.summaryOverflowZh)}) or EN (${metrics.summaryOverflowEn})`);
       }
     }
     runtimeErrors.forEach((error) => failures.push(`${width}px ${error}`));
@@ -192,6 +194,51 @@ try {
 
     await page.evaluate(() => document.activeElement?.blur());
     await page.screenshot({ path: path.join(outputDir, `home-${width}.png`), fullPage: true });
+    // Exercise navigation and modal behavior, including touch-sized layouts.
+    try {
+      assert(await page.locator('.cockpit-nav').isVisible());
+      await page.locator('a[href="#philosophy"]').click();
+      assert(await page.locator('.philo-heading').isVisible());
+      assert(await page.locator('.philo-heading').evaluate(el => el.getBoundingClientRect().top >= document.querySelector('header').getBoundingClientRect().bottom));
+      await page.locator('.philosophy-disclosure > summary').click();
+      const trigger = page.locator('#commandTrigger');
+      await trigger.click();
+      const dialog = page.getByRole('dialog');
+      const search = page.getByRole('combobox', { name: '搜尋專案或指令' });
+      assert(await dialog.isVisible());
+      assert(await search.evaluate(el => el === document.activeElement));
+      const firstId = await search.getAttribute('aria-activedescendant');
+      await search.press('ArrowDown');
+      assert.notEqual(await search.getAttribute('aria-activedescendant'), firstId);
+      for (let i = 0; i < 4; i++) {
+        await page.keyboard.press(i % 2 ? 'Shift+Tab' : 'Tab');
+        assert(await dialog.evaluate(el => el.contains(document.activeElement)));
+      }
+      await search.fill('zzznomatch123');
+      assert.equal(await page.getByRole('status').textContent(), '沒有符合的專案或指令');
+      assert.equal(await search.getAttribute('aria-activedescendant'), null);
+      await search.press('Enter');
+      assert(await dialog.isVisible());
+      await search.fill('act-lang');
+      await search.press('Enter');
+      assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+      assert(await trigger.evaluate(el => el === document.activeElement));
+      await page.keyboard.press('Control+k');
+      const englishSearch = page.getByRole('combobox', { name: 'Search projects or commands' });
+      assert(await englishSearch.isVisible());
+      await englishSearch.fill('node-oip');
+      assert((await page.getByRole('option').textContent()).includes('GitHub access required'));
+      await page.screenshot({ path: path.join(outputDir, `palette-${width}.png`) });
+      await page.keyboard.press('Escape');
+      assert(!(await dialog.isVisible()));
+      assert(await trigger.evaluate(el => el === document.activeElement));
+      await page.reload({ waitUntil: 'networkidle' });
+      assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+      assert.equal(await page.locator('.brand-unit').getAttribute('aria-label'), 'Sam Huang home');
+      await page.locator('[data-target-lang="zh"]').click();
+    } catch (error) {
+      failures.push(`${width}px interaction: ${error.stack}`);
+    }
     await context.close();
   }
 } finally {

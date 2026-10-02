@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="半導體與系統專案入口｜Silicon IP, secure storage, memory systems and working project portals in one concise index.">
   <meta name="theme-color" content="#f8fafc">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <meta property="og:title" content="Sam Huang · 半導體與系統專案入口 ｜ Semiconductor & Systems">
   <meta property="og:description" content="Silicon IP, secure storage, memory systems and working project portals in one concise index.">
   <meta property="og:type" content="website">
@@ -13,11 +14,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260927-wafer-glow-v1">
+  <link rel="stylesheet" href="styles.css?v=20261003-navigation-v1">
 </head>
 <body class="light-mode">
   <!-- 無障礙跳轉 -->
-  <a class="skip-link" href="#projects">跳至主要專案矩陣 Skip to project matrix</a>
+  <a class="skip-link" href="#projects" data-i18n="skip_projects">跳至主要專案矩陣 Skip to project matrix</a>
 
   <!-- 背景裝飾層 (保證絕色素面，充滿晶圓與光學科技層次) -->
   <div class="ambient-layer" aria-hidden="true">
@@ -33,7 +34,7 @@
   <!-- 頂部懸浮駕駛艙導覽列 -->
   <header class="cockpit-header" id="site-header">
     <div class="cockpit-container">
-      <a class="brand-unit" href="#hero" aria-label="Sam Huang 首頁">
+      <a class="brand-unit" href="#hero" aria-label="Sam Huang 首頁" data-i18n-label="home_label">
         <div class="brand-chip-icon">
           <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="3" y="3" width="30" height="30" rx="8" stroke="currentColor" stroke-width="2" class="chip-frame"/>
@@ -53,13 +54,14 @@
       </a>
 
       <!-- 快速導覽 -->
-      <nav class="cockpit-nav" aria-label="全域導覽">
+      <nav class="cockpit-nav" aria-label="全域導覽" data-i18n-label="nav_label">
         <a href="#projects" class="nav-link" data-i18n="nav_projects">專案矩陣</a>
         <a href="#philosophy" class="nav-link" data-i18n="nav_philosophy">架構哲學</a>
         <a href="https://github.com/SamHuang68" target="_blank" rel="noopener" class="nav-link ext-link">
           <span>GitHub</span>
           <svg class="icon-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 9.5L9.5 2.5M9.5 2.5H4M9.5 2.5V8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
+        <button type="button" class="nav-link command-trigger" id="commandTrigger" aria-haspopup="dialog" aria-controls="commandPaletteModal"><span aria-hidden="true">⌘</span> <span data-i18n="command_label">搜尋與指令</span></button>
       </nav>
 
       <!-- 儀表狀態與語系 -->
@@ -70,7 +72,7 @@
           <span class="status-label" data-i18n="status_online">6 節點就緒</span>
         </div>
 
-        <div class="lang-selector" role="group" aria-label="語言切換">
+        <div class="lang-selector" role="group" aria-label="語言切換" data-i18n-label="language_label">
           <button type="button" class="lang-switch-btn active" data-target-lang="zh" aria-pressed="true">中文</button>
           <span class="lang-divider" aria-hidden="true">/</span>
           <button type="button" class="lang-switch-btn" data-target-lang="en" aria-pressed="false">EN</button>
@@ -141,7 +143,7 @@
     </section>
 
     <!-- 專案矩陣區段 -->
-    <section class="projects-matrix-section" id="projects">
+    <section class="projects-matrix-section" id="projects" tabindex="-1">
       <div class="content-container">
         <header class="matrix-heading reveal">
           <div class="heading-kicker">
@@ -372,6 +374,8 @@
     <!-- 架構哲學與實證理念區段 (Philosophy & Evidence) -->
     <section class="philosophy-section" id="philosophy">
       <div class="content-container">
+        <details class="philosophy-disclosure">
+          <summary data-i18n="nav_philosophy">架構哲學</summary>
         <div class="philosophy-card reveal">
           <div class="philosophy-content">
             <div class="kicker-tag" data-i18n="philo_kicker">ENGINEERING MANIFESTO</div>
@@ -409,6 +413,7 @@
             <div class="bus-connection-lines"></div>
           </div>
         </div>
+        </details>
       </div>
     </section>
   </main>
@@ -431,7 +436,7 @@
           <a href="https://hardware.samhuang68.org/" target="_blank" rel="noopener">Hardware</a>
           <a href="https://github.com/SamHuang68" target="_blank" rel="noopener">GitHub</a>
         </div>
-        <a href="#hero" class="back-to-top" id="backToTop" aria-label="回到頁首">
+        <a href="#hero" class="back-to-top" id="backToTop" aria-label="回到頁首" data-i18n-label="top_label">
           <span data-i18n="back_to_top">回到頂端 TOP</span>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3M7 3L3 7M7 3L11 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
@@ -444,9 +449,9 @@
     </div>
   </footer>
 
-  <script src="audio-engine.js?v=20260927-wafer-glow-v1"></script>
-  <script src="effects.js?v=20260927-wafer-glow-v1"></script>
-  <script src="command-palette.js?v=20260927-wafer-glow-v1"></script>
-  <script src="app.js?v=20260927-wafer-glow-v1"></script>
+  <script src="audio-engine.js?v=20261003-navigation-v1"></script>
+  <script src="effects.js?v=20261003-navigation-v1"></script>
+  <script src="command-palette.js?v=20261003-navigation-v1"></script>
+  <script src="app.js?v=20261003-navigation-v1"></script>
 </body>
 </html>
