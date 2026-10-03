@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node scripts/check-home.mjs && node --check app.js && node --check command-palette.js",
+    "check": "node scripts/check-home.mjs && node --check app.js && node --check command-palette.js && node --check effects.js",
     "serve": "node scripts/serve-local.mjs",
     "qa:render": "node scripts/qa-home.mjs",
+    "qa:accessibility": "node scripts/qa-accessibility.mjs",
     "qa": "npm run check && npm run qa:render"
   },
   "devDependencies": {

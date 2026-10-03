@@ -228,10 +228,11 @@
       }
     });
   };
-  const openPalette = () => {
+  const openPalette = (opener = document.activeElement) => {
     if (!modalEl) createPalette();
     if (modalEl.open) return;
-    returnFocus = document.activeElement;
+    // Pointer activation does not focus buttons in every browser.
+    returnFocus = opener;
     inputEl.value = '';
     translate();
     modalEl.showModal();

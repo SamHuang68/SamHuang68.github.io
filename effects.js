@@ -6,9 +6,9 @@
 (() => {
   'use strict';
 
-  // 若使用者偏好減弱動態，直接退出不啟用任何高頻動畫
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (prefersReducedMotion) return;
+  // Respect changes made while the page is open, including an initially reduced setting.
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const motionEnabled = () => !motionPreference.matches && !document.hidden;
 
   /**
    * 1. 互動式光子水波紋 + 曼哈頓電路光脈衝 Canvas
@@ -51,6 +51,7 @@
      * 創建光子水波紋
      */
     const addRipple = (x, y, isHeavy = false) => {
+      if (!motionEnabled()) return;
       ripples.push({
         x,
         y,
@@ -74,7 +75,7 @@
      * 創建曼哈頓光子電路脈衝 (Manhattan Circuit Pulses)
      */
     const spawnPulse = () => {
-      if (pulses.length >= 6) return;
+      if (!motionEnabled() || pulses.length >= 6) return;
       const startX = Math.random() * width;
       const startY = Math.random() * height;
       const isHorizontal = Math.random() > 0.5;
@@ -95,6 +96,7 @@
     let animId = null;
 
     const render = () => {
+      if (!motionEnabled()) { isAnimating = false; return; }
       ctx.clearRect(0, 0, width, height);
 
       // A. 繪製光子水波紋
@@ -196,24 +198,40 @@
     );
 
     // 每 2.5 秒隨機產生一顆電路光脈衝
-    setInterval(spawnPulse, 2400);
+    let pulseTimer = null;
 
     // 環境待機呼吸微波
     let idleTimer = null;
     const triggerIdleRipple = () => {
+      if (!motionEnabled()) return;
       const x = width * (0.3 + Math.random() * 0.4);
       const y = height * (0.3 + Math.random() * 0.4);
       addRipple(x, y, false);
       idleTimer = setTimeout(triggerIdleRipple, 4200);
     };
-    idleTimer = setTimeout(triggerIdleRipple, 3000);
-
     const resetIdle = () => {
       clearTimeout(idleTimer);
-      idleTimer = setTimeout(triggerIdleRipple, 4200);
+      if (motionEnabled()) idleTimer = setTimeout(triggerIdleRipple, 4200);
     };
     window.addEventListener('pointermove', resetIdle, { passive: true });
     window.addEventListener('pointerdown', resetIdle, { passive: true });
+    const updateMotion = () => {
+      cancelAnimationFrame(animId);
+      clearInterval(pulseTimer);
+      clearTimeout(idleTimer);
+      isAnimating = false;
+      ripples.length = 0;
+      pulses.length = 0;
+      ctx.clearRect(0, 0, width, height);
+      canvas.style.display = motionEnabled() ? '' : 'none';
+      if (motionEnabled()) {
+        pulseTimer = setInterval(spawnPulse, 2400);
+        idleTimer = setTimeout(triggerIdleRipple, 3000);
+      }
+    };
+    motionPreference.addEventListener('change', updateMotion);
+    document.addEventListener('visibilitychange', updateMotion);
+    updateMotion();
   };
 
   /**
@@ -222,14 +240,13 @@
   const initCardTiltAndSheen = () => {
     const cards = document.querySelectorAll('.portal-card, .node-card');
     cards.forEach((card) => {
-      let isHovered = false;
-
       card.addEventListener('pointerenter', () => {
-        isHovered = true;
+        if (!motionEnabled()) return;
         if (window.SiliconAudio) window.SiliconAudio.playHover();
       });
 
       card.addEventListener('pointermove', (e) => {
+        if (!motionEnabled()) return;
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -247,12 +264,14 @@
         card.style.setProperty('--mouse-y', `${y}px`);
       });
 
-      card.addEventListener('pointerleave', () => {
-        isHovered = false;
+      const resetTilt = () => {
         card.style.transform = '';
         card.style.removeProperty('--mouse-x');
         card.style.removeProperty('--mouse-y');
-      });
+      };
+      card.addEventListener('pointerleave', resetTilt);
+      motionPreference.addEventListener('change', resetTilt);
+      document.addEventListener('visibilitychange', resetTilt);
     });
   };
 
@@ -263,6 +282,7 @@
     const tabButtons = document.querySelectorAll('.project-rail-btn, .filter-tab-btn, .topology-node-chip, .lang-switch-btn, .language-toggle, .hud-btn');
     tabButtons.forEach((btn) => {
       btn.addEventListener('pointerdown', (e) => {
+        if (!motionEnabled()) return;
         const rect = btn.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
