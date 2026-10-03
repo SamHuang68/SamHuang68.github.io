@@ -24,7 +24,12 @@ const records = [];
 const spacing = '*{line-height:1.5!important;letter-spacing:.12em!important;word-spacing:.16em!important}p{margin-bottom:2em!important}';
 
 async function focused(page, selector) {
-  await page.waitForFunction(sel => document.activeElement === document.querySelector(sel), selector);
+  try {
+    await page.waitForFunction(sel => document.activeElement === document.querySelector(sel), selector, {timeout:5000,polling:50});
+  } catch (error) {
+    console.error('Focus mismatch', selector, await page.evaluate(() => ({active:document.activeElement.outerHTML,lang:document.documentElement.lang,width:innerWidth,height:innerHeight,dialogOpen:document.querySelector('dialog').open})));
+    throw error;
+  }
 }
 
 try {
@@ -72,6 +77,17 @@ try {
           await focused(page, `[data-target-lang="${lang}"]`);
           result.languages.push({ lang, descriptions, palette: 'pass' });
         }
+        // A focused card can be taller than the viewport; its name must remain visible.
+        for (const card of await page.locator('.node-card').all()) {
+          await card.focus();
+          await page.waitForTimeout(100);
+          const bounds = await card.evaluate(el => {
+            const title = el.querySelector('.node-headline').getBoundingClientRect();
+            const header = document.querySelector('#site-header').getBoundingClientRect();
+            return { top: title.top, bottom: title.bottom, obstruction: Math.max(0, header.bottom), height: innerHeight };
+          });
+          assert.ok(bounds.top >= bounds.obstruction && bounds.bottom <= bounds.height, `${engine} ${width}: focused card name obscured ${JSON.stringify(bounds)}`);
+        }
         await page.addStyleTag({ content: spacing });
         await page.locator('.philosophy-disclosure').evaluate(el => el.open = true);
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${engine} ${width}: text spacing overflow`);
@@ -115,7 +131,7 @@ try {
         assert.ok(await page.evaluate(() => window.__qaFrames) > running);
         await page.locator('.node-card').first().hover();
         await page.emulateMedia({ reducedMotion: 'reduce' });
-        await page.waitForFunction(() => !document.querySelector('#silicon-canvas').getClientRects().length);
+        await page.waitForFunction(() => !document.querySelector('#silicon-canvas').getClientRects().length, undefined, {polling:50});
         assert.equal(await page.locator('#silicon-canvas').isVisible(), false);
         assert.equal(await page.locator('#rippleCanvas').isVisible(), false);
         assert.equal(await page.locator('.node-card').first().evaluate(el => el.style.transform), '');

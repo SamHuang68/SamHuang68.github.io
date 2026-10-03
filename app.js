@@ -449,6 +449,16 @@ function initNavigation() {
   });
   window.addEventListener("hashchange", revealPhilosophy);
   revealPhilosophy();
+  document.querySelectorAll(".node-card").forEach(card => {
+    card.addEventListener("focus", () => requestAnimationFrame(() => {
+      if (document.activeElement !== card) return;
+      const title = card.querySelector(".node-headline").getBoundingClientRect();
+      const obstruction = getComputedStyle(header).position === "sticky" ? header.getBoundingClientRect().bottom : 0;
+      if (title.top < obstruction || title.bottom > window.innerHeight) {
+        card.scrollIntoView({ block: "start", behavior: "instant" });
+      }
+    }));
+  });
   document.getElementById("commandTrigger").addEventListener("click", event => window.openCommandPalette(event.currentTarget));
 }
 
