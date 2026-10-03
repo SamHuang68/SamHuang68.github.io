@@ -113,7 +113,12 @@
   let activeIndex = 0;
   let filteredCommands = [...COMMANDS];
   const getLang = () => document.documentElement.dataset.lang === 'en' ? 'en' : 'zh';
-  const closePalette = () => { if (modalEl?.open) modalEl.close(); };
+  const closePalette = () => {
+    if (!modalEl?.open) return;
+    const opener = returnFocus;
+    modalEl.close();
+    if (opener?.isConnected) opener.focus({ preventScroll: true });
+  };
 
   const select = index => {
     activeIndex = index;
@@ -202,8 +207,10 @@
       const box = modalEl.getBoundingClientRect();
       if (event.target === modalEl && (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom)) closePalette();
     });
-    modalEl.addEventListener('close', () => {
-      if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
+    modalEl.addEventListener('cancel', event => {
+      // Restore focus as part of closing, before another interaction can begin.
+      event.preventDefault();
+      closePalette();
     });
     modalEl.addEventListener('keydown', event => {
       if (event.key !== 'Tab') return;

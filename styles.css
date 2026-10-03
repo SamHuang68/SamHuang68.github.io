@@ -1964,6 +1964,7 @@ a.node-card:focus-visible .action-arrow {
 /* Navigation remains available on touch screens and at increased zoom. */
 :root { --header-height: 60px; }
 #projects, #philosophy, #hero { scroll-margin-top: calc(var(--header-height) + 16px); }
+.node-card { scroll-margin-top: calc(var(--header-height) + 16px); }
 .nav-link, .lang-switch-btn { min-height: 36px; }
 .command-trigger { font: inherit; cursor: pointer; border: 1px solid #cbd5e1; background: #fff; white-space: nowrap; }
 .cockpit-controls { gap: 12px; }
@@ -1990,6 +1991,11 @@ button:focus-visible, summary:focus-visible, input:focus-visible, .nav-link:focu
 .cmd-item-desc { font-size: 12px; color: #475569; }
 .cmd-item-badge { margin-left: auto; font: 10px var(--font-mono); color: #475569; flex-shrink: 0; }
 .cmd-palette-footer { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: #475569; }
+/* At high zoom or in landscape, let navigation scroll away from focused content. */
+@media (max-height: 500px) {
+  .cockpit-header, .cockpit-header.scrolled { position: relative; }
+  #projects, #philosophy, #hero, .node-card { scroll-margin-top: 16px; }
+}
 @media (max-width: 1100px) {
   .cockpit-container, .cockpit-header.scrolled .cockpit-container { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; }
   .cockpit-nav { display: flex; grid-row: 2; grid-column: 1 / -1; justify-content: center; flex-wrap: wrap; }
