@@ -221,6 +221,7 @@ function initSiliconCanvas() {
   let height = 0;
   let dpr = 1;
   let animationFrameId = null;
+  const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   const nodes = [];
   const maxNodes = 48;
@@ -262,6 +263,8 @@ function initSiliconCanvas() {
   }
 
   function drawScene() {
+    animationFrameId = null;
+    if (motionPreference.matches || document.hidden) return;
     ctx.clearRect(0, 0, width, height);
 
     for (let i = 0; i < nodes.length; i++) {
@@ -324,22 +327,19 @@ function initSiliconCanvas() {
     mouse.y = -9999;
   });
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      cancelAnimationFrame(animationFrameId);
-    } else {
+  function updateMotion() {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+    canvas.style.display = motionPreference.matches ? "none" : "";
+    if (!motionPreference.matches && !document.hidden) {
       animationFrameId = requestAnimationFrame(drawScene);
     }
-  });
-
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    canvas.style.display = "none";
-    return;
   }
-
+  document.addEventListener("visibilitychange", updateMotion);
+  motionPreference.addEventListener("change", updateMotion);
   window.addEventListener("resize", resizeCanvas, { passive: true });
   resizeCanvas();
-  drawScene();
+  updateMotion();
 }
 
 function initTelemetryCounters() {
@@ -372,7 +372,12 @@ function initTelemetryCounters() {
 
 function animateValue(element, start, end, duration) {
   const startTime = performance.now();
+  const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
   function update(now) {
+    if (motionPreference.matches) {
+      element.textContent = String(end);
+      return;
+    }
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
     const eased = 1 - Math.pow(1 - progress, 3);
@@ -444,7 +449,7 @@ function initNavigation() {
   });
   window.addEventListener("hashchange", revealPhilosophy);
   revealPhilosophy();
-  document.getElementById("commandTrigger").addEventListener("click", () => window.openCommandPalette());
+  document.getElementById("commandTrigger").addEventListener("click", event => window.openCommandPalette(event.currentTarget));
 }
 
 function bootstrap() {

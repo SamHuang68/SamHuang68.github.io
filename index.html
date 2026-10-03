@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261003-navigation-v1">
+  <link rel="stylesheet" href="styles.css?v=20261003-cross-engine-v1">
 </head>
 <body class="light-mode">
   <!-- 無障礙跳轉 -->
@@ -73,9 +73,9 @@
         </div>
 
         <div class="lang-selector" role="group" aria-label="語言切換" data-i18n-label="language_label">
-          <button type="button" class="lang-switch-btn active" data-target-lang="zh" aria-pressed="true">中文</button>
+          <button type="button" class="lang-switch-btn active" lang="zh-Hant" data-target-lang="zh" aria-pressed="true">中文</button>
           <span class="lang-divider" aria-hidden="true">/</span>
-          <button type="button" class="lang-switch-btn" data-target-lang="en" aria-pressed="false">EN</button>
+          <button type="button" class="lang-switch-btn" lang="en" data-target-lang="en" aria-pressed="false">EN</button>
         </div>
       </div>
     </div>
@@ -158,7 +158,7 @@
 
         <div class="nodes-bento-grid">
           <!-- NODE 01: NVM Knowledge Hub (Featured Double Width) -->
-          <a href="https://hub.samhuang68.org/" target="_blank" rel="noopener" class="node-card card-featured reveal" data-node="01" aria-label="進入 NVM Knowledge Hub">
+          <a href="https://hub.samhuang68.org/" target="_blank" rel="noopener" class="node-card card-featured reveal" data-node="01" aria-describedby="node01-summary" aria-label="進入 NVM Knowledge Hub">
             <div class="card-specular-glow" aria-hidden="true"></div>
             <div class="card-header-bar">
               <span class="node-serial">NODE-01</span>
@@ -171,7 +171,7 @@
             <div class="card-content-body">
               <span class="node-domain" data-i18n="node01_domain">SEMICONDUCTOR IP · RESEARCH</span>
               <h3 class="node-headline">NVM Knowledge Hub</h3>
-              <p class="node-summary" data-i18n="node01_desc">
+              <p class="node-summary" id="node01-summary" data-i18n="node01_desc">
                 整合 Secure Storage、先進製程與白皮書工作室的半導體門戶，系統化拆解 OTP、MTP、eFlash 與 PUF 架構。
               </p>
 
@@ -194,7 +194,7 @@
           </a>
 
           <!-- NODE 02: Interactive Game Arcade -->
-          <a href="https://arcade.samhuang68.org/" target="_blank" rel="noopener" class="node-card reveal" data-node="02" aria-label="進入多元遊戲大廳">
+          <a href="https://arcade.samhuang68.org/" target="_blank" rel="noopener" class="node-card reveal" data-node="02" aria-describedby="node02-summary" aria-label="進入多元遊戲大廳">
             <div class="card-specular-glow" aria-hidden="true"></div>
             <div class="card-header-bar">
               <span class="node-serial">NODE-02</span>
@@ -207,7 +207,7 @@
             <div class="card-content-body">
               <span class="node-domain" data-i18n="node02_domain">INTERACTIVE SYSTEMS · ARCADE</span>
               <h3 class="node-headline" data-i18n="node02_title">多元遊戲大廳</h3>
-              <p class="node-summary" data-i18n="node02_desc">
+              <p class="node-summary" id="node02-summary" data-i18n="node02_desc">
                 涵蓋 3D 棋盤、策略牌桌、空間益智與街機冒險等 21 款互動遊戲，全數以純前端圖形與合成音訊打造。
               </p>
 
@@ -229,7 +229,7 @@
           </a>
 
           <!-- NODE 03: E-Learning -->
-          <a href="https://learn.samhuang68.org/" target="_blank" rel="noopener" class="node-card reveal" data-node="03" aria-label="開啟 E-Learning">
+          <a href="https://learn.samhuang68.org/" target="_blank" rel="noopener" class="node-card reveal" data-node="03" aria-describedby="node03-summary" aria-label="開啟 E-Learning">
             <div class="card-specular-glow" aria-hidden="true"></div>
             <div class="card-header-bar">
               <span class="node-serial">NODE-03</span>
@@ -242,7 +242,7 @@
             <div class="card-content-body">
               <span class="node-domain" data-i18n="node03_domain">LEARNING ENGINE · 8 TRACKS</span>
               <h3 class="node-headline">E‑Learning</h3>
-              <p class="node-summary" data-i18n="node03_desc">
+              <p class="node-summary" id="node03-summary" data-i18n="node03_desc">
                 整合數學、微積分、理化、計概、日語、多益與臺灣華語八大軌道，搭載 FSRS 自適應記憶排程演算法。
               </p>
 
@@ -264,7 +264,7 @@
           </a>
 
           <!-- NODE 04: Hardware Profile -->
-          <a href="https://hardware.samhuang68.org/" target="_blank" rel="noopener" class="node-card reveal" data-node="04" aria-label="查看硬體 Profile">
+          <a href="https://hardware.samhuang68.org/" target="_blank" rel="noopener" class="node-card reveal" data-node="04" aria-describedby="node04-summary" aria-label="查看硬體 Profile">
             <div class="card-specular-glow" aria-hidden="true"></div>
             <div class="card-header-bar">
               <span class="node-serial">NODE-04</span>
@@ -277,7 +277,7 @@
             <div class="card-content-body">
               <span class="node-domain" data-i18n="node04_domain">HARDWARE · ENGINEERING PROFILE</span>
               <h3 class="node-headline">Hardware Profile</h3>
-              <p class="node-summary" data-i18n="node04_desc">
+              <p class="node-summary" id="node04-summary" data-i18n="node04_desc">
                 記錄 Core Ultra 9 285H、RTX 5080 eGPU 與 96GB DDR5 開發環境，提供可檢索的硬體規格與本機算力清冊。
               </p>
 
@@ -299,7 +299,7 @@
           </a>
 
           <!-- NODE 05: Secure Storage OIP Briefing -->
-          <a href="https://github.com/SamHuang68/secure-storage-oip-briefing" target="_blank" rel="noopener" class="node-card reveal" data-node="05" aria-label="查看 Secure Storage OIP 私人儲存庫（需 GitHub 存取權限）">
+          <a href="https://github.com/SamHuang68/secure-storage-oip-briefing" target="_blank" rel="noopener" class="node-card reveal" data-node="05" aria-describedby="node05-summary" aria-label="查看 Secure Storage OIP 私人儲存庫（需 GitHub 存取權限）">
             <div class="card-specular-glow" aria-hidden="true"></div>
             <div class="card-header-bar">
               <span class="node-serial">NODE-05</span>
@@ -312,7 +312,7 @@
             <div class="card-content-body">
               <span class="node-domain" data-i18n="node05_domain">私人簡報 · 本機展示</span>
               <h3 class="node-headline">Secure Storage OIP</h3>
-              <p class="node-summary" data-i18n="node05_desc">
+              <p class="node-summary" id="node05-summary" data-i18n="node05_desc">
                 Secure Storage／OIP 私人技術簡報與本機展示工作區，整理硬體信任根（RoT）及非揮發性記憶體安全參考架構。
               </p>
 
@@ -334,7 +334,7 @@
           </a>
 
           <!-- NODE 06: TW Pulse Terminal -->
-          <a href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener" class="node-card reveal" data-node="06" aria-label="查看 TW Pulse Terminal 私人儲存庫（需 GitHub 存取權限）">
+          <a href="https://github.com/SamHuang68/tw-pulse-terminal" target="_blank" rel="noopener" class="node-card reveal" data-node="06" aria-describedby="node06-summary" aria-label="查看 TW Pulse Terminal 私人儲存庫（需 GitHub 存取權限）">
             <div class="card-specular-glow" aria-hidden="true"></div>
             <div class="card-header-bar">
               <span class="node-serial">NODE-06</span>
@@ -347,7 +347,7 @@
             <div class="card-content-body">
               <span class="node-domain" data-i18n="node06_domain">私人介面原型 · 模擬資料</span>
               <h3 class="node-headline">TW Pulse Terminal</h3>
-              <p class="node-summary" data-i18n="node06_desc">
+              <p class="node-summary" id="node06-summary" data-i18n="node06_desc">
                 私人終端介面原型，包含 13 個模組，僅使用模擬資料展示台灣市場觀測介面；未提供真實行情服務。
               </p>
 
@@ -450,8 +450,8 @@
   </footer>
 
   <script src="audio-engine.js?v=20261003-navigation-v1"></script>
-  <script src="effects.js?v=20261003-navigation-v1"></script>
-  <script src="command-palette.js?v=20261003-project-status-v2"></script>
-  <script src="app.js?v=20261003-project-status-v2"></script>
+  <script src="effects.js?v=20261003-cross-engine-v1"></script>
+  <script src="command-palette.js?v=20261003-cross-engine-v1"></script>
+  <script src="app.js?v=20261003-cross-engine-v1"></script>
 </body>
 </html>
