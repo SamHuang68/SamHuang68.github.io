@@ -20,7 +20,7 @@ const I18N = {
     command_label: "搜尋與指令",
     nav_projects: "專案矩陣",
     nav_philosophy: "架構哲學",
-    status_online: "6 專案資源",
+    status_online: "7 專案資源",
     hero_telemetry: "PROJECT PORTAL · TAIWAN 2026 · SILICON ARCHITECTURE",
     hero_headline_1: "從架構規劃",
     hero_headline_2: "到真正可執行的系統",
@@ -32,8 +32,8 @@ const I18N = {
     metric_arcade: "Engines",
     metric_tracks: "Study Tracks",
     matrix_kicker: "[01 // REPOSITORIES & HUBS]",
-    matrix_title: "六大核心專案矩陣",
-    matrix_subtitle: "四個公開網站與兩個私人專案資源，涵蓋半導體、本機 AI 算力與互動介面。",
+    matrix_title: "七大核心專案矩陣",
+    matrix_subtitle: "五個公開網站與兩個私人專案資源，涵蓋半導體製造、非揮發性記憶體、本機 AI 算力與互動介面。",
     badge_live: "LIVE WEB PORTAL",
     badge_source: "私人儲存庫",
     // NODE 01
@@ -57,6 +57,11 @@ const I18N = {
     node04_desc: "記錄 Core Ultra 9 285H、RTX 5080 eGPU 與 96GB DDR5 開發環境，提供可檢索的硬體規格與本機算力清冊。",
     node04_action: "NODE://HARDWARE-RIG",
     view_rig: "View Rig",
+    // NODE 07
+    node07_domain: "SEMICONDUCTOR FAB · PROCESS HUB",
+    node07_title: "Semiconductor Knowledge Hub",
+    node07_desc: "從沙子到晶片的完整晶圓製造旅程，涵蓋 FEOL/BEOL 模組、CMOS/FinFET/GAA 整合、良率量測與 CoWoS/SoIC 先進封裝。",
+    node07_action: "NODE://SEMI-HUB",
     // NODE 05
     node05_domain: "私人簡報 · 本機展示",
     node05_desc: "Secure Storage／OIP 私人技術簡報與本機展示工作區，整理硬體信任根（RoT）及非揮發性記憶體安全參考架構。",
@@ -87,7 +92,7 @@ const I18N = {
     command_label: "Search & commands",
     nav_projects: "Projects",
     nav_philosophy: "Philosophy",
-    status_online: "6 Resources",
+    status_online: "7 Resources",
     hero_telemetry: "PROJECT PORTAL · TAIWAN 2026 · SILICON ARCHITECTURE",
     hero_headline_1: "From Architecture",
     hero_headline_2: "To Verifiable Working Systems",
@@ -100,7 +105,7 @@ const I18N = {
     metric_tracks: "Study Tracks",
     matrix_kicker: "[01 // REPOSITORIES & HUBS]",
     matrix_title: "Core Project Matrix",
-    matrix_subtitle: "Four public websites and two private project resources spanning semiconductors, local AI compute, and interactive interfaces.",
+    matrix_subtitle: "Five public websites and two private project resources spanning semiconductor manufacturing, NVM IP, local AI compute, and interactive systems.",
     badge_live: "LIVE WEB PORTAL",
     badge_source: "PRIVATE REPOSITORY",
     // NODE 01
@@ -124,6 +129,11 @@ const I18N = {
     node04_desc: "Hardware inventory for the Core Ultra 9 285H workstation, RTX 5080 eGPU dock, and 96GB DDR5 local AI rig.",
     node04_action: "NODE://HARDWARE-RIG",
     view_rig: "View Rig",
+    // NODE 07
+    node07_domain: "SEMICONDUCTOR FAB · PROCESS HUB",
+    node07_title: "Semiconductor Knowledge Hub",
+    node07_desc: "The journey from sand to silicon: covering FEOL/BEOL process modules, CMOS/FinFET/GAA integration, yield metrology, and CoWoS/SoIC advanced packaging.",
+    node07_action: "NODE://SEMI-HUB",
     // NODE 05
     node05_domain: "PRIVATE BRIEFINGS · LOCAL DEMOS",
     node05_desc: "Private Secure Storage/OIP briefings and a local demo workspace for hardware Root of Trust and NVM security reference architectures.",

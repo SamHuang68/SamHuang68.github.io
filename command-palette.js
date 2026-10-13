@@ -44,6 +44,15 @@
       badge: 'LIVE WEB',
     },
     {
+      id: 'node-semi',
+      titleZh: 'Node-07: Semiconductor Knowledge Hub',
+      titleEn: 'Node-07: Semiconductor Knowledge Hub',
+      descZh: '從沙子到晶片的晶圓製造與先進封裝知識門戶',
+      descEn: 'From sand to silicon: wafer fabrication and packaging hub',
+      action: () => (window.location.href = 'https://semi.samhuang68.org/'),
+      badge: 'LIVE WEB',
+    },
+    {
       id: 'node-oip',
       titleZh: 'Node-05: Secure Storage OIP',
       titleEn: 'Node-05: Secure Storage OIP',

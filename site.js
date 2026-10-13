@@ -28,6 +28,7 @@
       '進入多元遊戲大廳，可執行互動遊戲網站',
       '進入 E-Learning，可執行學習網站',
       '進入 Hardware Profile，可執行硬體網站',
+      '進入 Semiconductor Knowledge Hub，可執行半導體製造與先進封裝知識庫',
       '查看 Secure Storage OIP Briefing Git 原始碼專案',
       '查看 TW Pulse Terminal Git 原始碼專案'
     ],
@@ -36,6 +37,7 @@
       'Enter Interactive Game Arcade, runnable interactive gaming platform',
       'Enter E-Learning, runnable modular learning platform',
       'Enter Hardware Profile, runnable hardware and workstation rig specifications',
+      'Enter Semiconductor Knowledge Hub, runnable semiconductor fabrication and advanced packaging portal',
       'View Secure Storage OIP Briefing Git repository',
       'View TW Pulse Terminal Git repository'
     ]
