@@ -79,8 +79,8 @@ if (!css.includes('assets/luminous-wafer-bg.jpg')) {
   fail('[Ambient Gate] Missing professional wafer background image (assets/luminous-wafer-bg.jpg) in styles.css');
 }
 
-// 5. Core 6 Project Nodes & Bilingual i18n Parity Gate
-for (const nodeId of ['01', '02', '03', '04', '05', '06']) {
+// 5. Core 7 Project Nodes & Bilingual i18n Parity Gate
+for (const nodeId of ['01', '02', '03', '04', '05', '06', '07']) {
   if (!html.includes(`data-node="${nodeId}"`)) {
     fail(`[Node Gate] Missing project node card: NODE-${nodeId}`);
   }
@@ -95,8 +95,8 @@ for (const key of htmlI18nKeys) {
 
 // 6. [Full-Card Link & Single-Page Gate] Every node-card must be a full-frame <a> with no nested <a>
 const nodeCardAnchors = [...html.matchAll(/<a\s+[^>]*class="[^"]*\bnode-card\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)];
-if (nodeCardAnchors.length !== 6) {
-  fail(`[Full-Card Gate] Expected 6 full-frame <a class="node-card"> elements, found ${nodeCardAnchors.length}`);
+if (nodeCardAnchors.length !== 7) {
+  fail(`[Full-Card Gate] Expected 7 full-frame <a class="node-card"> elements, found ${nodeCardAnchors.length}`);
 }
 for (const [idx, match] of nodeCardAnchors.entries()) {
   if (/<a\b/i.test(match[1])) {
