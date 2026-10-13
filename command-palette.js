@@ -49,7 +49,7 @@
       titleEn: 'Node-07: Semiconductor Knowledge Hub',
       descZh: '從沙子到晶片的晶圓製造與先進封裝知識門戶',
       descEn: 'From sand to silicon: wafer fabrication and packaging hub',
-      action: () => (window.location.href = 'https://semi.samhuang68.org/'),
+      action: () => (window.location.href = 'https://samhuang68.github.io/semiconductor-knowledge-hub/'),
       badge: 'LIVE WEB',
     },
     {
