@@ -71,6 +71,16 @@
       badge: 'PRIVATE',
     },
     {
+      id: 'node-kaodata',
+      language: 'zh-Hant',
+      titleZh: '光榮武將臉譜（私人）',
+      titleEn: '光榮武將臉譜（私人）',
+      descZh: '武將臉譜私人典藏，限擁有者登入',
+      descEn: '武將臉譜私人典藏，限擁有者登入',
+      action: () => (window.location.href = 'https://koei-portrait-archive.samhuang68.chatgpt.site'),
+      badge: '私人網站',
+    },
+    {
       id: 'act-lang',
       titleZh: '切換語系 (Toggle Language: 中 / EN)',
       titleEn: 'Toggle Language (中 / EN)',
@@ -150,6 +160,7 @@
       const item = document.createElement('li');
       item.id = `command-${command.id}`;
       item.className = 'cmd-item';
+      if (command.language) item.lang = command.language;
       item.setAttribute('role', 'option');
       const info = document.createElement('span');
       info.className = 'cmd-item-info';

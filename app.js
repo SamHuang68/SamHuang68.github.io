@@ -20,7 +20,7 @@ const I18N = {
     command_label: "搜尋與指令",
     nav_projects: "專案矩陣",
     nav_philosophy: "架構哲學",
-    status_online: "7 專案資源",
+    status_online: "8 專案資源",
     hero_telemetry: "PROJECT PORTAL · TAIWAN 2026 · SILICON ARCHITECTURE",
     hero_headline_1: "從架構規劃",
     hero_headline_2: "到真正可執行的系統",
@@ -32,8 +32,8 @@ const I18N = {
     metric_arcade: "Engines",
     metric_tracks: "Study Tracks",
     matrix_kicker: "[01 // REPOSITORIES & HUBS]",
-    matrix_title: "七大核心專案矩陣",
-    matrix_subtitle: "五個公開網站與兩個私人專案資源，涵蓋半導體製造、非揮發性記憶體、本機 AI 算力與互動介面。",
+    matrix_title: "八大核心專案矩陣",
+    matrix_subtitle: "五個公開網站與三個私人專案資源，涵蓋半導體製造、非揮發性記憶體、本機 AI 算力與互動介面。",
     badge_live: "LIVE WEB PORTAL",
     badge_source: "私人儲存庫",
     // NODE 01
@@ -74,6 +74,13 @@ const I18N = {
     node06_tag_data: "模擬資料",
     node06_tag_prototype: "介面原型",
     node06_action: "NODE://TW-PULSE",
+    // NODE 08：私人臉譜網站
+    node08_title: "光榮武將臉譜（私人）",
+    node08_domain: "武將臉譜 · 私人典藏",
+    node08_desc: "光榮武將臉譜私人網站，限擁有者登入後使用；此公開主頁僅提供入口。",
+    node08_action: "私人典藏入口",
+    badge_private_site: "私人網站",
+    owner_login: "限擁有者登入",
     // PHILOSOPHY
     philo_kicker: "ENGINEERING MANIFESTO",
     philo_heading: "從架構與證據，走到可以使用的成果。",
@@ -92,7 +99,7 @@ const I18N = {
     command_label: "Search & commands",
     nav_projects: "Projects",
     nav_philosophy: "Philosophy",
-    status_online: "7 Resources",
+    status_online: "8 Resources",
     hero_telemetry: "PROJECT PORTAL · TAIWAN 2026 · SILICON ARCHITECTURE",
     hero_headline_1: "From Architecture",
     hero_headline_2: "To Verifiable Working Systems",
@@ -105,7 +112,7 @@ const I18N = {
     metric_tracks: "Study Tracks",
     matrix_kicker: "[01 // REPOSITORIES & HUBS]",
     matrix_title: "Core Project Matrix",
-    matrix_subtitle: "Five public websites and two private project resources spanning semiconductor manufacturing, NVM IP, local AI compute, and interactive systems.",
+    matrix_subtitle: "Five public websites and three private project resources spanning semiconductor manufacturing, NVM IP, local AI compute, and interactive systems.",
     badge_live: "LIVE WEB PORTAL",
     badge_source: "PRIVATE REPOSITORY",
     // NODE 01
@@ -146,6 +153,13 @@ const I18N = {
     node06_tag_data: "Simulated Data",
     node06_tag_prototype: "Interface Prototype",
     node06_action: "NODE://TW-PULSE",
+    // NODE 08：私人臉譜網站
+    node08_title: "光榮武將臉譜（私人）",
+    node08_domain: "武將臉譜 · 私人典藏",
+    node08_desc: "光榮武將臉譜私人網站，限擁有者登入後使用；此公開主頁僅提供入口。",
+    node08_action: "私人典藏入口",
+    badge_private_site: "私人網站",
+    owner_login: "限擁有者登入",
     // PHILOSOPHY
     philo_kicker: "ENGINEERING MANIFESTO",
     philo_heading: "From architecture and evidence to working systems.",
@@ -178,7 +192,8 @@ function applyLanguage(lang) {
   });
   document.querySelectorAll(".node-card").forEach((card) => {
     const title = card.querySelector(".node-headline").textContent;
-    card.setAttribute("aria-label", `${title} — ${card.querySelector(".badge-source") ? dict.view_repo : (lang === "zh" ? "開啟網站" : "Open website")}`);
+    const actionLabel = dict[card.dataset.actionI18n] ?? (card.querySelector(".badge-source") ? dict.view_repo : (lang === "zh" ? "開啟網站" : "Open website"));
+    card.setAttribute("aria-label", `${title} — ${actionLabel}`);
   });
   document.dispatchEvent(new Event("portal-languagechange"));
 
