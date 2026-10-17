@@ -53,6 +53,15 @@
       badge: 'LIVE WEB',
     },
     {
+      id: 'node-guangxi',
+      titleZh: 'Node-09: 光汐工作站',
+      titleEn: 'Node-09: Guangxi Studio',
+      descZh: '瀏覽器音樂創作：音色設計、演奏、八軌編曲與混音',
+      descEn: 'In-browser music studio: sound design, playing, 8-track arrangement, and mixing',
+      action: () => (window.location.href = 'https://guangxi-studio.samhuang68.workers.dev/'),
+      badge: 'LIVE WEB',
+    },
+    {
       id: 'node-oip',
       titleZh: 'Node-05: Secure Storage OIP',
       titleEn: 'Node-05: Secure Storage OIP',

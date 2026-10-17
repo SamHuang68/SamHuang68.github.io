@@ -69,7 +69,7 @@
         <div class="system-status-indicator">
           <span class="pulse-ring"></span>
           <span class="pulse-core"></span>
-          <span class="status-label" data-i18n="status_online">8 專案資源</span>
+          <span class="status-label" data-i18n="status_online">9 專案資源</span>
         </div>
 
         <div class="lang-selector" role="group" aria-label="語言切換" data-i18n-label="language_label">
@@ -116,11 +116,11 @@
         <!-- 亮色精密科技計數儀表板 -->
         <div class="telemetry-grid-card">
           <div class="telemetry-cell">
-            <span class="metric-value" data-count="8">8</span>
+            <span class="metric-value" data-count="9">9</span>
             <span class="metric-caption" data-i18n="metric_nodes">Project Nodes</span>
           </div>
           <div class="telemetry-cell">
-            <span class="metric-value" data-count="5">5</span>
+            <span class="metric-value" data-count="6">6</span>
             <span class="metric-caption" data-i18n="metric_live">Live Hubs</span>
           </div>
           <div class="telemetry-cell">
@@ -150,9 +150,9 @@
             <span class="kicker-indicator"></span>
             <span data-i18n="matrix_kicker">[01 // REPOSITORIES &amp; HUBS]</span>
           </div>
-          <h2 class="matrix-title" data-i18n="matrix_title">八大核心專案矩陣</h2>
+          <h2 class="matrix-title" data-i18n="matrix_title">九大核心專案矩陣</h2>
           <p class="matrix-subtitle" data-i18n="matrix_subtitle">
-            五個公開網站與三個私人專案資源，涵蓋半導體製造、非揮發性記憶體、本機 AI 算力與互動介面。
+            六個公開網站與三個私人專案資源，涵蓋半導體製造、非揮發性記憶體、本機 AI 算力、互動介面與瀏覽器音樂創作。
           </p>
         </header>
 
@@ -327,6 +327,42 @@
 
             <div class="card-action-bar">
               <span class="card-action-hint" data-i18n="node07_action">NODE://SEMI-HUB</span>
+              <span class="node-action-btn">
+                <span data-i18n="open_hub">Open Hub</span>
+                <span class="action-arrow" aria-hidden="true">↗</span>
+              </span>
+            </div>
+          </a>
+
+          <!-- NODE 09: 光汐工作站 -->
+          <a href="https://guangxi-studio.samhuang68.workers.dev/" target="_blank" rel="noopener" class="node-card reveal" data-node="09" aria-describedby="node09-summary" aria-label="光汐工作站 — 開啟網站">
+            <div class="card-specular-glow" aria-hidden="true"></div>
+            <div class="card-header-bar">
+              <span class="node-serial">NODE-09</span>
+              <span class="node-badge badge-live">
+                <span class="badge-beacon"></span>
+                <span data-i18n="badge_live">LIVE WEB PORTAL</span>
+              </span>
+            </div>
+
+            <div class="card-content-body">
+              <span class="node-domain" data-i18n="node09_domain">BROWSER MUSIC · CREATION STUDIO</span>
+              <h3 class="node-headline" data-i18n="node09_title">光汐工作站</h3>
+              <p class="node-summary" id="node09-summary" data-i18n="node09_desc">
+                在瀏覽器完成音色設計、演奏、八軌編曲、混音與母帶；作品保存在本機瀏覽器，可匯出 WAV、MIDI 與作品包。
+              </p>
+
+              <div class="chip-pill-collection">
+                <span class="chip-pill">Web Audio</span>
+                <span class="chip-pill">8-Track</span>
+                <span class="chip-pill">Synth</span>
+                <span class="chip-pill">Mix &amp; Master</span>
+                <span class="chip-pill">WAV / MIDI</span>
+              </div>
+            </div>
+
+            <div class="card-action-bar">
+              <span class="card-action-hint" data-i18n="node09_action">NODE://GUANGXI-STUDIO</span>
               <span class="node-action-btn">
                 <span data-i18n="open_hub">Open Hub</span>
                 <span class="action-arrow" aria-hidden="true">↗</span>
@@ -515,7 +551,7 @@
 
   <script src="audio-engine.js?v=20261003-navigation-v1"></script>
   <script src="effects.js?v=20261003-cross-engine-v1"></script>
-  <script src="command-palette.js?v=2.1.0"></script>
-  <script src="app.js?v=2.1.0"></script>
+  <script src="command-palette.js?v=2.2.0"></script>
+  <script src="app.js?v=2.2.0"></script>
 </body>
 </html>
