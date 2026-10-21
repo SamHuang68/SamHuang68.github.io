@@ -20,7 +20,7 @@ const I18N = {
     command_label: "搜尋與指令",
     nav_projects: "專案矩陣",
     nav_philosophy: "架構哲學",
-    status_online: "9 專案資源",
+    status_online: "10 專案資源",
     hero_telemetry: "PROJECT PORTAL · TAIWAN 2026 · SILICON ARCHITECTURE",
     hero_headline_1: "從架構規劃",
     hero_headline_2: "到真正可執行的系統",
@@ -32,8 +32,8 @@ const I18N = {
     metric_arcade: "Engines",
     metric_tracks: "Study Tracks",
     matrix_kicker: "[01 // REPOSITORIES & HUBS]",
-    matrix_title: "九大核心專案矩陣",
-    matrix_subtitle: "六個公開網站與三個私人專案資源，涵蓋半導體製造、非揮發性記憶體、本機 AI 算力、互動介面與瀏覽器音樂創作。",
+    matrix_title: "十大核心專案矩陣",
+    matrix_subtitle: "七個公開網站與三個私人專案資源，涵蓋半導體製造、非揮發性記憶體、本機 AI 算力、互動介面、瀏覽器音樂創作與遊戲資料工具。",
     badge_live: "LIVE WEB PORTAL",
     badge_source: "私人儲存庫",
     // NODE 01
@@ -67,6 +67,11 @@ const I18N = {
     node09_title: "光汐工作站",
     node09_desc: "在瀏覽器完成音色設計、演奏、八軌編曲、混音與母帶；作品保存在本機瀏覽器，可匯出 WAV、MIDI 與作品包。",
     node09_action: "NODE://GUANGXI-STUDIO",
+    // NODE 10
+    node10_domain: "GAME DATA · BUILD SIMULATOR",
+    node10_title: "聖休亞瑞典藏中樞",
+    node10_desc: "暗黑破壞神 II：獄火重生的繁體中文配裝模擬器與資料庫；屬性、技能與裝備由遊戲資料表計算，含套裝、符文之語、MF 與減傷配裝、斷點與聖杯追蹤。",
+    node10_action: "NODE://D2R-CODEX",
     // NODE 05
     node05_domain: "私人簡報 · 本機展示",
     node05_desc: "Secure Storage／OIP 私人技術簡報與本機展示工作區，整理硬體信任根（RoT）及非揮發性記憶體安全參考架構。",
@@ -104,7 +109,7 @@ const I18N = {
     command_label: "Search & commands",
     nav_projects: "Projects",
     nav_philosophy: "Philosophy",
-    status_online: "9 Resources",
+    status_online: "10 Resources",
     hero_telemetry: "PROJECT PORTAL · TAIWAN 2026 · SILICON ARCHITECTURE",
     hero_headline_1: "From Architecture",
     hero_headline_2: "To Verifiable Working Systems",
@@ -117,7 +122,7 @@ const I18N = {
     metric_tracks: "Study Tracks",
     matrix_kicker: "[01 // REPOSITORIES & HUBS]",
     matrix_title: "Core Project Matrix",
-    matrix_subtitle: "Six public websites and three private project resources spanning semiconductor manufacturing, NVM IP, local AI compute, interactive systems, and in-browser music creation.",
+    matrix_subtitle: "Seven public websites and three private project resources spanning semiconductor manufacturing, NVM IP, local AI compute, interactive systems, in-browser music creation, and game data tools.",
     badge_live: "LIVE WEB PORTAL",
     badge_source: "PRIVATE REPOSITORY",
     // NODE 01
@@ -151,6 +156,11 @@ const I18N = {
     node09_title: "Guangxi Studio",
     node09_desc: "An in-browser music workstation for sound design, live playing, eight-track arrangement, mixing, and mastering; projects stay in the browser and export to WAV, MIDI, and project bundles.",
     node09_action: "NODE://GUANGXI-STUDIO",
+    // NODE 10
+    node10_domain: "GAME DATA · BUILD SIMULATOR",
+    node10_title: "D2R Sanctuary Codex",
+    node10_desc: "A Traditional Chinese build simulator and database for Diablo II: Resurrected; stats, skills, and gear are computed from the game's own data tables, with set bonuses, runewords, MF and damage-reduction builds, breakpoints, and a Holy Grail tracker.",
+    node10_action: "NODE://D2R-CODEX",
     // NODE 05
     node05_domain: "PRIVATE BRIEFINGS · LOCAL DEMOS",
     node05_desc: "Private Secure Storage/OIP briefings and a local demo workspace for hardware Root of Trust and NVM security reference architectures.",

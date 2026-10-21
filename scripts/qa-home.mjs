@@ -141,10 +141,10 @@ try {
     if (metrics.document.scrollWidth > width + 1 || metrics.body.scrollWidth > width + 1) {
       failures.push(`${width}px horizontal overflow: scrollWidth=${metrics.document.scrollWidth}`);
     }
-    if (metrics.cards.length !== 9) {
-      failures.push(`${width}px expected 9 .node-card elements, found ${metrics.cards.length}`);
+    if (metrics.cards.length !== 10) {
+      failures.push(`${width}px expected 10 .node-card elements, found ${metrics.cards.length}`);
     }
-    if (metrics.cards.filter((c) => c.live).length !== 6 || metrics.cards.filter((c) => c.source).length !== 3) {
+    if (metrics.cards.filter((c) => c.live).length !== 7 || metrics.cards.filter((c) => c.source).length !== 3) {
       failures.push(`${width}px live/source badge counts mismatch`);
     }
     if (metrics.cards.some((c) => !c.beacon || (!c.bgColor.startsWith('rgb(255, 255, 255)') && !c.bgColor.startsWith('rgba(255, 255, 255,')))) {
