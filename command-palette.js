@@ -67,7 +67,7 @@
       titleEn: 'Node-10: D2R Sanctuary Codex',
       descZh: '暗黑 2 獄火重生：配裝模擬、技能樹、裝備與符文之語資料庫',
       descEn: 'Diablo II: Resurrected build simulator, skill tree, and gear and runeword database',
-      action: () => (window.location.href = 'https://d2r-codex.pages.dev/'),
+      action: () => (window.location.href = 'https://d2r.samhuang68.org/'),
       badge: 'LIVE WEB',
     },
     {
