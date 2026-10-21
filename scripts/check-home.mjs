@@ -80,7 +80,7 @@ if (!css.includes('assets/luminous-wafer-bg.jpg')) {
 }
 
 // 5. 八個專案節點與既有詞典鍵檢查
-for (const nodeId of ['01', '02', '03', '04', '05', '06', '07', '08', '09']) {
+for (const nodeId of ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']) {
   if (!html.includes(`data-node="${nodeId}"`)) {
     fail(`[Node Gate] Missing project node card: NODE-${nodeId}`);
   }
@@ -95,8 +95,8 @@ for (const key of htmlI18nKeys) {
 
 // 6. [Full-Card Link & Single-Page Gate] Every node-card must be a full-frame <a> with no nested <a>
 const nodeCardAnchors = [...html.matchAll(/<a\s+[^>]*class="[^"]*\bnode-card\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)];
-if (nodeCardAnchors.length !== 9) {
-  fail(`[Full-Card Gate] 應有 9 個完整卡片 <a class="node-card">，實際數量： ${nodeCardAnchors.length}`);
+if (nodeCardAnchors.length !== 10) {
+  fail(`[Full-Card Gate] 應有 10 個完整卡片 <a class="node-card">，實際數量： ${nodeCardAnchors.length}`);
 }
 for (const [idx, match] of nodeCardAnchors.entries()) {
   if (/<a\b/i.test(match[1])) {

@@ -62,6 +62,15 @@
       badge: 'LIVE WEB',
     },
     {
+      id: 'node-d2r-codex',
+      titleZh: 'Node-10: 聖休亞瑞典藏中樞',
+      titleEn: 'Node-10: D2R Sanctuary Codex',
+      descZh: '暗黑 2 獄火重生：配裝模擬、技能樹、裝備與符文之語資料庫',
+      descEn: 'Diablo II: Resurrected build simulator, skill tree, and gear and runeword database',
+      action: () => (window.location.href = 'https://d2r-codex.pages.dev/'),
+      badge: 'LIVE WEB',
+    },
+    {
       id: 'node-oip',
       titleZh: 'Node-05: Secure Storage OIP',
       titleEn: 'Node-05: Secure Storage OIP',
