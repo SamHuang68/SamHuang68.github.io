@@ -1,4 +1,4 @@
-// 首頁 3.0.0：共用詞典，沿用既有語系儲存鍵。
+// 首頁 3.1.0：共用文字與作品畫面語系。
 "use strict";
 const I18N = {
   "zh": {
@@ -12,7 +12,7 @@ const I18N = {
     "language": "切換語言",
     "zh": "繁中",
     "quick": "快速導覽",
-    "eyebrow": "技術筆記・工程實作・創作探索",
+    "eyebrow": "半導體知識 × 工程實作 × 互動創作",
     "theme": "半導體知識 × 工程實作 × 互動創作",
     "intro": "聚焦非揮發性記憶體與安全儲存，將複雜技術整理成可理解、可探索的知識與工具。",
     "all": "所有作品",
@@ -79,7 +79,28 @@ const I18N = {
     "top": "回到頂端",
     "footer": "知識・實作・探索",
     "external": "於新分頁開啟",
-    "page_title": "Sam Huang｜半導體知識 × 工程實作 × 互動創作"
+    "page_title": "Sam Huang｜半導體知識 × 工程實作 × 互動創作",
+    "edition": "SAM HUANG / 個人作品選輯",
+    "hero_line1": "理解技術的深度。",
+    "hero_line2": "做出想法的樣子。",
+    "feature_label": "精選專題 / 半導體與安全儲存",
+    "nvm_statement": "從一個位元，讀懂記憶體。",
+    "nvm_preview": "知識中心實際介面",
+    "nvm_alt": "NVM 知識中心首頁，包含技術任務入口與儲存狀態比較示意",
+    "feature_foot": "物理原理 → 技術選擇 → 系統脈絡",
+    "process_kicker": "延伸閱讀 / 製程與封裝",
+    "engineering_kicker": "將理解帶進日常實作",
+    "creative_kicker": "當技術成為可以參與的體驗",
+    "learn_preview": "學習平台實際介面",
+    "learn_alt": "E-Learning 學習平台首頁與課程主題",
+    "studio_preview": "工作站實際介面 · 原站採中英混排",
+    "studio_alt": "光汐工作站原始中英介面，顯示合成器控制、波形與鍵盤",
+    "arcade_preview": "遊戲大廳麻將主題 · 原站繁中",
+    "arcade_alt": "遊戲大廳的台灣十六張麻將主題畫面，原站繁中",
+    "tools_note": "工程筆記 / 開發環境",
+    "d2r_kicker": "遊戲資料與配裝探索",
+    "about_kicker": "關於 SAM HUANG",
+    "about_short": "知識有脈絡，\n作品有自己的樣子。"
   },
   "en": {
     "skip": "Skip to main content",
@@ -92,7 +113,7 @@ const I18N = {
     "language": "Choose language",
     "zh": "ZH",
     "quick": "Quick navigation",
-    "eyebrow": "TECHNOLOGY · ENGINEERING · CREATIVE EXPLORATION",
+    "eyebrow": "SEMICONDUCTORS × ENGINEERING × CREATIVE WORK",
     "theme": "Semiconductor knowledge.\nEngineering. Creative exploration.",
     "intro": "Exploring non-volatile memory and secure storage, turning complex technology into knowledge and tools you can understand and explore.",
     "all": "Explore all work",
@@ -159,7 +180,28 @@ const I18N = {
     "top": "Back to top",
     "footer": "KNOWLEDGE · PRACTICE · EXPLORATION",
     "external": "Opens in a new tab",
-    "page_title": "Sam Huang | Semiconductor knowledge, engineering & creative work"
+    "page_title": "Sam Huang | Semiconductor knowledge, engineering & creative work",
+    "edition": "SAM HUANG / SELECTED WORK",
+    "hero_line1": "Understand deeply.",
+    "hero_line2": "Build thoughtfully.",
+    "feature_label": "FEATURED / SEMICONDUCTORS & SECURE STORAGE",
+    "nvm_statement": "A deeper look inside a bit.",
+    "nvm_preview": "Actual knowledge hub interface",
+    "nvm_alt": "NVM Knowledge Hub homepage with technical task entry points and a storage-state comparison",
+    "feature_foot": "PHYSICS → TECHNOLOGY → SYSTEM CONTEXT",
+    "process_kicker": "COMPANION / PROCESS & PACKAGING",
+    "engineering_kicker": "PUT KNOWLEDGE TO WORK",
+    "creative_kicker": "TECHNOLOGY YOU CAN EXPERIENCE",
+    "learn_preview": "Actual learning platform interface",
+    "learn_alt": "E-Learning homepage and course topics",
+    "studio_preview": "Actual studio interface · original bilingual labels",
+    "studio_alt": "Original bilingual Guangxi interface showing synthesizer controls, waveforms and a keyboard",
+    "arcade_preview": "Arcade mahjong theme · original Chinese edition",
+    "arcade_alt": "Taiwanese mahjong theme from the arcade, in the original Chinese edition",
+    "tools_note": "ENGINEERING NOTES / DEVELOPMENT SETUP",
+    "d2r_kicker": "GAME REFERENCE & BUILD EXPLORATION",
+    "about_kicker": "ABOUT SAM HUANG",
+    "about_short": "Knowledge with context.\nWork with character."
   }
 };
 function applyLanguage(value) {
@@ -172,6 +214,11 @@ function applyLanguage(value) {
   });
   document.querySelectorAll('[data-i18n-label]').forEach(element => {
     element.setAttribute('aria-label', dictionary[element.dataset.i18nLabel]);
+  });
+  document.querySelectorAll('[data-i18n-alt]').forEach(element => { element.alt = dictionary[element.dataset.i18nAlt]; });
+  document.querySelectorAll('[data-language-image]').forEach(element => {
+    const name = element.dataset.languageImage;
+    element.src = `assets/${name}-${lang}.jpg`;
   });
   document.querySelectorAll('[data-target-lang]').forEach(button => {
     button.setAttribute('aria-pressed', String(button.dataset.targetLang === lang));

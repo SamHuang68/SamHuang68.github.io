@@ -11,7 +11,7 @@ for (const [name, source] of [['app.js',app],['command-palette.js',palette],['au
 for (const source of [html,css,app,palette]) assert(!/[\uFFFD\u0080-\u009f]/u.test(source), 'UTF-8 編碼須完整');
 const dictionaries = JSON.parse(app.match(/const I18N = ([\s\S]+?);\r?\nfunction/)[1]);
 assert.deepEqual(Object.keys(dictionaries.zh), Object.keys(dictionaries.en), '中英詞典鍵須一致');
-for (const [, key] of html.matchAll(/data-i18n(?:-label)?="([^"]+)"/g)) {
+for (const [, key] of html.matchAll(/data-i18n(?:-label|-alt)?="([^"]+)"/g)) {
   assert.equal(typeof dictionaries.zh[key], 'string', `繁中詞典缺少 ${key}`);
   assert.equal(typeof dictionaries.en[key], 'string', `英文詞典缺少 ${key}`);
 }
@@ -25,7 +25,7 @@ for(const [full,tag] of html.matchAll(/<\/?([a-z][\w-]*)(?:\s+[^>]*?)?\/?\s*>/gi
 assert.equal(stack.length,0,'HTML 必須完整閉合');
 const pkg=JSON.parse(await readFile('package.json','utf8'));
 const lock=JSON.parse(await readFile('package-lock.json','utf8'));
-assert.equal(pkg.version,'3.0.0');assert.equal(lock.version,pkg.version);assert.equal(lock.packages[''].version,pkg.version);
+assert.equal(pkg.version,'3.1.0');assert.equal(lock.version,pkg.version);assert.equal(lock.packages[''].version,pkg.version);
 for (const filename of ['styles.css','audio-engine.js','app.js','command-palette.js']) assert(html.includes(`${filename}?v=${pkg.version}`));
 assert(css.includes('prefers-reduced-motion:reduce'));
 assert(!html.includes('effects.js'),'首頁不可載入原霓虹動態效果');
