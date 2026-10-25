@@ -1,261 +1,65 @@
-import { createReadStream } from 'node:fs';
-import { mkdir, stat, writeFile } from 'node:fs/promises';
+// 僅限此首頁：不導覽目的站、不登入、不執行全專案測試。
 import { createServer } from 'node:http';
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import process from 'node:process';
-import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
-
-const root = process.cwd();
-const outputDir = path.join(root, 'qa', 'home-renders');
-await mkdir(outputDir, { recursive: true });
-
-const mime = new Map([
-  ['.html', 'text/html; charset=utf-8'],
-  ['.css', 'text/css; charset=utf-8'],
-  ['.js', 'text/javascript; charset=utf-8'],
-  ['.webp', 'image/webp'],
-  ['.jpg', 'image/jpeg'],
-  ['.jpeg', 'image/jpeg'],
-  ['.svg', 'image/svg+xml'],
-  ['.png', 'image/png'],
-  ['.woff2', 'font/woff2'],
-]);
-
-const server = createServer(async (request, response) => {
-  const pathname = decodeURIComponent(new URL(request.url, `http://${request.headers.host}`).pathname);
-  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
-  const resolved = path.resolve(root, relative);
-  if (!resolved.startsWith(root)) return response.writeHead(403).end('Forbidden');
-
-  try {
-    const info = await stat(resolved);
-    if (!info.isFile()) throw new Error('Not a file');
-    response.writeHead(200, {
-      'Content-Type': mime.get(path.extname(resolved).toLowerCase()) || 'application/octet-stream',
-      'Cache-Control': 'no-store',
-    });
-    createReadStream(resolved).pipe(response);
-  } catch {
-    response.writeHead(404).end('Not found');
-  }
-});
-
-await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-const baseUrl = `http://127.0.0.1:${server.address().port}/`;
-const viewports = [
-  [1440, 900],
-  [1280, 900],
-  [1024, 900],
-  [768, 1024],
-  [390, 844],
-  [320, 740],
-];
-
-const browser = await chromium.launch({ headless: process.env.HEADED !== '1', channel: process.env.PLAYWRIGHT_CHANNEL || undefined, args: ['--mute-audio'] });
-const failures = [];
-const records = [];
-
+const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const root=process.cwd();
+const out=process.env.PORTAL_EVIDENCE_DIR || path.join(root,'qa','home-renders');
+await mkdir(out,{recursive:true});
+const mime={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.woff2':'font/woff2'};
+const server=createServer(async(req,res)=>{try {const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);const file=path.resolve(root,'.'+(pathname==='/'?'/index.html':pathname));if(!file.startsWith(root+path.sep)) throw Error('範圍外');res.setHeader('Content-Type',mime[path.extname(file)]||'application/octet-stream');res.end(await readFile(file));}catch{res.writeHead(404).end();}});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const url=`http://127.0.0.1:${server.address().port}/`;
+const browser=await chromium.launch({headless:true});
+const records=[];const failures=[];
+const check=async(name,action)=>{try{await action();records.push({case:name,result:'通過'});}catch(e){failures.push({case:name,error:e.message});}};
 try {
-  for (const [width, height] of viewports) {
-    const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
-    const page = await context.newPage();
-    const runtimeErrors = [];
-
-    page.on('pageerror', (error) => runtimeErrors.push(`pageerror: ${error.message}`));
-    page.on('console', (message) => {
-      if (message.type() === 'error') runtimeErrors.push(`console: ${message.text()}`);
-    });
-
-    await page.goto(baseUrl, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(150);
-
-    const metrics = await page.evaluate(() => {
-      const visible = (element) => {
-        const style = getComputedStyle(element);
-        return style.display !== 'none' && style.visibility !== 'hidden' && element.getClientRects().length > 0;
-      };
-      const cards = [...document.querySelectorAll('.node-card')].filter(visible).map((card) => {
-        const rect = card.getBoundingClientRect();
-        const summary = card.querySelector('.node-summary');
-        const style = getComputedStyle(card);
-        return {
-          tag: card.tagName,
-          width: rect.width,
-          height: rect.height,
-          href: card.getAttribute('href'),
-          ariaLabel: card.getAttribute('aria-label'),
-          live: Boolean(card.querySelector('.badge-live')),
-          source: Boolean(card.querySelector('.badge-source')),
-          beacon: Boolean(card.querySelector('.badge-beacon')),
-          nestedInteractive: card.querySelectorAll('a, button, input, select, textarea').length,
-          cursor: style.cursor,
-          bgColor: style.backgroundColor,
-          summaryOverflowZh: summary ? summary.scrollHeight > summary.clientHeight + 2 : false,
-          bottom: rect.bottom,
-        };
-      });
-
-      const enBtn = document.querySelector('.lang-switch-btn[data-target-lang="en"]');
-      enBtn?.click();
-      const summaryOverflowEn = [...document.querySelectorAll('.node-card .node-summary')].map(
-        (s) => s.scrollHeight > s.clientHeight + 2
-      );
-      const zhBtn = document.querySelector('.lang-switch-btn[data-target-lang="zh"]');
-      zhBtn?.click();
-
-      const firstCard = document.querySelector('.node-card');
-      firstCard?.focus();
-      const focusStyle = firstCard ? getComputedStyle(firstCard) : null;
-      const matrixTitleStyle = getComputedStyle(document.querySelector('.matrix-title'));
-      const metricValueStyle = getComputedStyle(document.querySelector('.metric-value'));
-      const waferArtwork = document.querySelector('.wafer-bg-artwork');
-      const waferBgImage = waferArtwork ? getComputedStyle(waferArtwork).backgroundImage : '';
-      const auroraOrb = document.querySelector('.aurora-orb');
-      const auroraOpacity = auroraOrb ? Number(getComputedStyle(auroraOrb).opacity) : 0;
-
-      return {
-        document: {
-          innerWidth,
-          innerHeight,
-          clientWidth: document.documentElement.clientWidth,
-          scrollWidth: document.documentElement.scrollWidth,
-          scrollHeight: document.documentElement.scrollHeight,
-        },
-        body: {
-          clientWidth: document.body.clientWidth,
-          scrollWidth: document.body.scrollWidth,
-          backgroundColor: getComputedStyle(document.body).backgroundColor,
-        },
-        cards,
-        summaryOverflowEn,
-        waferBgImage,
-        auroraOpacity,
-        matrixTitleAlign: matrixTitleStyle.textAlign,
-        metricNumericVariant: metricValueStyle.fontVariantNumeric,
-        headerPosition: getComputedStyle(document.querySelector('.cockpit-header')).position,
-        focusOutline: focusStyle ? { style: focusStyle.outlineStyle, width: focusStyle.outlineWidth } : null,
-      };
-    });
-
-    if (metrics.document.scrollWidth > width + 1 || metrics.body.scrollWidth > width + 1) {
-      failures.push(`${width}px horizontal overflow: scrollWidth=${metrics.document.scrollWidth}`);
-    }
-    if (metrics.cards.length !== 10) {
-      failures.push(`${width}px expected 10 .node-card elements, found ${metrics.cards.length}`);
-    }
-    if (metrics.cards.filter((c) => c.live).length !== 7 || metrics.cards.filter((c) => c.source).length !== 3) {
-      failures.push(`${width}px live/source badge counts mismatch`);
-    }
-    if (metrics.cards.some((c) => !c.beacon || (!c.bgColor.startsWith('rgb(255, 255, 255)') && !c.bgColor.startsWith('rgba(255, 255, 255,')))) {
-      failures.push(`${width}px card missing beacon or not frosted/pure white background`);
-    }
-    if (!metrics.waferBgImage.includes('luminous-wafer-bg.jpg')) {
-      failures.push(`${width}px missing wafer background image: ${metrics.waferBgImage}`);
-    }
-    if (metrics.auroraOpacity < 0.5) {
-      failures.push(`${width}px aurora orb glow opacity too low: ${metrics.auroraOpacity}`);
-    }
-    if (metrics.matrixTitleAlign !== 'left') {
-      failures.push(`${width}px .matrix-title is not left-aligned (${metrics.matrixTitleAlign})`);
-    }
-    if (!metrics.metricNumericVariant.includes('tabular-nums')) {
-      failures.push(`${width}px .metric-value missing tabular-nums (${metrics.metricNumericVariant})`);
-    }
-    if (metrics.cards.some((c) => c.tag !== 'A' || !c.href || !c.ariaLabel || c.nestedInteractive !== 0)) {
-      failures.push(`${width}px a .node-card is not a single full-frame accessible <a> anchor`);
-    }
-    if (metrics.cards.some((c) => c.height < 120 || c.width < 240)) {
-      failures.push(`${width}px a .node-card is too small: ${JSON.stringify(metrics.cards.map((c) => [c.width, c.height]))}`);
-    }
-    if (metrics.cards.some((c) => c.summaryOverflowZh) || metrics.summaryOverflowEn.some(Boolean)) {
-      failures.push(`${width}px project descriptions are clipped in Chinese or English`);
-    }
-    if (width >= 1280) {
-      if (metrics.document.scrollHeight > height) {
-        failures.push(`${width}x${height} page does not fit in a single screen: scrollHeight=${metrics.document.scrollHeight}px > ${height}px`);
-      }
-      if (Math.max(...metrics.cards.map((c) => c.bottom)) > height) {
-        failures.push(`${width}x${height} cards exceed initial viewport bottom`);
-      }
-    }
-    runtimeErrors.forEach((error) => failures.push(`${width}px ${error}`));
-
-    records.push({
-      viewport: { width, height },
-      pageHeight: metrics.document.scrollHeight,
-      bodyBg: metrics.body.backgroundColor,
-      portalCount: metrics.cards.length,
-      minimumCardWidth: Math.round(Math.min(...metrics.cards.map((c) => c.width))),
-      minimumCardHeight: Math.round(Math.min(...metrics.cards.map((c) => c.height))),
-      maximumCardBottom: Math.round(Math.max(...metrics.cards.map((c) => c.bottom))),
-      runtimeErrorCount: runtimeErrors.length,
-    });
-
-    await page.evaluate(() => document.activeElement?.blur());
-    await page.screenshot({ path: path.join(outputDir, `home-${width}.png`), fullPage: true });
-    // Exercise navigation and modal behavior, including touch-sized layouts.
-    try {
-      assert(await page.locator('.cockpit-nav').isVisible());
-      await page.locator('a[href="#philosophy"]').click();
-      assert(await page.locator('.philo-heading').isVisible());
-      assert(await page.locator('.philo-heading').evaluate(el => el.getBoundingClientRect().top >= document.querySelector('header').getBoundingClientRect().bottom));
-      await page.locator('.philosophy-disclosure > summary').click();
-      const trigger = page.locator('#commandTrigger');
-      await trigger.click();
-      const dialog = page.getByRole('dialog');
-      const search = page.getByRole('combobox', { name: '搜尋專案或指令' });
-      assert(await dialog.isVisible());
-      assert(await search.evaluate(el => el === document.activeElement));
-      const firstId = await search.getAttribute('aria-activedescendant');
-      await search.press('ArrowDown');
-      assert.notEqual(await search.getAttribute('aria-activedescendant'), firstId);
-      for (let i = 0; i < 4; i++) {
-        await page.keyboard.press(i % 2 ? 'Shift+Tab' : 'Tab');
-        assert(await dialog.evaluate(el => el.contains(document.activeElement)));
-      }
-      await search.fill('zzznomatch123');
-      assert.equal(await page.getByRole('status').textContent(), '沒有符合的專案或指令');
-      assert.equal(await search.getAttribute('aria-activedescendant'), null);
-      await search.press('Enter');
-      assert(await dialog.isVisible());
-      await search.fill('act-lang');
-      await search.press('Enter');
-      assert.equal(await page.locator('html').getAttribute('lang'), 'en');
-      assert(await trigger.evaluate(el => el === document.activeElement));
-      await page.keyboard.press('Control+k');
-      const englishSearch = page.getByRole('combobox', { name: 'Search projects or commands' });
-      assert(await englishSearch.isVisible());
-      await englishSearch.fill('node-oip');
-      assert((await page.getByRole('option').textContent()).includes('GitHub access required'));
-      await page.screenshot({ path: path.join(outputDir, `palette-${width}.png`) });
-      await page.keyboard.press('Escape');
-      assert(!(await dialog.isVisible()));
-      assert(await trigger.evaluate(el => el === document.activeElement));
-      await page.reload({ waitUntil: 'networkidle' });
-      assert.equal(await page.locator('html').getAttribute('lang'), 'en');
-      assert.equal(await page.locator('.brand-unit').getAttribute('aria-label'), 'Sam Huang home');
-      await page.locator('[data-target-lang="zh"]').click();
-    } catch (error) {
-      failures.push(`${width}px interaction: ${error.stack}`);
-    }
-    await context.close();
+ const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+ const errors=[];const requests=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400) errors.push(`${r.status()} ${r.url()}`);});page.on('request',r=>requests.push(r.url()));
+ await page.goto(url,{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);
+ await check('七公開與三私人入口及分類順序',async()=>{
+  assert.deepEqual(await page.locator('.project-card').evaluateAll(xs=>xs.map(x=>x.dataset.node)),['01','07','03','04','09','02','10']);
+  assert.deepEqual(await page.locator('.private-workspace [data-node]').evaluateAll(xs=>xs.map(x=>x.dataset.node)),['05','06','08']);
+  assert.equal(await page.locator('.private-workspace').getAttribute('open'),null);
+  for(const card of await page.locator('.project-card').all()) assert((await card.locator('.tags li').count())<=3);
+  assert(!/NODE[-:]|Engines|Project Nodes/.test(await page.locator('body').innerText()));
+  assert.equal(await page.locator('.hero-actions a').first().getAttribute('href'),'#knowledge');
+  assert.equal(await page.locator('.hero-actions a').last().getAttribute('href'),'#projects');
+ });
+ await check('所有頁內導覽有實際目標',async()=>{for(const href of await page.locator('a[href^="#"]').evaluateAll(xs=>xs.map(x=>x.getAttribute('href')))) assert.equal(await page.locator(href).count(),1,href);await page.locator('.main-nav a[href="#engineering"]').click();assert.equal(await page.evaluate(()=>location.hash),'#engineering');await page.locator('.back-top').click();});
+ await check('鍵盤跳至內容及焦點可見',async()=>{await page.goto(url);await page.keyboard.press('Tab');assert.equal(await page.locator(':focus').getAttribute('class'),'skip-link');assert.equal(await page.locator(':focus').evaluate(x=>getComputedStyle(x).outlineStyle),'solid');await page.keyboard.press('Enter');assert.equal(await page.locator(':focus').getAttribute('id'),'main-content');});
+ await check('搜尋鍵盤、無結果、模態焦點與 Escape 復原',async()=>{
+  await page.locator('#commandTrigger').focus();await page.keyboard.press('Enter');assert(await page.locator('#commandPaletteModal').evaluate(x=>x.open));assert.equal(await page.locator(':focus').getAttribute('id'),'cmdPaletteInput');
+  await page.keyboard.press('Tab');assert.equal(await page.locator(':focus').getAttribute('class'),'cmd-palette-close');await page.keyboard.press('Tab');assert.equal(await page.locator(':focus').getAttribute('id'),'cmdPaletteInput');await page.keyboard.press('Shift+Tab');assert.equal(await page.locator(':focus').getAttribute('class'),'cmd-palette-close');await page.keyboard.press('Shift+Tab');
+  await page.locator('#cmdPaletteInput').fill('NVM');assert.equal(await page.locator('[role="option"]').count(),1);await page.keyboard.press('ArrowDown');assert.equal(await page.locator('#cmdPaletteInput').getAttribute('aria-activedescendant'),await page.locator('[role="option"]').first().getAttribute('id'));
+  await page.locator('#cmdPaletteInput').fill('unmatched-zzzz');assert.equal(await page.locator('[role="option"]').count(),0);assert((await page.locator('#cmdPaletteStatus').innerText()).includes('沒有'));await page.keyboard.press('Escape');assert.equal(await page.locator(':focus').getAttribute('id'),'commandTrigger');
+  await page.keyboard.press('Control+k');assert(await page.locator('#commandPaletteModal').evaluate(x=>x.open));await page.keyboard.press('Escape');
+ });
+ await check('雙語含私人區、標籤、可及性文字、快速導覽與重新載入記憶',async()=>{
+  await page.locator('[data-target-lang="en"]').click();await page.locator('.private-workspace summary').click();await page.locator('#commandTrigger').click();
+  const text=await page.locator('body').innerText();assert(!/\p{Script=Han}/u.test(text),'英文可見內容混入中文');
+  const attrs=await page.locator('[aria-label],[title],[placeholder]').evaluateAll(xs=>xs.flatMap(x=>['aria-label','title','placeholder'].map(k=>x.getAttribute(k)||'')));assert(!attrs.some(x=>/\p{Script=Han}/u.test(x)),'英文可及性文字混入中文');
+  assert.equal(await page.locator('html').getAttribute('lang'),'en');await page.keyboard.press('Escape');await page.reload();assert.equal(await page.locator('html').getAttribute('lang'),'en');assert((await page.title()).startsWith('Sam Huang'));assert(!/\p{Script=Han}/u.test(await page.title()));
+  await page.locator('#commandTrigger').click();await page.locator('#cmdPaletteInput').fill('Switch language');await page.keyboard.press('Enter');assert.equal(await page.locator('html').getAttribute('lang'),'zh-Hant');
+ });
+ await check('預設靜音與既有音效、圖層檢視設定',async()=>{assert.equal(await page.evaluate(()=>window.SiliconAudio.isEnabled()),false);await page.locator('#commandTrigger').click();await page.locator('#cmdPaletteInput').fill('操作音效');await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>window.SiliconAudio.isEnabled()),true);await page.locator('#commandTrigger').click();await page.locator('#cmdPaletteInput').fill('操作音效');await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>window.SiliconAudio.isEnabled()),false);await page.locator('#commandTrigger').click();await page.locator('#cmdPaletteInput').fill('圖層檢視');await page.keyboard.press('Enter');assert(await page.locator('body').evaluate(x=>x.classList.contains('xray-mode')));await page.evaluate(()=>document.body.classList.remove('xray-mode'));});
+ for(const [label,width,height] of [['桌面',1440,1000],['低高度桌面',1280,720],['平板',768,1024],['手機',390,844],['窄手機',320,740]]){
+  await page.setViewportSize({width,height});
+  for(const lang of ['zh','en']){
+   await page.locator(`[data-target-lang="${lang}"]`).click();await page.evaluate(()=>window.scrollTo(0,0));
+   await check(`${label} ${width}×${height} ${lang} 重排與視覺資產`,async()=>{assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));assert(await page.locator('img').evaluateAll(xs=>xs.every(x=>x.complete&&x.naturalWidth>0)));const sizes=await page.locator('.project-card h3,.card-description').evaluateAll(xs=>xs.map(x=>parseFloat(getComputedStyle(x).fontSize)));assert(sizes.every(s=>s>=13));});
+   if(['桌面','手機'].includes(label)){await page.screenshot({path:path.join(out,`首頁-${label}-${lang}.png`),fullPage:true});if(label==='桌面') await page.screenshot({path:path.join(out,`首頁-首屏-${lang}.png`)});}
+   await page.locator('.private-workspace summary').click();await check(`${label} ${lang} 私人區展開`,async()=>{assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));assert(await page.locator('[data-node="06"]').isVisible());});await page.locator('.private-workspace summary').click();
   }
-} finally {
-  await browser.close();
-  await new Promise((resolve) => server.close(resolve));
-}
-
-await writeFile(
-  path.join(outputDir, 'report.json'),
-  `${JSON.stringify({ gate: failures.length ? 'FAIL' : 'PASS', generatedAt: new Date().toISOString(), records, failures }, null, 2)}\n`,
-  'utf8',
-);
-
-if (failures.length) {
-  console.error('Rendered homepage QA failed:');
-  failures.forEach((failure) => console.error(`- ${failure}`));
-  process.exit(1);
-}
-
-console.log(`✅ Rendered homepage QA PASS: ${viewports.length} viewports, 6 full-card <a class="node-card"> portals, single-page desktop fit (<=900px), zero overflow.`);
+ }
+ await page.setViewportSize({width:390,height:844});await page.locator('#commandTrigger').click();await page.screenshot({path:path.join(out,'首頁-手機-快速導覽-en.png')});await page.keyboard.press('Escape');
+ await check('reduced motion 與一般動態偏好',async()=>{assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior),'auto');assert.equal(await page.evaluate(()=>document.getAnimations().length),0);await page.emulateMedia({reducedMotion:'no-preference'});assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior),'smooth');assert.equal(await page.evaluate(()=>document.getAnimations().length),0);await page.emulateMedia({reducedMotion:'reduce'});});
+ await check('200% 文字縮放重排',async()=>{await page.setViewportSize({width:1280,height:900});await page.addStyleTag({content:'body * {font-size:200% !important}'}); /* 下方以實際計算值逐一放大，避免巢狀累乘。 */ await page.locator('style').last().evaluate(x=>x.remove());await page.evaluate(()=>{const nodes=[...document.querySelectorAll('body *')];const sizes=nodes.map(x=>parseFloat(getComputedStyle(x).fontSize));nodes.forEach((x,i)=>x.style.fontSize=`${sizes[i]*2}px`);});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.reload();});
+ await check('無腳本仍可閱讀七個公開入口及私人權限說明',async()=>{const ctx=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});const fallback=await ctx.newPage();await fallback.goto(url);assert.equal(await fallback.locator('.project-card').count(),7);await fallback.locator('.private-workspace summary').click();assert(await fallback.locator('[data-node="06"]').isVisible());await ctx.close();});
+ await check('儲存不可用時仍可切換語系',async()=>{const ctx=await browser.newContext();await ctx.addInitScript(()=>{Storage.prototype.getItem=()=>{throw Error('儲存不可用')};Storage.prototype.setItem=()=>{throw Error('儲存不可用')};});const fallback=await ctx.newPage();const errs=[];fallback.on('pageerror',e=>errs.push(e.message));await fallback.goto(url);await fallback.locator('[data-target-lang="en"]').click();assert.equal(await fallback.locator('html').getAttribute('lang'),'en');assert.equal(errs.length,0);await ctx.close();});
+ await check('無執行錯誤、資源失敗或外部資料請求',async()=>{assert.deepEqual(errors,[]);assert(requests.every(u=>u.startsWith(url)));});
+ await writeFile(path.join(out,'首頁驗證結果.json'),JSON.stringify({host:'NUCBOX_EVO-T1',browser:browser.version(),url,records,failures},null,2));
+ console.log(JSON.stringify({passed:records.length,failures,output:out}));
+ if(failures.length) process.exitCode=1;
+} finally {await browser.close();await new Promise(r=>server.close(r));}
