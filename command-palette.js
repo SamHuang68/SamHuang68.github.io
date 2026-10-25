@@ -4,7 +4,7 @@
   const ACTIONS = [
     {id: 'act-lang', titleZh: '切換語言', titleEn: 'Switch language', descZh: '在繁體中文與英文之間切換', descEn: 'Switch between Traditional Chinese and English', badge: {zh: '設定', en: 'Setting'}, action: () => applyLanguage(document.documentElement.dataset.lang === 'en' ? 'zh' : 'en')},
     {id: 'act-audio', titleZh: '切換操作音效', titleEn: 'Toggle interface sounds', descZh: '開啟或關閉按鈕與卡片微音效；預設靜音', descEn: 'Enable or mute subtle button and card sounds; muted by default', badge: '', action: () => window.SiliconAudio?.toggle()},
-    {id: 'act-xray', titleZh: '切換圖層檢視', titleEn: 'Toggle layer view', descZh: '以單色高對比查看首頁原創記憶單元示意', descEn: 'Inspect the original memory illustration in high-contrast monochrome', badge: '', action: () => document.body.classList.toggle('xray-mode')}
+    {id: 'act-xray', titleZh: '切換圖層檢視', titleEn: 'Toggle layer view', descZh: '以單色檢視首頁的知識中心作品畫面', descEn: 'Inspect the knowledge hub preview in monochrome', badge: '', action: () => document.body.classList.toggle('xray-mode')}
   ];
   const COPY = {
     zh: { title: '搜尋與指令', search: '搜尋專案或指令', close: '關閉搜尋', list: '專案與指令', empty: '沒有符合的專案或指令', hint: '↑ ↓ 選擇 · Enter 執行 · Esc 關閉', count: n => `${n} 個結果` },
