@@ -1,146 +1,11 @@
-/**
- * @fileoverview 全域架構指揮中心 (HUD Command Palette: Ctrl+K / ⌘K)
- * 模組化設計：獨立管理鍵盤極速導航、全域快捷操作與模糊搜尋
- */
-
+// 快速導覽沿用原生 dialog、鍵盤選取與焦點復原；專案資訊直接讀取首頁。
 (() => {
   'use strict';
-
-  const COMMANDS = [
-    {
-      id: 'node-nvm',
-      titleZh: 'Node-01: NVM Knowledge Hub',
-      titleEn: 'Node-01: NVM Knowledge Hub',
-      descZh: '半導體非揮發性記憶體物理與白皮書門戶',
-      descEn: 'Semiconductor NVM foundations and whitepapers',
-      action: () => (window.location.href = 'https://hub.samhuang68.org/'),
-      badge: 'LIVE WEB',
-    },
-    {
-      id: 'node-arcade',
-      titleZh: 'Node-02: 多元遊戲大廳',
-      titleEn: 'Node-02: Interactive Game Arcade',
-      descZh: '涵蓋 3D 棋盤對弈、策略模擬與復古街機合輯',
-      descEn: 'Interactive gaming suite featuring 21 titles',
-      action: () => (window.location.href = 'https://arcade.samhuang68.org/'),
-      badge: 'LIVE WEB',
-    },
-    {
-      id: 'node-learning',
-      titleZh: 'Node-03: E-Learning 學習引擎',
-      titleEn: 'Node-03: E-Learning Engine',
-      descZh: '數學、物理、日語、多益與華語八軌引擎',
-      descEn: 'Eight-track unified modular learning engine',
-      action: () => (window.location.href = 'https://learn.samhuang68.org/'),
-      badge: 'LIVE WEB',
-    },
-    {
-      id: 'node-hardware',
-      titleZh: 'Node-04: Hardware Profile',
-      titleEn: 'Node-04: Hardware Profile',
-      descZh: 'AI 工作站、RTX 5080 eGPU 與工程硬體資產',
-      descEn: 'Interactive asset profile detailing AI workstations',
-      action: () => (window.location.href = 'https://hardware.samhuang68.org/'),
-      badge: 'LIVE WEB',
-    },
-    {
-      id: 'node-semi',
-      titleZh: 'Node-07: Semiconductor Knowledge Hub',
-      titleEn: 'Node-07: Semiconductor Knowledge Hub',
-      descZh: '從沙子到晶片的晶圓製造與先進封裝知識門戶',
-      descEn: 'From sand to silicon: wafer fabrication and packaging hub',
-      action: () => (window.location.href = 'https://samhuang68.github.io/semiconductor-knowledge-hub/'),
-      badge: 'LIVE WEB',
-    },
-    {
-      id: 'node-guangxi',
-      titleZh: 'Node-09: 光汐工作站',
-      titleEn: 'Node-09: Guangxi Studio',
-      descZh: '瀏覽器音樂創作：音色設計、演奏、八軌編曲與混音',
-      descEn: 'In-browser music studio: sound design, playing, 8-track arrangement, and mixing',
-      action: () => (window.location.href = 'https://guangxi-studio.samhuang68.workers.dev/'),
-      badge: 'LIVE WEB',
-    },
-    {
-      id: 'node-d2r-codex',
-      titleZh: 'Node-10: 聖休亞瑞典藏中樞',
-      titleEn: 'Node-10: D2R Sanctuary Codex',
-      descZh: '暗黑 2 獄火重生：配裝模擬、技能樹、裝備與符文之語資料庫',
-      descEn: 'Diablo II: Resurrected build simulator, skill tree, and gear and runeword database',
-      action: () => (window.location.href = 'https://d2r.samhuang68.org/'),
-      badge: 'LIVE WEB',
-    },
-    {
-      id: 'node-oip',
-      titleZh: 'Node-05: Secure Storage OIP',
-      titleEn: 'Node-05: Secure Storage OIP',
-      descZh: '私人技術簡報與本機展示，需 GitHub 存取權限',
-      descEn: 'Private briefings and local demos; GitHub access required',
-      action: () => (window.location.href = 'https://github.com/SamHuang68/secure-storage-oip-briefing'),
-      badge: 'PRIVATE',
-    },
-    {
-      id: 'node-pulse',
-      titleZh: 'Node-06: TW Pulse Terminal',
-      titleEn: 'Node-06: TW Pulse Terminal',
-      descZh: '13 模組私人介面原型，僅模擬資料；需 GitHub 存取權限',
-      descEn: 'Private 13-module UI prototype, simulated data only; GitHub access required',
-      action: () => (window.location.href = 'https://github.com/SamHuang68/tw-pulse-terminal'),
-      badge: 'PRIVATE',
-    },
-    {
-      id: 'node-kaodata',
-      language: 'zh-Hant',
-      titleZh: '光榮武將臉譜（私人）',
-      titleEn: '光榮武將臉譜（私人）',
-      descZh: '武將臉譜私人典藏，限擁有者登入',
-      descEn: '武將臉譜私人典藏，限擁有者登入',
-      action: () => (window.location.href = 'https://koei-portrait-archive.samhuang68.chatgpt.site'),
-      badge: '私人網站',
-    },
-    {
-      id: 'act-lang',
-      titleZh: '切換語系 (Toggle Language: 中 / EN)',
-      titleEn: 'Toggle Language (中 / EN)',
-      descZh: '即時雙向切換繁體中文與專業英文語意',
-      descEn: 'Switch interface between Traditional Chinese and English',
-      action: () => {
-        if (typeof window.toggleLanguage === 'function') window.toggleLanguage();
-      },
-      badge: 'ACTION',
-    },
-    {
-      id: 'act-audio',
-      titleZh: '切換晶片合成音效 (Toggle Silicon Audio)',
-      titleEn: 'Toggle Silicon Synthesizer Audio',
-      descZh: '開啟或關閉水波漣漪與晶片光學滴答微音',
-      descEn: 'Enable or disable liquid ripple and click sound FX',
-      action: () => {
-        if (window.SiliconAudio) {
-          const enabled = window.SiliconAudio.toggle();
-          const soundBtn = document.getElementById('soundToggle');
-          if (soundBtn) {
-            soundBtn.setAttribute('data-sound', enabled ? 'on' : 'off');
-            soundBtn.setAttribute('title', enabled ? '音效: 開啟 (點擊關閉)' : '音效: 靜音 (點擊開啟)');
-          }
-        }
-      },
-      badge: 'AUDIO',
-    },
-    {
-      id: 'act-xray',
-      titleZh: '切換 X-Ray 晶圓光罩透視圖層',
-      titleEn: 'Toggle X-Ray Lithography Layer View',
-      descZh: '透視晶圓 EDA 布圖走線與深層微結構',
-      descEn: 'Inspect underlying EDA layout and silicon circuitry',
-      action: () => {
-        document.body.classList.toggle('xray-mode');
-        if (window.SiliconAudio) window.SiliconAudio.playHud();
-      },
-      badge: 'X-RAY',
-    },
+  const ACTIONS = [
+    {id: 'act-lang', titleZh: '切換語言', titleEn: 'Switch language', descZh: '在繁體中文與英文之間切換', descEn: 'Switch between Traditional Chinese and English', badge: {zh: '設定', en: 'Setting'}, action: () => applyLanguage(document.documentElement.dataset.lang === 'en' ? 'zh' : 'en')},
+    {id: 'act-audio', titleZh: '切換操作音效', titleEn: 'Toggle interface sounds', descZh: '開啟或關閉按鈕與卡片微音效；預設靜音', descEn: 'Enable or mute subtle button and card sounds; muted by default', badge: '', action: () => window.SiliconAudio?.toggle()},
+    {id: 'act-xray', titleZh: '切換圖層檢視', titleEn: 'Toggle layer view', descZh: '以單色高對比查看首頁原創記憶單元示意', descEn: 'Inspect the original memory illustration in high-contrast monochrome', badge: '', action: () => document.body.classList.toggle('xray-mode')}
   ];
-
   const COPY = {
     zh: { title: '搜尋與指令', search: '搜尋專案或指令', close: '關閉搜尋', list: '專案與指令', empty: '沒有符合的專案或指令', hint: '↑ ↓ 選擇 · Enter 執行 · Esc 關閉', count: n => `${n} 個結果` },
     en: { title: 'Search & commands', search: 'Search projects or commands', close: 'Close search', list: 'Projects and commands', empty: 'No matching projects or commands', hint: '↑ ↓ Choose · Enter Run · Esc Close', count: n => `${n} ${n === 1 ? 'result' : 'results'}` },
@@ -148,7 +13,24 @@
   let modalEl, inputEl, listEl, statusEl;
   let returnFocus;
   let activeIndex = 0;
-  let filteredCommands = [...COMMANDS];
+  let filteredCommands = [];
+  const getCommands = () => {
+    const lang = getLang();
+    const projects = [...document.querySelectorAll('[data-node]')].map(card => {
+      const isPrivate = card.classList.contains('private-link');
+      const title = card.querySelector('h3,strong');
+      const description = card.querySelector('.card-description') || card.querySelector('span');
+      const translated = (element, language) => I18N[language][element.dataset.i18n] || element.textContent;
+      return {
+        id: `project-${card.dataset.node}`,
+        titleZh: translated(title, 'zh'), titleEn: translated(title, 'en'),
+        descZh: translated(description, 'zh'), descEn: translated(description, 'en'),
+        badge: isPrivate ? (lang === 'zh' ? '需存取權限' : 'Access required') : (lang === 'zh' ? '公開網站' : 'Public site'),
+        action: () => { window.location.href = card.href; }
+      };
+    });
+    return [...projects, ...ACTIONS];
+  };
   const getLang = () => document.documentElement.dataset.lang === 'en' ? 'en' : 'zh';
   const closePalette = () => {
     if (!modalEl?.open) return;
@@ -190,7 +72,7 @@
       description.textContent = lang === 'zh' ? command.descZh : command.descEn;
       const badge = document.createElement('span');
       badge.className = 'cmd-item-badge';
-      badge.textContent = command.badge;
+      badge.textContent = typeof command.badge === 'object' ? command.badge[lang] : command.badge;
       if (command.id === 'act-audio' || command.id === 'act-xray') {
         const enabled = command.id === 'act-audio' ? window.SiliconAudio?.isEnabled() : document.body.classList.contains('xray-mode');
         badge.textContent = lang === 'zh' ? (enabled ? '已開啟' : '已關閉') : (enabled ? 'ON' : 'OFF');
@@ -206,7 +88,7 @@
   };
   const filterCommands = () => {
     const query = inputEl.value.trim().toLocaleLowerCase();
-    filteredCommands = COMMANDS.filter(command =>
+    filteredCommands = getCommands().filter(command =>
       [command.titleZh, command.titleEn, command.descZh, command.descEn, command.id]
         .some(value => value.toLocaleLowerCase().includes(query)));
     activeIndex = 0;

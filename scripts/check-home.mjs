@@ -1,113 +1,43 @@
-/**
- * @fileoverview 8D Prevention Counter-Method Gate (check-home.mjs)
- * Enforces:
- * 1. Zero UTF-8 Mojibake / encoding corruption across HTML, CSS, JS (Gotcha 0003)
- * 2. Strict HTML tag closure balance
- * 3. Mandatory Light/Pale Theme & Non-Flat Ambient Background (Rule 0003)
- * 4. 八個專案節點與既有詞典鍵檢查
- */
-
 import { readFile } from 'node:fs/promises';
-import path from 'node:path';
-import process from 'node:process';
+import { Script } from 'node:vm';
+import assert from 'node:assert/strict';
 
-const root = process.cwd();
-const html = await readFile(path.join(root, 'index.html'), 'utf8');
-const css = await readFile(path.join(root, 'styles.css'), 'utf8');
-const js = await readFile(path.join(root, 'app.js'), 'utf8');
-
-const failures = [];
-const fail = (msg) => failures.push(msg);
-
-// 1. [8D Counter-Method] UTF-8 Mojibake & Encoding Integrity Gate
-const mojibakeRegex = /(\uFFFD|\?\?[a-zA-Z<\u4e00-\u9fa5]|[\u0080-\u009F]|ï¿½|\?|\?|\?€)/g;
-for (const [name, content] of [['index.html', html], ['styles.css', css], ['app.js', js]]) {
-  const matches = content.match(mojibakeRegex);
-  if (matches) {
-    fail(`[Encoding Gate] Mojibake or corrupted UTF-8 sequence detected in ${name}: ${matches.slice(0, 5).join(', ')}`);
-  }
+const html = await readFile('index.html', 'utf8');
+const css = await readFile('styles.css', 'utf8');
+const app = await readFile('app.js', 'utf8');
+const palette = await readFile('command-palette.js', 'utf8');
+const audio = await readFile('audio-engine.js', 'utf8');
+for (const [name, source] of [['app.js',app],['command-palette.js',palette],['audio-engine.js',audio]]) new Script(source, { filename: name });
+for (const source of [html,css,app,palette]) assert(!/[\uFFFD\u0080-\u009f]/u.test(source), 'UTF-8 編碼須完整');
+const dictionaries = JSON.parse(app.match(/const I18N = ([\s\S]+?);\r?\nfunction/)[1]);
+assert.deepEqual(Object.keys(dictionaries.zh), Object.keys(dictionaries.en), '中英詞典鍵須一致');
+for (const [, key] of html.matchAll(/data-i18n(?:-label)?="([^"]+)"/g)) {
+  assert.equal(typeof dictionaries.zh[key], 'string', `繁中詞典缺少 ${key}`);
+  assert.equal(typeof dictionaries.en[key], 'string', `英文詞典缺少 ${key}`);
 }
-
-// 2. [8D Counter-Method] HTML Tag Closure Balance Gate
-const voidTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
-const tagRegex = /<\/?([a-zA-Z0-9\-]+)(?:\s+[^>]*?)?(\/?)>/g;
-const tagStack = [];
-let tMatch;
-while ((tMatch = tagRegex.exec(html)) !== null) {
-  const full = tMatch[0];
-  const tagName = tMatch[1].toLowerCase();
-  if (full.startsWith('<!--') || full.startsWith('<!doctype')) continue;
-  const isClosing = full.startsWith('</');
-  const isSelfClosing = full.endsWith('/>') || tMatch[2] === '/' || voidTags.has(tagName);
-
-  if (isClosing) {
-    if (tagStack.length === 0) {
-      fail(`[HTML Gate] Unexpected closing tag </${tagName}> at offset ${tMatch.index}`);
-    } else {
-      const top = tagStack.pop();
-      if (top.name !== tagName) {
-        fail(`[HTML Gate] Mismatched closing tag: expected </${top.name}> but found </${tagName}> at offset ${tMatch.index}`);
-      }
-    }
-  } else if (!isSelfClosing) {
-    tagStack.push({ name: tagName, index: tMatch.index });
-  }
+for (const value of Object.values(dictionaries.en)) assert(!/\p{Script=Han}/u.test(value), '英文詞典不可混入中文');
+const stack=[];
+const voids=new Set(['meta','link','img','br','input','hr','source','wbr']);
+for(const [full,tag] of html.matchAll(/<\/?([a-z][\w-]*)(?:\s+[^>]*?)?\/?\s*>/gi)) {
+  if (full.startsWith('</')) assert.equal(stack.pop(),tag,`HTML 結構不平衡：${tag}`);
+  else if (!voids.has(tag) && !full.endsWith('/>')) stack.push(tag);
 }
-if (tagStack.length > 0) {
-  fail(`[HTML Gate] Unclosed tags remaining: ${tagStack.map((t) => t.name).join(', ')}`);
+assert.equal(stack.length,0,'HTML 必須完整閉合');
+const pkg=JSON.parse(await readFile('package.json','utf8'));
+const lock=JSON.parse(await readFile('package-lock.json','utf8'));
+assert.equal(pkg.version,'3.0.0');assert.equal(lock.version,pkg.version);assert.equal(lock.packages[''].version,pkg.version);
+for (const filename of ['styles.css','audio-engine.js','app.js','command-palette.js']) assert(html.includes(`${filename}?v=${pkg.version}`));
+assert(css.includes('prefers-reduced-motion:reduce'));
+assert(!html.includes('effects.js'),'首頁不可載入原霓虹動態效果');
+const expected = new Map([
+ ['01','https://hub.samhuang68.org/'], ['07','https://samhuang68.github.io/semiconductor-knowledge-hub/'],
+ ['03','https://learn.samhuang68.org/'], ['04','https://hardware.samhuang68.org/'],
+ ['09','https://guangxi-studio.samhuang68.workers.dev/'], ['02','https://arcade.samhuang68.org/'], ['10','https://d2r.samhuang68.org/'],
+ ['05','https://github.com/SamHuang68/secure-storage-oip-briefing'], ['06','https://github.com/SamHuang68/tw-pulse-terminal'], ['08','https://koei-portrait-archive.samhuang68.chatgpt.site']
+]);
+for(const match of html.matchAll(/<a\b[^>]*data-node="(\d+)"[^>]*>/g)) {
+  const url=match[0].match(/href="([^"]+)"/)[1];assert.equal(url,expected.get(match[1])); expected.delete(match[1]);
 }
-
-// 3. [Rule 0003 Gate] Mandatory Light Theme & Zero Dark Remnants
-if (html.includes('class="dark"') || css.includes('color-scheme: dark')) {
-  fail('[Rule 0003 Gate] Prohibited dark theme declaration detected.');
-}
-if (!html.includes('class="light-mode"') || !css.includes('color-scheme: light')) {
-  fail('[Rule 0003 Gate] Missing mandatory light-mode class or color-scheme: light declaration.');
-}
-if (!css.includes('--bg-canvas: #f8fafc')) {
-  fail('[Rule 0003 Gate] Missing light platinum canvas token (--bg-canvas: #f8fafc).');
-}
-
-// 4. [Rule 0003 Gate] Rich Non-Flat Ambient Background & Wafer Artwork Verification
-for (const selector of ['.ambient-layer', '.wafer-bg-artwork', '.aurora-orb', '.circuit-grid-pattern', '.wafer-radial-sheen', '#silicon-canvas']) {
-  const token = selector.replace(/^[.#]/, '');
-  if (!html.includes(token)) {
-    fail(`[Ambient Gate] Missing non-flat background element in HTML: ${selector}`);
-  }
-}
-if (!css.includes('assets/luminous-wafer-bg.jpg')) {
-  fail('[Ambient Gate] Missing professional wafer background image (assets/luminous-wafer-bg.jpg) in styles.css');
-}
-
-// 5. 八個專案節點與既有詞典鍵檢查
-for (const nodeId of ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']) {
-  if (!html.includes(`data-node="${nodeId}"`)) {
-    fail(`[Node Gate] Missing project node card: NODE-${nodeId}`);
-  }
-}
-
-const htmlI18nKeys = new Set([...html.matchAll(/data-i18n="([^"]+)"/g)].map((m) => m[1]));
-for (const key of htmlI18nKeys) {
-  if (!js.includes(`${key}:`)) {
-    fail(`[i18n Gate] Key "${key}" used in HTML is missing from app.js I18N dictionary.`);
-  }
-}
-
-// 6. [Full-Card Link & Single-Page Gate] Every node-card must be a full-frame <a> with no nested <a>
-const nodeCardAnchors = [...html.matchAll(/<a\s+[^>]*class="[^"]*\bnode-card\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)];
-if (nodeCardAnchors.length !== 10) {
-  fail(`[Full-Card Gate] 應有 10 個完整卡片 <a class="node-card">，實際數量： ${nodeCardAnchors.length}`);
-}
-for (const [idx, match] of nodeCardAnchors.entries()) {
-  if (/<a\b/i.test(match[1])) {
-    fail(`[Full-Card Gate] NODE-0${idx + 1} contains nested <a> tag inside full-frame card anchor`);
-  }
-}
-
-if (failures.length > 0) {
-  console.error('❌ 8D Pre-Push Quality Gate FAILED:');
-  failures.forEach((f) => console.error(`  - ${f}`));
-  process.exit(1);
-}
-
-console.log(`✅ 8D Pre-Push Quality Gate PASS: UTF-8 clean, HTML balanced, Light-Theme enforced, Ambient layers verified, ${htmlI18nKeys.size} i18n keys matched.`);
+assert.equal(expected.size,0,'十個原有目的網址皆須保留');
+for(const [,src] of html.matchAll(/(?:src|href)="((?:assets|fonts)\/[^"?]+)(?:\?[^"]*)?"/g)) await readFile(src);
+console.log(`首頁結構、十個目的網址、${Object.keys(dictionaries.en).length} 組雙語鍵、腳本語法與版本一致性通過。`);
