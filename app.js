@@ -11,6 +11,32 @@
    ══════════════════════════════════════════════════════════════════════════════ */
 const I18N = {
   zh: {
+    art_unavailable: "預覽圖片暫時無法載入",
+    art_credits: "圖片來源與授權標示",
+    art_source: "來源",
+    wafer_credit: "晶圓照片：Rob Bulmahn；畫面採局部裁切。",
+    d2r_credit: "Diablo II: Resurrected 圖像與商標 © Blizzard Entertainment, Inc.，保留所有權利。本專案為非官方玩家參考工具，與 Blizzard 無隸屬或背書關係。",
+    project_credit: "其他圖片沿用公開專案主視覺或介面局部。私人典藏與模擬資料圖為中性示意，不展示私人內容。圖片為預覽，非即時嵌入或專案功能驗證。",
+    art_01_alt: "NVM 技術示意主視覺",
+    art_01_caption: "記憶單元技術示意",
+    art_07_alt: "Rob Bulmahn 拍攝的圖案化矽晶圓",
+    art_07_caption: "矽晶圓晶粒圖案",
+    art_03_alt: "公開 E-Learning 首頁介面局部",
+    art_03_caption: "公開介面局部",
+    art_04_alt: "既有專案的迷你電腦與外接顯示卡示意圖",
+    art_04_caption: "既有專案示意圖",
+    art_09_alt: "公開音樂工作站的合成器與琴鍵介面；原圖包含雙語標籤",
+    art_09_caption: "公開介面・原圖含雙語",
+    art_02_alt: "公開 Arcade 遊戲主視覺中的西洋棋棋子",
+    art_02_caption: "Arcade 西洋棋主視覺",
+    art_10_alt: "Diablo II Resurrected 官方紅兜帽骷髏與遊戲標誌主視覺",
+    art_10_caption: "© Blizzard Entertainment・非官方玩家專案",
+    art_05_alt: "公開安全儲存示意圖，非私人簡報預覽",
+    art_05_caption: "公開示意圖・需權限",
+    art_06_alt: "中性介面示意圖；圖表為虛構，非市場行情",
+    art_06_caption: "示意圖・模擬資料",
+    art_08_alt: "中性畫框剪影，非私人典藏內容",
+    art_08_caption: "示意圖・不展示私人內容",
     brand_sub: "半導體 IP · 系統架構",
     skip_projects: "跳至專案",
     home_label: "專案入口首頁",
@@ -141,6 +167,32 @@ const I18N = {
     lang_zh: "繁中"
   },
   en: {
+    art_unavailable: "Preview unavailable",
+    art_credits: "Image sources & credits",
+    art_source: "Source",
+    wafer_credit: "Wafer photograph by Rob Bulmahn; displayed crop.",
+    d2r_credit: "Diablo II: Resurrected artwork and trademarks © Blizzard Entertainment, Inc. All rights reserved. This is an unofficial fan reference project, not affiliated with or endorsed by Blizzard.",
+    project_credit: "Other images reuse public project artwork or interface details. The private archive and simulated-data graphics are neutral illustrations; no private content is shown. Images are previews, not live embeds or proof of project functionality.",
+    art_01_alt: "NVM technology illustration",
+    art_01_caption: "Memory-cell technology study",
+    art_07_alt: "Patterned silicon wafer photographed by Rob Bulmahn",
+    art_07_caption: "Patterned silicon wafer",
+    art_03_alt: "Detail of the public E-Learning home interface",
+    art_03_caption: "Public interface detail",
+    art_04_alt: "Existing project illustration of a mini PC and external graphics card",
+    art_04_caption: "Existing project visual",
+    art_09_alt: "Public music workstation interface with synthesizer controls and piano keys; source contains bilingual labels",
+    art_09_caption: "Public interface · bilingual source",
+    art_02_alt: "Chess pieces from the public Arcade game artwork",
+    art_02_caption: "Arcade chess artwork",
+    art_10_alt: "Official Diablo II Resurrected key art with hooded skull and game logo",
+    art_10_caption: "© Blizzard Entertainment · Fan project",
+    art_05_alt: "Public security illustration, not a preview of private briefings",
+    art_05_caption: "Public illustration · access required",
+    art_06_alt: "Neutral interface illustration with a fictional chart, not market data",
+    art_06_caption: "Illustration · simulated data",
+    art_08_alt: "Neutral framed silhouettes, not private archive contents",
+    art_08_caption: "Illustration · private contents hidden",
     brand_sub: "Silicon IP · Systems Architecture",
     skip_projects: "Skip to projects",
     home_label: "Project portal home",
@@ -287,6 +339,12 @@ function applyLanguage(lang, persist = true) {
     if (dict[key] !== undefined) {
       el.textContent = dict[key];
     }
+  });
+
+  document.querySelectorAll("[data-i18n-alt]").forEach(image => {
+    image.alt = dict[image.dataset.i18nAlt];
+    const source = image.dataset[lang === "zh" ? "imageZh" : "imageEn"];
+    if (source && image.getAttribute("src") !== source) image.src = source;
   });
 
   document.querySelectorAll("[data-i18n-label]").forEach((el) => {
@@ -606,7 +664,18 @@ function initNavigation() {
   document.getElementById("commandTrigger").addEventListener("click", event => window.openCommandPalette(event.currentTarget));
 }
 
+function initProjectArt() {
+  document.querySelectorAll(".project-art img").forEach(image => {
+    const target = image.classList.contains("art-logo") ? image : image.closest(".project-art");
+    const update = () => target.classList.toggle("is-unavailable", image.complete && image.naturalWidth === 0);
+    image.addEventListener("error", update);
+    image.addEventListener("load", update);
+    if (image.complete) update();
+  });
+}
+
 function bootstrap() {
+  initProjectArt();
   initLanguage();
   initNavigation();
   initSiliconCanvas();
