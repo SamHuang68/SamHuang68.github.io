@@ -20,5 +20,5 @@ const expected={professional:['01','07','03','04'],leisure:['09','02','10']};for
 assert(html.includes('<html lang="en" data-lang="en"'));assert(!/<span class="node-serial">NODE/.test(html));
 const title=html.match(/<title>(.*?)<\/title>/)[1];assert(!/Sam Huang|samhuang|\bSH\b/i.test(title));
 const stack=[],voids=new Set(['meta','link','img','br','input','hr','source','wbr']);for(const [full,tag]of html.matchAll(/<\/?([a-z][\w-]*)(?:\s+[^>]*?)?\/?\s*>/gi)){if(full.startsWith('</'))assert.equal(stack.pop(),tag);else if(!voids.has(tag)&&!full.endsWith('/>'))stack.push(tag);}assert.equal(stack.length,0);
-const p=JSON.parse(await readFile('package.json','utf8')),l=JSON.parse(await readFile('package-lock.json','utf8'));assert.equal(p.version,'3.4.0');assert.equal(l.version,p.version);assert.equal(l.packages[''].version,p.version);assert(html.includes(`data-version="${p.version}"`));
+const p=JSON.parse(await readFile('package.json','utf8')),l=JSON.parse(await readFile('package-lock.json','utf8'));assert.equal(p.version,'3.4.1');assert.equal(l.version,p.version);assert.equal(l.packages[''].version,p.version);assert(html.includes(`data-version="${p.version}"`));
 console.log('分類、10個原URL、HTML／JS語法、雙語與版本核對通過。');if(process.argv.includes('--baseline-proof'))console.log('原作CSS／背景／兩個互動引擎完整保留。');
