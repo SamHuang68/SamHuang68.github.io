@@ -1,6 +1,12 @@
 # 原作分類微調首頁
 
-版本 **3.4.1**，已核准發布分類導航圖示。正式目的地 https://samhuang68.github.io/ ；實際提交、PR、CI 與部署證據見 `C:/Users/Sam/AI-Workspace/docs/portal/homepage-nav-icons/release.md`。
+版本 **3.4.2-preview.1**，專案卡片圖片的本機候選，未推送／PR／合併／部署；正式站仍為 3.4.1。
+
+本輪只替10張既有作品卡片加入短幅圖片：NVM技術圖、製程晶圓照片、學習與音樂公開介面、硬體與Arcade既有主視覺、D2R官方完整封面，以及3張不展示私有內容的主題圖。維持原背景、玻璃卡片、網格、導航圖示與全部URL。英文基礎HTML和繁中切換延續；新增alt、圖說、備援及來源說明皆雙語。素材詳見 [來源紀錄](assets/card-art/sources.md)。
+
+NucBox本機預覽 <http://127.0.0.1:4184/#professional>，休閒區 <http://127.0.0.1:4184/#leisure>。不是公開網址，未新增tunnel。候選SHA、8組限定驗證、實看與獨立複核見 `C:/Users/Sam/AI-Workspace/docs/portal/homepage-card-art/handoff.md`。
+
+以下為保留的3.4.1及更早版本說明；3.4.1發布證據見 `C:/Users/Sam/AI-Workspace/docs/portal/homepage-nav-icons/release.md`。
 
 本輪只為 Professional／Leisure／Contact 加入晶片、遊戲＋音符、對話卡 SVG 小圖示，保留原生連結與標籤。當前 hash 以細框與底線標示；鍵盤焦點另有外框。不新增分類、不改其他內容。候選預覽 http://127.0.0.1:4183/ 僅在 NucBox 可讀；完整 SHA、限定驗證與截圖見 `C:/Users/Sam/AI-Workspace/docs/portal/homepage-nav-icons/handoff.md`。下列說明保留原作分類微調的設計來源與既有操作。
 
