@@ -1,6 +1,6 @@
 {
   "name": "sam-huang-project-index",
-  "version": "3.4.2-preview.1",
+  "version": "3.4.2",
   "private": true,
   "type": "module",
   "scripts": {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 const args=Object.fromEntries(process.argv.slice(2).map(s=>s.replace(/^--/,'').split(/=(.*)/s).slice(0,2)));
 const {chromium}=await import(args.playwright||process.env.PLAYWRIGHT_MODULE||'playwright');
 const base=args.base||process.env.PORTAL_BASE_URL||'http://127.0.0.1:4176/',out=args.out||process.env.PORTAL_EVIDENCE_DIR||'qa-artifacts/original-refined';await mkdir(out,{recursive:true});
-const browser=await chromium.launch({headless:true}),report={version:'3.4.2-preview.1',browser:browser.version(),checks:[],errors:[],started:new Date().toISOString()};let page;
+const browser=await chromium.launch({headless:true}),report={version:'3.4.2',browser:browser.version(),checks:[],errors:[],started:new Date().toISOString()};let page;
 const check=async(name,fn)=>{if(args.only&&!name.includes(args.only))return;await fn();report.checks.push({name,status:'pass'});await writeFile(`${out}/progress.json`,JSON.stringify(report,null,2));};
 const context=async(opts={})=>{const c=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-TW',reducedMotion:'reduce',...opts});await c.route('**/*',r=>{const u=new URL(r.request().url());return u.origin===new URL(base).origin||['fonts.googleapis.com','fonts.gstatic.com'].includes(u.hostname)?r.continue():(report.errors.push('非首頁請求 '+u),r.abort());});return c;};
 const fresh=async(c,url=base)=>{page=await c.newPage();page.setDefaultTimeout(7000);page.on('pageerror',e=>report.errors.push(e.message));await page.goto(url,{waitUntil:'load'});return page;};
