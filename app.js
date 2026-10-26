@@ -564,6 +564,17 @@ function initNavigation() {
   new ResizeObserver(() => {
     document.documentElement.style.setProperty("--header-height", header.getBoundingClientRect().height + "px");
   }).observe(header);
+  const categoryLinks = header.querySelectorAll(".category-link");
+  const currentCategory = () => {
+    const aliases = { "#knowledge":"#professional", "#engineering":"#professional", "#creative":"#leisure", "#philosophy":"#contact", "#about":"#contact" };
+    const target = aliases[location.hash] || location.hash;
+    categoryLinks.forEach(link => {
+      if (link.getAttribute("href") === target) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    });
+  };
+  window.addEventListener("hashchange", currentCategory);
+  currentCategory();
   const revealPhilosophy = () => {
     if (["#philosophy", "#contact", "#about"].includes(location.hash)) {
       document.querySelector("#contact .philosophy-disclosure").open = true;

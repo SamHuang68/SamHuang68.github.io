@@ -2038,3 +2038,19 @@ button:focus-visible, summary:focus-visible, input:focus-visible, .nav-link:focu
 
 /* Retain published section bookmarks without changing the approved layout. */
 #knowledge, #engineering, #creative, #about { scroll-margin-top: calc(var(--header-height, 90px) + 24px); }
+
+/* 三個既有分類導覽：小型雙色徽章，保留原生同頁連結。 */
+.cockpit-nav .category-link { display:inline-flex; align-items:center; gap:7px; position:relative; min-height:42px; padding:5px 10px; border:1px solid transparent; border-radius:11px; white-space:nowrap; transition:background-color .16s, border-color .16s, box-shadow .16s; }
+.nav-miniature { display:inline-grid; place-items:center; width:30px; height:30px; flex:0 0 30px; border:1px solid #d9e5ec; border-radius:8px; background:linear-gradient(145deg,#fff 12%,#e8f0f5); box-shadow:inset 0 1px 0 #fff,0 2px 3px #2749690c; }
+.nav-miniature svg { width:28px; height:28px; display:block; }
+.nav-miniature-leisure { background:linear-gradient(145deg,#fff 12%,#ecf0fb); border-color:#dce2f0; }
+.cockpit-nav .category-link:hover { color:#235d79; background:#eff7fa; border-color:#d6e7ee; }
+.cockpit-nav .category-link[aria-current="location"] { color:#164d69; background:linear-gradient(135deg,#f9fdff,#eaf4f8); border-color:#bad4e0; box-shadow:0 2px 5px #294e6b08; }
+.category-link[aria-current="location"]::after { content:""; position:absolute; height:2px; width:20px; border-radius:2px; background:#247e95; bottom:2px; left:calc(50% - 10px); }
+.cockpit-nav .category-link:focus-visible { outline:2px solid #245cf5; outline-offset:3px; }
+@media (max-width:600px) {
+  .cockpit-nav .category-link { gap:5px; padding:5px 5px; min-height:40px; border-radius:9px; font-size:12px; }
+  .nav-miniature { width:24px; height:24px; flex-basis:24px; border-radius:7px; }
+  .nav-miniature svg { width:24px; height:24px; }
+}
+@media (prefers-reduced-motion:reduce) { .cockpit-nav .category-link { transition:none; } }

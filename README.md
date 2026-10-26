@@ -1,6 +1,8 @@
 # 原作分類微調首頁
 
-版本 **3.4.0**。正式目的地：https://samhuang68.github.io/ 。本輪已獲准發布 original-refined；實際推送、合併與部署狀態以同版本發布紀錄為準。
+版本 **3.4.1-preview.1**，僅本機分類導航圖示候選，沒有推送或發布。正式 3.4.0 維持原狀。
+
+本輪只為 Professional／Leisure／Contact 加入晶片、遊戲＋音符、對話卡 SVG 小圖示，保留原生連結與標籤。當前 hash 以細框與底線標示；鍵盤焦點另有外框。不新增分類、不改其他內容。候選預覽 http://127.0.0.1:4183/ 僅在 NucBox 可讀；完整 SHA、限定驗證與截圖見 `C:/Users/Sam/AI-Workspace/docs/portal/homepage-nav-icons/handoff.md`。下列說明保留原作分類微調的設計來源與既有操作。
 
 本候選直接從首次重整PR #10之前的原作 `c389121b424582c8a75f155cab95ef2d33003e55` 建立；其index.html blob為 `de539f3595f21dd3a1649c8dbe2b534396ac1bfc`，與最初核實來源一致。不是從Editorial、Studio或雙頁方案繼續改造。
 
