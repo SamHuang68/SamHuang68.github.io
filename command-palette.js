@@ -1,11 +1,155 @@
-// 快速導覽沿用原生 dialog、鍵盤選取與焦點復原；專案資訊直接讀取首頁。
+/**
+ * @fileoverview 全域架構指揮中心 (HUD Command Palette: Ctrl+K / ⌘K)
+ * 模組化設計：獨立管理鍵盤極速導航、全域快捷操作與模糊搜尋
+ */
+
 (() => {
   'use strict';
-  const ACTIONS = [
-    {id: 'act-lang', titleZh: '切換語言', titleEn: 'Switch language', descZh: '在繁體中文與英文之間切換', descEn: 'Switch between Traditional Chinese and English', badge: {zh: '設定', en: 'Setting'}, action: () => applyLanguage(document.documentElement.dataset.lang === 'en' ? 'zh' : 'en')},
-    {id: 'act-audio', titleZh: '切換操作音效', titleEn: 'Toggle interface sounds', descZh: '開啟或關閉按鈕與卡片微音效；預設靜音', descEn: 'Enable or mute subtle button and card sounds; muted by default', badge: '', action: () => window.SiliconAudio?.toggle()},
-    {id: 'act-xray', titleZh: '切換圖層檢視', titleEn: 'Toggle layer view', descZh: '以單色檢視首頁的知識中心作品畫面', descEn: 'Inspect the knowledge hub preview in monochrome', badge: '', action: () => document.body.classList.toggle('xray-mode')}
+
+  const COMMANDS = [
+    {
+      id: 'node-nvm',
+      titleZh: 'NVM Knowledge Hub',
+      titleEn: 'NVM Knowledge Hub',
+      searchAliases: "Node-01 半導體非揮發性記憶體物理與白皮書門戶 Semiconductor NVM foundations and whitepapers",
+      descZh: "透過 OTP、MTP、eFlash、PUF 與技術文獻，探索非揮發性記憶體及安全儲存。",
+      descEn: "Explore non-volatile memory and secure storage through OTP, MTP, eFlash, PUF and technical literature.",
+      action: () => (window.location.href = 'https://hub.samhuang68.org/'),
+      badge: 'LIVE WEB',
+    },
+    {
+      id: 'node-arcade',
+      titleZh: '多元遊戲大廳',
+      titleEn: 'Interactive Game Arcade',
+      searchAliases: "Node-02 涵蓋 3D 棋盤對弈、策略模擬與復古街機合輯 Interactive gaming suite featuring 21 titles",
+      descZh: "在瀏覽器探索棋盤、策略、空間益智與街機遊戲。",
+      descEn: "Board games, strategy, spatial puzzles and arcade experiences in the browser.",
+      action: () => (window.location.href = 'https://arcade.samhuang68.org/'),
+      badge: 'LIVE WEB',
+    },
+    {
+      id: 'node-learning',
+      titleZh: 'E-Learning 學習引擎',
+      titleEn: 'E-Learning Engine',
+      searchAliases: "Node-03 數學、物理、日語、多益與華語八軌引擎 Eight-track unified modular learning engine",
+      descZh: "數理、程式與語言的互動練習及學習資源。",
+      descEn: "Interactive practice and learning resources across STEM, computing and languages.",
+      action: () => (window.location.href = 'https://learn.samhuang68.org/'),
+      badge: 'LIVE WEB',
+    },
+    {
+      id: 'node-hardware',
+      titleZh: 'Hardware Profile',
+      titleEn: 'Hardware Profile',
+      searchAliases: "Node-04 AI 工作站、RTX 5080 eGPU 與工程硬體資產 Interactive asset profile detailing AI workstations",
+      descZh: "開發工作站、硬體規格與本機算力配置參考。",
+      descEn: "Development workstations, hardware specifications and local compute references.",
+      action: () => (window.location.href = 'https://hardware.samhuang68.org/'),
+      badge: 'LIVE WEB',
+    },
+    {
+      id: 'node-semi',
+      titleZh: 'Semiconductor Knowledge Hub',
+      titleEn: 'Semiconductor Knowledge Hub',
+      searchAliases: "Node-07 從沙子到晶片的晶圓製造與先進封裝知識門戶 From sand to silicon: wafer fabrication and packaging hub",
+      descZh: "從 FEOL、BEOL 到 CMOS 等整合技術，探索晶圓製造、製程整合與先進封裝。",
+      descEn: "Wafer fabrication, process integration and advanced packaging, from FEOL and BEOL to CMOS and beyond.",
+      action: () => (window.location.href = 'https://samhuang68.github.io/semiconductor-knowledge-hub/'),
+      badge: 'LIVE WEB',
+    },
+    {
+      id: 'node-guangxi',
+      titleZh: '光汐工作站',
+      titleEn: 'Guangxi Studio',
+      searchAliases: "Node-09 瀏覽器音樂創作：音色設計、演奏、八軌編曲與混音 In-browser music studio: sound design, playing, 8-track arrangement, and mixing",
+      descZh: "在瀏覽器探索音色、演奏與編曲的音樂工作站。",
+      descEn: "A browser music workstation for exploring sound, playing and arranging musical ideas.",
+      action: () => (window.location.href = 'https://guangxi-studio.samhuang68.workers.dev/'),
+      badge: 'LIVE WEB',
+    },
+    {
+      id: 'node-d2r-codex',
+      titleZh: '聖休亞瑞典藏中樞',
+      titleEn: 'D2R Sanctuary Codex',
+      searchAliases: "Node-10 暗黑 2 獄火重生：配裝模擬、技能樹、裝備與符文之語資料庫 Diablo II: Resurrected build simulator, skill tree, and gear and runeword database",
+      descZh: "暗黑破壞神 II：獄火重生的配裝模擬，以及技能、裝備與符文之語資料入口。",
+      descEn: "Build simulation and references for Diablo II: Resurrected skills, equipment and runewords.",
+      action: () => (window.location.href = 'https://d2r.samhuang68.org/'),
+      badge: 'LIVE WEB',
+    },
+    {
+      id: 'node-oip',
+      titleZh: 'Secure Storage OIP',
+      titleEn: 'Secure Storage OIP',
+      searchAliases: "Node-05 私人技術簡報與本機展示，需 GitHub 存取權限 Private briefings and local demos; GitHub access required",
+      descZh: "Secure Storage／OIP 私人技術簡報與本機展示工作區，整理硬體信任根（RoT）及非揮發性記憶體安全參考架構。",
+      descEn: "Private Secure Storage/OIP briefings and a local demo workspace for hardware Root of Trust and NVM security reference architectures.",
+      action: () => (window.location.href = 'https://github.com/SamHuang68/secure-storage-oip-briefing'),
+      badge: 'PRIVATE',
+    },
+    {
+      id: 'node-pulse',
+      titleZh: 'TW Pulse Terminal',
+      titleEn: 'TW Pulse Terminal',
+      searchAliases: "Node-06 私人模擬資料原型，非目前 Stock Terminal，沒有真實行情；需 GitHub 存取權限 Private simulated-data prototype, separate from the current Stock Terminal. No live market data; GitHub access required",
+      descZh: "私人模擬資料介面原型，非目前 Stock Terminal，沒有真實行情服務；需 GitHub 存取權限。",
+      descEn: "A private simulated-data interface prototype, separate from the current Stock Terminal. No live market data; GitHub access required.",
+      action: () => (window.location.href = 'https://github.com/SamHuang68/tw-pulse-terminal'),
+      badge: 'PRIVATE',
+    },
+    {
+      id: 'node-kaodata',
+      titleZh: '光榮武將臉譜（私人）',
+      titleEn: 'Portrait Archive (Private)',
+      searchAliases: "武將臉譜私人典藏，限擁有者登入 Private portrait archive; owner sign-in required",
+      descZh: "私人武將臉譜典藏，限擁有者登入；本頁僅提供入口。",
+      descEn: "Private character portrait collection. Owner sign-in required; this page provides only the entry point.",
+      action: () => (window.location.href = 'https://koei-portrait-archive.samhuang68.chatgpt.site'),
+      badge: 'PRIVATE',
+    },
+    {
+      id: 'act-lang',
+      titleZh: '切換語系 (Toggle Language: 中 / EN)',
+      titleEn: 'Toggle Language (ZH / EN)',
+      descZh: '即時雙向切換繁體中文與專業英文語意',
+      descEn: 'Switch interface between Traditional Chinese and English',
+      action: () => {
+        if (typeof window.toggleLanguage === 'function') window.toggleLanguage();
+      },
+      badge: 'ACTION',
+    },
+    {
+      id: 'act-audio',
+      titleZh: '切換晶片合成音效 (Toggle Silicon Audio)',
+      titleEn: 'Toggle Silicon Synthesizer Audio',
+      descZh: '開啟或關閉水波漣漪與晶片光學滴答微音',
+      descEn: 'Enable or disable liquid ripple and click sound FX',
+      action: () => {
+        if (window.SiliconAudio) {
+          const enabled = window.SiliconAudio.toggle();
+          const soundBtn = document.getElementById('soundToggle');
+          if (soundBtn) {
+            soundBtn.setAttribute('data-sound', enabled ? 'on' : 'off');
+            soundBtn.setAttribute('title', enabled ? '音效: 開啟 (點擊關閉)' : '音效: 靜音 (點擊開啟)');
+          }
+        }
+      },
+      badge: 'AUDIO',
+    },
+    {
+      id: 'act-xray',
+      titleZh: '切換 X-Ray 晶圓光罩透視圖層',
+      titleEn: 'Toggle X-Ray Lithography Layer View',
+      descZh: '透視晶圓 EDA 布圖走線與深層微結構',
+      descEn: 'Inspect underlying EDA layout and silicon circuitry',
+      action: () => {
+        document.body.classList.toggle('xray-mode');
+        if (window.SiliconAudio) window.SiliconAudio.playHud();
+      },
+      badge: 'X-RAY',
+    },
   ];
+
   const COPY = {
     zh: { title: '搜尋與指令', search: '搜尋專案或指令', close: '關閉搜尋', list: '專案與指令', empty: '沒有符合的專案或指令', hint: '↑ ↓ 選擇 · Enter 執行 · Esc 關閉', count: n => `${n} 個結果` },
     en: { title: 'Search & commands', search: 'Search projects or commands', close: 'Close search', list: 'Projects and commands', empty: 'No matching projects or commands', hint: '↑ ↓ Choose · Enter Run · Esc Close', count: n => `${n} ${n === 1 ? 'result' : 'results'}` },
@@ -13,72 +157,7 @@
   let modalEl, inputEl, listEl, statusEl;
   let returnFocus;
   let activeIndex = 0;
-  let filteredCommands = [];
-  const PROJECT_COPY = {
-  "nvm": [
-    "nvmTitle",
-    "nvmSummary"
-  ],
-  "semi": [
-    "semiTitle",
-    "semiDesc"
-  ],
-  "learn": [
-    "learnTitle",
-    "learnOutcome"
-  ],
-  "hardware": [
-    "hardwareTitle",
-    "hardwareDesc"
-  ],
-  "studio": [
-    "studioTitle",
-    "studioOutcome"
-  ],
-  "arcade": [
-    "arcadeTitle",
-    "arcadeDesc"
-  ],
-  "d2r": [
-    "d2rTitle",
-    "d2rDesc"
-  ],
-  "oip": [
-    "oipTitle",
-    "oipDesc"
-  ],
-  "pulse": [
-    "pulseTitle",
-    "pulseDesc"
-  ],
-  "portrait": [
-    "portraitTitle",
-    "portraitDesc"
-  ]
-};
-  // 保留3.1.0完整描述搜尋字串，顯示文案仍來自新版案例。
-  const SEARCH_ALIASES = {
-  "nvm": "探索 OTP、MTP、eFlash 與 PUF，串連非揮發性記憶體、安全儲存與技術白皮書。 Explore OTP, MTP, eFlash and PUF through connected resources on non-volatile memory, secure storage and technical whitepapers.",
-  "semi": "半導體製程知識庫 循著晶圓製造流程，理解電晶體、製程整合與先進封裝。 Semiconductor Process Hub Follow the wafer fabrication journey to understand transistors, process integration and advanced packaging.",
-  "learn": "結合數理、程式與語言學習，用互動練習與記憶排程累積理解。 Build understanding through interactive practice and spaced repetition across STEM, computing and languages.",
-  "hardware": "硬體與算力環境 整理開發工作站、硬體規格與本機 AI 算力配置，作為工程實作的參考。 Hardware & compute A reference for development workstations, hardware specifications and local AI compute configurations.",
-  "studio": "光汐工作站 在瀏覽器探索音色、演奏與編曲，讓音樂想法逐步成形。 Guangxi Studio Explore sound design, performance and arrangement in a browser-based music studio.",
-  "arcade": "多元遊戲大廳 從棋盤與策略到益智與街機，用瀏覽器開啟一段遊戲時光。 Interactive Game Arcade Make time for play with board games, strategy, puzzles and arcade experiences in your browser.",
-  "d2r": "聖休亞瑞典藏中樞 《暗黑破壞神 II：獄火重生》的配裝模擬與資料查詢入口，探索技能、裝備與符文之語。 D2R Sanctuary Codex Explore builds, skills, equipment and runewords for Diablo II: Resurrected through a simulator and reference library.",
-  "oip": "私人技術簡報與展示；需 GitHub 存取權限。 Private technical briefings and demos. GitHub access required.",
-  "pulse": "模擬資料介面原型，非目前 Stock Terminal，未提供真實行情；需 GitHub 存取權限。 A simulated-data interface prototype, separate from the current Stock Terminal. No live market data. GitHub access required.",
-  "portrait": "武將典藏 私人武將臉譜典藏；限擁有者登入。 Portrait Archive A private character portrait collection. Owner sign-in required."
-};
-  const getCommands = () => {
-    const lang = getLang();
-    const projects = [...document.querySelectorAll('[data-project],[data-private]')].map(link => {
-      const key = link.dataset.project || link.dataset.private;
-      const [title, description] = PROJECT_COPY[key];
-      const isPrivate = link.hasAttribute('data-private');
-      return {id: 'project-' + link.dataset.node, searchAliases: SEARCH_ALIASES[key], titleZh: I18N.zh[title], titleEn: I18N.en[title], descZh: I18N.zh[description], descEn: I18N.en[description], badge: isPrivate ? I18N[lang].restricted : (lang === 'zh' ? '公開網站' : 'Public site'), action: () => { window.location.href = link.href; }};
-    });
-    return [...projects, ...ACTIONS];
-  };
+  let filteredCommands = [...COMMANDS];
   const getLang = () => document.documentElement.dataset.lang === 'en' ? 'en' : 'zh';
   const closePalette = () => {
     if (!modalEl?.open) return;
@@ -120,7 +199,7 @@
       description.textContent = lang === 'zh' ? command.descZh : command.descEn;
       const badge = document.createElement('span');
       badge.className = 'cmd-item-badge';
-      badge.textContent = typeof command.badge === 'object' ? command.badge[lang] : command.badge;
+      badge.textContent = command.badge;
       if (command.id === 'act-audio' || command.id === 'act-xray') {
         const enabled = command.id === 'act-audio' ? window.SiliconAudio?.isEnabled() : document.body.classList.contains('xray-mode');
         badge.textContent = lang === 'zh' ? (enabled ? '已開啟' : '已關閉') : (enabled ? 'ON' : 'OFF');
@@ -136,7 +215,7 @@
   };
   const filterCommands = () => {
     const query = inputEl.value.trim().toLocaleLowerCase();
-    filteredCommands = getCommands().filter(command =>
+    filteredCommands = COMMANDS.filter(command =>
       [command.titleZh, command.titleEn, command.descZh, command.descEn, command.id, command.searchAliases || '']
         .some(value => value.toLocaleLowerCase().includes(query)));
     activeIndex = 0;
