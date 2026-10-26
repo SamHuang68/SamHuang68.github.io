@@ -25,7 +25,7 @@ for(const [full,tag] of html.matchAll(/<\/?([a-z][\w-]*)(?:\s+[^>]*?)?\/?\s*>/gi
 assert.equal(stack.length,0,'HTML 必須完整閉合');
 const pkg=JSON.parse(await readFile('package.json','utf8'));
 const lock=JSON.parse(await readFile('package-lock.json','utf8'));
-assert.equal(pkg.version,'3.1.0');assert.equal(lock.version,pkg.version);assert.equal(lock.packages[''].version,pkg.version);
+assert.equal(pkg.version,'3.2.0');assert.equal(lock.version,pkg.version);assert.equal(lock.packages[''].version,pkg.version);
 for (const filename of ['styles.css','audio-engine.js','app.js','command-palette.js']) assert(html.includes(`${filename}?v=${pkg.version}`));
 assert(css.includes('prefers-reduced-motion:reduce'));
 assert(!html.includes('effects.js'),'首頁不可載入原霓虹動態效果');
@@ -41,3 +41,7 @@ for(const match of html.matchAll(/<a\b[^>]*data-node="(\d+)"[^>]*>/g)) {
 assert.equal(expected.size,0,'十個原有目的網址皆須保留');
 for(const [,src] of html.matchAll(/(?:src|href)="((?:assets|fonts)\/[^"?]+)(?:\?[^"]*)?"/g)) await readFile(src);
 console.log(`首頁結構、十個目的網址、${Object.keys(dictionaries.en).length} 組雙語鍵、腳本語法與版本一致性通過。`);
+
+assert(html.includes('lang="en" data-lang="en" data-language="en"'), '基礎 HTML 必須為英文');
+assert(html.includes('data-version="3.2.0"'));
+assert(!/Sam Huang|samhuang|\bSH\b/i.test(html.match(/<title>(.*?)<\/title>/)[1]), '頁面標題不可有姓名');

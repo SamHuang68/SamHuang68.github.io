@@ -14,20 +14,68 @@
   let returnFocus;
   let activeIndex = 0;
   let filteredCommands = [];
+  const PROJECT_COPY = {
+  "nvm": [
+    "nvmTitle",
+    "nvmSummary"
+  ],
+  "semi": [
+    "semiTitle",
+    "semiDesc"
+  ],
+  "learn": [
+    "learnTitle",
+    "learnOutcome"
+  ],
+  "hardware": [
+    "hardwareTitle",
+    "hardwareDesc"
+  ],
+  "studio": [
+    "studioTitle",
+    "studioOutcome"
+  ],
+  "arcade": [
+    "arcadeTitle",
+    "arcadeDesc"
+  ],
+  "d2r": [
+    "d2rTitle",
+    "d2rDesc"
+  ],
+  "oip": [
+    "oipTitle",
+    "oipDesc"
+  ],
+  "pulse": [
+    "pulseTitle",
+    "pulseDesc"
+  ],
+  "portrait": [
+    "portraitTitle",
+    "portraitDesc"
+  ]
+};
+  // 保留3.1.0完整描述搜尋字串，顯示文案仍來自新版案例。
+  const SEARCH_ALIASES = {
+  "nvm": "探索 OTP、MTP、eFlash 與 PUF，串連非揮發性記憶體、安全儲存與技術白皮書。 Explore OTP, MTP, eFlash and PUF through connected resources on non-volatile memory, secure storage and technical whitepapers.",
+  "semi": "半導體製程知識庫 循著晶圓製造流程，理解電晶體、製程整合與先進封裝。 Semiconductor Process Hub Follow the wafer fabrication journey to understand transistors, process integration and advanced packaging.",
+  "learn": "結合數理、程式與語言學習，用互動練習與記憶排程累積理解。 Build understanding through interactive practice and spaced repetition across STEM, computing and languages.",
+  "hardware": "硬體與算力環境 整理開發工作站、硬體規格與本機 AI 算力配置，作為工程實作的參考。 Hardware & compute A reference for development workstations, hardware specifications and local AI compute configurations.",
+  "studio": "光汐工作站 在瀏覽器探索音色、演奏與編曲，讓音樂想法逐步成形。 Guangxi Studio Explore sound design, performance and arrangement in a browser-based music studio.",
+  "arcade": "多元遊戲大廳 從棋盤與策略到益智與街機，用瀏覽器開啟一段遊戲時光。 Interactive Game Arcade Make time for play with board games, strategy, puzzles and arcade experiences in your browser.",
+  "d2r": "聖休亞瑞典藏中樞 《暗黑破壞神 II：獄火重生》的配裝模擬與資料查詢入口，探索技能、裝備與符文之語。 D2R Sanctuary Codex Explore builds, skills, equipment and runewords for Diablo II: Resurrected through a simulator and reference library.",
+  "oip": "私人技術簡報與展示；需 GitHub 存取權限。 Private technical briefings and demos. GitHub access required.",
+  "pulse": "模擬資料介面原型，非目前 Stock Terminal，未提供真實行情；需 GitHub 存取權限。 A simulated-data interface prototype, separate from the current Stock Terminal. No live market data. GitHub access required.",
+  "portrait": "武將典藏 私人武將臉譜典藏；限擁有者登入。 Portrait Archive A private character portrait collection. Owner sign-in required."
+};
   const getCommands = () => {
     const lang = getLang();
-    const projects = [...document.querySelectorAll('[data-node]')].map(card => {
-      const isPrivate = card.classList.contains('private-link');
-      const title = card.querySelector('h3,strong');
-      const description = card.querySelector('.card-description') || card.querySelector('span');
-      const translated = (element, language) => I18N[language][element.dataset.i18n] || element.textContent;
-      return {
-        id: `project-${card.dataset.node}`,
-        titleZh: translated(title, 'zh'), titleEn: translated(title, 'en'),
-        descZh: translated(description, 'zh'), descEn: translated(description, 'en'),
-        badge: isPrivate ? (lang === 'zh' ? '需存取權限' : 'Access required') : (lang === 'zh' ? '公開網站' : 'Public site'),
-        action: () => { window.location.href = card.href; }
-      };
+    const projects = [...document.querySelectorAll('[data-project],[data-private]')].map(link => {
+      const key = link.dataset.project || link.dataset.private;
+      const [title, description] = PROJECT_COPY[key];
+      const isPrivate = link.hasAttribute('data-private');
+      return {id: 'project-' + link.dataset.node, searchAliases: SEARCH_ALIASES[key], titleZh: I18N.zh[title], titleEn: I18N.en[title], descZh: I18N.zh[description], descEn: I18N.en[description], badge: isPrivate ? I18N[lang].restricted : (lang === 'zh' ? '公開網站' : 'Public site'), action: () => { window.location.href = link.href; }};
     });
     return [...projects, ...ACTIONS];
   };
@@ -89,7 +137,7 @@
   const filterCommands = () => {
     const query = inputEl.value.trim().toLocaleLowerCase();
     filteredCommands = getCommands().filter(command =>
-      [command.titleZh, command.titleEn, command.descZh, command.descEn, command.id]
+      [command.titleZh, command.titleEn, command.descZh, command.descEn, command.id, command.searchAliases || '']
         .some(value => value.toLocaleLowerCase().includes(query)));
     activeIndex = 0;
     renderList();
