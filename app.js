@@ -1,239 +1,277 @@
-// 首頁 3.1.0：共用文字與作品畫面語系。
-"use strict";
+// 首頁內容權威來源；英文為無腳本與首次進入的基礎語系。
 const I18N = {
   "zh": {
-    "skip": "跳至主要內容",
-    "home": "Sam Huang 首頁",
+    "pageTitle": "技術作品集｜知識、工程與互動",
+    "home": "技術作品集首頁",
     "nav": "主要導覽",
-    "knowledge": "專業知識",
-    "engineering": "工程與學習",
-    "creative": "互動創作",
-    "about": "關於",
+    "skip": "跳至主要內容",
     "language": "切換語言",
     "zh": "繁中",
-    "quick": "快速導覽",
-    "eyebrow": "半導體知識 × 工程實作 × 互動創作",
-    "theme": "半導體知識 × 工程實作 × 互動創作",
-    "intro": "聚焦非揮發性記憶體與安全儲存，將複雜技術整理成可理解、可探索的知識與工具。",
-    "all": "所有作品",
-    "hero_caption": "從記憶單元，到系統與創作。",
-    "figure_note": "記憶、連結、可能性",
-    "works": "作品索引",
-    "knowledge_title": "半導體與安全儲存",
-    "knowledge_intro": "從元件原理到系統架構，建立理解技術的脈絡。",
-    "featured": "精選入口",
-    "nvm_desc": "探索 OTP、MTP、eFlash 與 PUF，串連非揮發性記憶體、安全儲存與技術白皮書。",
-    "nvm_tag1": "非揮發性記憶體",
-    "nvm_tag2": "安全儲存",
-    "nvm_tag3": "技術白皮書",
-    "nvm_cta": "探索知識中心",
-    "semi_title": "半導體製程知識庫",
-    "semi_desc": "循著晶圓製造流程，理解電晶體、製程整合與先進封裝。",
-    "semi_tag1": "晶圓製造",
-    "semi_tag2": "製程整合",
-    "semi_tag3": "先進封裝",
-    "semi_cta": "認識製程",
-    "engineering_title": "工程工具與學習",
-    "engineering_intro": "把知識帶進練習，也記錄讓想法落地的工具與環境。",
-    "learn_desc": "結合數理、程式與語言學習，用互動練習與記憶排程累積理解。",
-    "learn_tag1": "互動學習",
-    "learn_tag2": "數理與語言",
-    "learn_tag3": "記憶排程",
-    "learn_cta": "開始學習",
-    "hardware_title": "硬體與算力環境",
-    "hardware_desc": "整理開發工作站、硬體規格與本機 AI 算力配置，作為工程實作的參考。",
-    "hardware_tag1": "開發環境",
-    "hardware_tag2": "硬體規格",
-    "hardware_tag3": "本機 AI",
-    "hardware_cta": "查看環境",
-    "creative_title": "互動創作與遊戲",
-    "creative_intro": "讓技術走出文件，在聲音、遊戲與探索中成為體驗。",
-    "studio_title": "光汐工作站",
-    "studio_desc": "在瀏覽器探索音色、演奏與編曲，讓音樂想法逐步成形。",
-    "studio_tag1": "音樂創作",
-    "studio_tag2": "瀏覽器工作站",
-    "studio_tag3": "編曲與混音",
-    "studio_cta": "進入工作站",
-    "arcade_title": "多元遊戲大廳",
-    "arcade_desc": "從棋盤與策略到益智與街機，用瀏覽器開啟一段遊戲時光。",
-    "arcade_tag1": "策略與棋盤",
-    "arcade_tag2": "益智遊戲",
-    "arcade_tag3": "街機探索",
-    "arcade_cta": "挑一款遊戲",
-    "d2r_title": "聖休亞瑞典藏中樞",
-    "d2r_desc": "《暗黑破壞神 II：獄火重生》的配裝模擬與資料查詢入口，探索技能、裝備與符文之語。",
-    "d2r_tag1": "配裝模擬",
-    "d2r_tag2": "遊戲資料",
-    "d2r_tag3": "符文之語",
-    "d2r_cta": "探索典藏",
-    "about_title": "把技術整理成知識，\n讓想法成為作品。",
-    "about_text": "我是 Sam Huang。這裡收錄我對半導體與安全儲存的知識整理，以及工程工具、學習與互動創作的實作。從理解原理開始，持續把想法做成可探索的作品。",
-    "github": "在 GitHub 看更多",
-    "private": "私人工作區",
+    "en": "EN",
+    "field": "TECHNOLOGY / KNOWLEDGE / INTERACTION",
+    "edition": "技術與介面・作品選輯",
+    "navNvm": "NVM 主案例",
+    "navSelected": "精選成果",
+    "navExplore": "工程與創作",
+    "navContact": "Contact",
+    "heroTitle": "把技術的深度\n變成探索的起點",
+    "heroB": "從一個位元\n到一個可探索的世界",
+    "heroIntro": "聚焦非揮發性記憶體與安全儲存，將複雜原理整理為知識脈絡，再把想法做成可操作的介面。",
+    "ctaCase": "閱讀主案例",
+    "ctaWork": "探索作品",
+    "nvmKicker": "主案例 / 半導體與安全儲存",
+    "nvmTitle": "NVM Knowledge Hub",
+    "nvmLead": "讓記憶體知識\n有脈絡，也有入口",
+    "nvmSummary": "以元件原理為起點，串連 IP、製程、系統與公開文獻，讓不同任務有清楚的探索路徑。",
+    "challenge": "問題",
+    "approach": "做法",
+    "outcome": "可查看成果",
+    "nvmProblem": "記憶體議題橫跨物理、製程與系統，單一名詞清單難以串起完整脈絡。",
+    "nvmApproach": "以技術基礎、IP 與製程、應用與系統、文獻與工具四個視角，整理閱讀與探索入口。",
+    "nvmOutcome": "公開介面提供儲存狀態比較，以及選 NVM、估 SRAM 修復容量與準備技術說明的任務入口。",
+    "nvmOpen": "開啟知識中心",
+    "nvmTags": "非揮發性記憶體 / 安全儲存 / 技術文獻",
+    "sourceNvm": "公開作品實際介面 · 2026.10",
+    "nvmAlt": "NVM知識中心實際首頁與儲存狀態比較介面",
+    "diagramTitle": "一個位元，如何留下差異",
+    "diagramNote": "概念圖解，非實體晶片版圖或產品規格",
+    "stateA": "狀態 A",
+    "stateB": "狀態 B",
+    "stateNote": "儲存狀態的差異，成為讀取時可辨識的訊號。",
+    "device": "元件機制",
+    "organization": "知識脈絡",
+    "interface": "探索介面",
+    "diagramAlt": "記憶狀態到知識介面的概念示意，非實體晶片版圖",
+    "selectedKicker": "精選成果 / 工程與創作",
+    "selectedTitle": "讓知識可以練習\n讓想法可以參與",
+    "selectedIntro": "兩個不同的實作方向：一個以學習建立理解，一個把聲音探索帶進瀏覽器。",
+    "learnTitle": "E-Learning",
+    "learnLead": "讓學習有一個可進入的起點",
+    "learnProblem": "數理、程式與語言主題分散，學習需要看得見的主題與練習入口。",
+    "learnApproach": "將主題課程與互動練習整理在同一個學習介面中。",
+    "learnOutcome": "公開學習平台，提供課程主題導覽與練習入口。",
+    "learnOpen": "探索學習平台",
+    "learnTags": "互動學習 / 數理與語言",
+    "learnAlt": "E-Learning的課程主題與學習入口",
+    "sourceLearn": "公開學習平台實際介面 · 2026.10",
+    "studioTitle": "光汐工作站",
+    "studioLead": "把音色探索變成可操作的介面",
+    "studioProblem": "聲音的變化難以只靠文字理解，需要可以演奏與調整的探索介面。",
+    "studioApproach": "把音色控制、波形與鍵盤安排在同一個瀏覽器工作站。",
+    "studioOutcome": "Aurora Pad 介面展示音色參數、波形及演奏鍵盤，提供直接探索入口。",
+    "studioOpen": "進入工作站",
+    "studioTags": "聲音探索 / 瀏覽器工作站",
+    "studioAlt": "光汐Aurora Pad的原始雙語介面、波形與鍵盤",
+    "sourceStudio": "公開工作站實際介面 · 原站採中英標籤",
+    "exploreKicker": "延伸索引",
+    "exploreTitle": "繼續探索工程與創作",
+    "exploreIntro": "從製程與開發環境，到策略、遊戲資料與互動體驗。",
+    "semiTitle": "半導體製程知識庫",
+    "semiDesc": "晶圓製造、製程整合與先進封裝的知識入口。",
+    "hardwareTitle": "硬體與算力環境",
+    "hardwareDesc": "開發工作站、硬體規格與本機 AI 配置參考。",
+    "arcadeTitle": "多元遊戲大廳",
+    "arcadeDesc": "棋盤、策略、益智與街機的瀏覽器遊戲入口。",
+    "d2rTitle": "聖休亞瑞典藏中樞",
+    "d2rDesc": "D2R 配裝模擬與技能、裝備、符文之語資料入口。",
+    "open": "查看作品",
+    "contactTitle": "Contact / 關於這些作品",
+    "contactIntro": "持續整理半導體與安全儲存知識，也探索工程工具、學習與互動創作的不同可能。",
+    "github": "在 GitHub 查看更多作品",
+    "contactLabel": "Contact 聯絡區",
+    "privateTitle": "私人工作區",
     "restricted": "需存取權限",
-    "private_note": "以下為私人入口，僅供具權限者使用。",
-    "oip_desc": "私人技術簡報與展示；需 GitHub 存取權限。",
-    "pulse_desc": "模擬資料介面原型，非目前 Stock Terminal，未提供真實行情；需 GitHub 存取權限。",
-    "portrait_title": "武將典藏",
-    "portrait_desc": "私人武將臉譜典藏；限擁有者登入。",
-    "top": "回到頂端",
-    "footer": "知識・實作・探索",
+    "privateNote": "以下入口僅供具權限者使用。",
+    "oipTitle": "Secure Storage OIP",
+    "oipDesc": "私人技術簡報；需 GitHub 存取權限。",
+    "pulseTitle": "TW Pulse Terminal",
+    "pulseDesc": "模擬資料原型，非目前 Stock Terminal，沒有真實行情服務；需 GitHub 存取權限。",
+    "portraitTitle": "武將典藏",
+    "portraitDesc": "私人典藏，限擁有者登入。",
+    "footer": "知識 / 工程 / 互動",
+    "backTop": "回到頂端",
     "external": "於新分頁開啟",
-    "page_title": "Sam Huang｜半導體知識 × 工程實作 × 互動創作",
-    "edition": "SAM HUANG / 個人作品選輯",
-    "hero_line1": "理解技術的深度。",
-    "hero_line2": "做出想法的樣子。",
-    "feature_label": "精選專題 / 半導體與安全儲存",
-    "nvm_statement": "從一個位元，讀懂記憶體。",
-    "nvm_preview": "知識中心實際介面",
-    "nvm_alt": "NVM 知識中心首頁，包含技術任務入口與儲存狀態比較示意",
-    "feature_foot": "物理原理 → 技術選擇 → 系統脈絡",
-    "process_kicker": "延伸閱讀 / 製程與封裝",
-    "engineering_kicker": "將理解帶進日常實作",
-    "creative_kicker": "當技術成為可以參與的體驗",
-    "learn_preview": "學習平台實際介面",
-    "learn_alt": "E-Learning 學習平台首頁與課程主題",
-    "studio_preview": "工作站實際介面 · 原站採中英混排",
-    "studio_alt": "光汐工作站原始中英介面，顯示合成器控制、波形與鍵盤",
-    "arcade_preview": "遊戲大廳麻將主題 · 原站繁中",
-    "arcade_alt": "遊戲大廳的台灣十六張麻將主題畫面，原站繁中",
-    "tools_note": "工程筆記 / 開發環境",
-    "d2r_kicker": "遊戲資料與配裝探索",
-    "about_kicker": "關於 SAM HUANG",
-    "about_short": "知識有脈絡，\n作品有自己的樣子。"
+    "viewEvidence": "查看實際介面",
+    "closeEvidence": "關閉介面預覽",
+    "previewLabel": "作品介面預覽",
+    "quick": "快速導覽",
+    "search": "搜尋作品或設定",
+    "close": "關閉",
+    "noResult": "沒有符合項目",
+    "settings": "設定",
+    "sound": "切換操作音效",
+    "mono": "切換圖層檢視",
+    "on": "已開啟",
+    "off": "已關閉"
   },
   "en": {
-    "skip": "Skip to main content",
-    "home": "Sam Huang home",
+    "pageTitle": "Technology Portfolio | Knowledge, Engineering & Interaction",
+    "home": "Technology portfolio home",
     "nav": "Main navigation",
-    "knowledge": "Knowledge",
-    "engineering": "Engineering & learning",
-    "creative": "Creative work",
-    "about": "About",
-    "language": "Choose language",
+    "skip": "Skip to main content",
+    "language": "Switch language",
     "zh": "ZH",
-    "quick": "Quick navigation",
-    "eyebrow": "SEMICONDUCTORS × ENGINEERING × CREATIVE WORK",
-    "theme": "Semiconductor knowledge.\nEngineering. Creative exploration.",
-    "intro": "Exploring non-volatile memory and secure storage, turning complex technology into knowledge and tools you can understand and explore.",
-    "all": "Explore all work",
-    "hero_caption": "From memory cells to systems and creative work.",
-    "figure_note": "MEMORY, CONNECTIONS, POSSIBILITIES",
-    "works": "SELECTED WORK",
-    "knowledge_title": "Semiconductors & secure storage",
-    "knowledge_intro": "Build a clearer picture of technology, from device fundamentals to system architecture.",
-    "featured": "FEATURED PROJECT",
-    "nvm_desc": "Explore OTP, MTP, eFlash and PUF through connected resources on non-volatile memory, secure storage and technical whitepapers.",
-    "nvm_tag1": "Non-volatile memory",
-    "nvm_tag2": "Secure storage",
-    "nvm_tag3": "Whitepapers",
-    "nvm_cta": "Explore the knowledge hub",
-    "semi_title": "Semiconductor Process Hub",
-    "semi_desc": "Follow the wafer fabrication journey to understand transistors, process integration and advanced packaging.",
-    "semi_tag1": "Wafer fabrication",
-    "semi_tag2": "Process integration",
-    "semi_tag3": "Advanced packaging",
-    "semi_cta": "Explore the process",
-    "engineering_title": "Engineering tools & learning",
-    "engineering_intro": "Put knowledge into practice, and document the tools and environments behind the work.",
-    "learn_desc": "Build understanding through interactive practice and spaced repetition across STEM, computing and languages.",
-    "learn_tag1": "Interactive learning",
-    "learn_tag2": "STEM & languages",
-    "learn_tag3": "Spaced repetition",
-    "learn_cta": "Start learning",
-    "hardware_title": "Hardware & compute",
-    "hardware_desc": "A reference for development workstations, hardware specifications and local AI compute configurations.",
-    "hardware_tag1": "Development setup",
-    "hardware_tag2": "Hardware specs",
-    "hardware_tag3": "Local AI",
-    "hardware_cta": "View the setup",
-    "creative_title": "Creative work & games",
-    "creative_intro": "Take technology beyond the page through sound, play and exploration.",
-    "studio_title": "Guangxi Studio",
-    "studio_desc": "Explore sound design, performance and arrangement in a browser-based music studio.",
-    "studio_tag1": "Music creation",
-    "studio_tag2": "Browser studio",
-    "studio_tag3": "Arrange & mix",
-    "studio_cta": "Open the studio",
-    "arcade_title": "Interactive Game Arcade",
-    "arcade_desc": "Make time for play with board games, strategy, puzzles and arcade experiences in your browser.",
-    "arcade_tag1": "Strategy & boards",
-    "arcade_tag2": "Puzzles",
-    "arcade_tag3": "Arcade play",
-    "arcade_cta": "Find a game",
-    "d2r_title": "D2R Sanctuary Codex",
-    "d2r_desc": "Explore builds, skills, equipment and runewords for Diablo II: Resurrected through a simulator and reference library.",
-    "d2r_tag1": "Build simulation",
-    "d2r_tag2": "Game reference",
-    "d2r_tag3": "Runewords",
-    "d2r_cta": "Explore the codex",
-    "about_title": "Make technology understandable.\nTurn ideas into things to explore.",
-    "about_text": "I’m Sam Huang. This is a collection of my work in semiconductor and secure storage knowledge, engineering tools, learning and creative experiments. I start with the fundamentals and turn ideas into work you can explore.",
-    "github": "Find more on GitHub",
-    "private": "Private workspace",
+    "en": "EN",
+    "field": "TECHNOLOGY / KNOWLEDGE / INTERACTION",
+    "edition": "A SELECTION OF TECHNICAL WORK",
+    "navNvm": "NVM case study",
+    "navSelected": "Selected work",
+    "navExplore": "Explore",
+    "navContact": "Contact",
+    "heroTitle": "Technical depth.\nA way to explore.",
+    "heroB": "From a single bit\nto a world to explore",
+    "heroIntro": "Exploring non-volatile memory and secure storage through connected knowledge, then turning ideas into interfaces you can use.",
+    "ctaCase": "Read the case study",
+    "ctaWork": "Explore the work",
+    "nvmKicker": "MAIN CASE / SEMICONDUCTORS & SECURE STORAGE",
+    "nvmTitle": "NVM Knowledge Hub",
+    "nvmLead": "Memory knowledge,\nwith context and direction",
+    "nvmSummary": "Start with device principles and connect IP, process, systems and public literature through clear paths for different tasks.",
+    "challenge": "Challenge",
+    "approach": "Approach",
+    "outcome": "Available work",
+    "nvmProblem": "Memory topics span physics, fabrication and systems. A list of terms alone cannot connect that context.",
+    "nvmApproach": "Organize entry points around four perspectives: fundamentals, IP and process, applications and systems, and literature and tools.",
+    "nvmOutcome": "The public interface presents storage-state comparisons and entry points for choosing NVM, estimating SRAM repair capacity and preparing a technical explanation.",
+    "nvmOpen": "Open the knowledge hub",
+    "nvmTags": "Non-volatile memory / Secure storage / Technical literature",
+    "sourceNvm": "Public interface detail · captured 2026.10",
+    "nvmAlt": "Detail of the actual English NVM Knowledge Hub overview and entry buttons",
+    "diagramTitle": "How a bit leaves a difference",
+    "diagramNote": "Conceptual illustration, not a physical floorplan or product specification",
+    "stateA": "State A",
+    "stateB": "State B",
+    "stateNote": "A difference in stored state becomes a distinguishable signal when read.",
+    "device": "Device mechanism",
+    "organization": "Knowledge structure",
+    "interface": "Exploration interface",
+    "diagramAlt": "Conceptual illustration from memory states to a knowledge interface, not a physical chip floorplan",
+    "selectedKicker": "SELECTED WORK / ENGINEERING & CREATION",
+    "selectedTitle": "Knowledge to practice.\nIdeas to experience.",
+    "selectedIntro": "Two directions in practice: one builds understanding through learning; the other brings sound exploration into the browser.",
+    "learnTitle": "E-Learning",
+    "learnLead": "A clear starting point for learning",
+    "learnProblem": "STEM, computing and language topics are scattered. Learning needs visible topics and ways to practice.",
+    "learnApproach": "Bring topic-based courses and interactive practice into one learning interface.",
+    "learnOutcome": "A public learning platform with course-topic navigation and entry points for practice.",
+    "learnOpen": "Explore the learning platform",
+    "learnTags": "Interactive learning / STEM & languages",
+    "learnAlt": "E-Learning course topics and entry points",
+    "sourceLearn": "Actual public learning interface · captured 2026.10",
+    "studioTitle": "Guangxi Studio",
+    "studioLead": "An interface for exploring sound",
+    "studioProblem": "Changes in sound are difficult to grasp through text alone. Exploration needs a playable, adjustable interface.",
+    "studioApproach": "Bring sound controls, waveforms and a keyboard into a browser-based studio.",
+    "studioOutcome": "The Aurora Pad interface presents sound parameters, waveforms and a performance keyboard, with a direct entry point to explore.",
+    "studioOpen": "Open the studio",
+    "studioTags": "Sound exploration / Browser studio",
+    "studioAlt": "Original bilingual Guangxi Aurora Pad interface, waveforms and keyboard",
+    "sourceStudio": "Actual public studio interface · original bilingual labels",
+    "exploreKicker": "FURTHER EXPLORATION",
+    "exploreTitle": "Engineering, reference and play",
+    "exploreIntro": "From processes and development environments to strategy, game reference and interactive experiences.",
+    "semiTitle": "Semiconductor Process Hub",
+    "semiDesc": "Knowledge on wafer fabrication, process integration and advanced packaging.",
+    "hardwareTitle": "Hardware & compute",
+    "hardwareDesc": "A reference for development workstations, hardware specifications and local AI setups.",
+    "arcadeTitle": "Interactive Game Arcade",
+    "arcadeDesc": "Browser entry points for board games, strategy, puzzles and arcade play.",
+    "d2rTitle": "D2R Sanctuary Codex",
+    "d2rDesc": "Build simulation and references for D2R skills, equipment and runewords.",
+    "open": "View the work",
+    "contactTitle": "Contact / About the work",
+    "contactIntro": "An ongoing collection of semiconductor and secure storage knowledge, engineering tools, learning and creative experiments.",
+    "github": "Explore more work on GitHub",
+    "contactLabel": "Contact section",
+    "privateTitle": "Private workspace",
     "restricted": "Access required",
-    "private_note": "These private resources are available only to authorized users.",
-    "oip_desc": "Private technical briefings and demos. GitHub access required.",
-    "pulse_desc": "A simulated-data interface prototype, separate from the current Stock Terminal. No live market data. GitHub access required.",
-    "portrait_title": "Portrait Archive",
-    "portrait_desc": "A private character portrait collection. Owner sign-in required.",
-    "top": "Back to top",
-    "footer": "KNOWLEDGE · PRACTICE · EXPLORATION",
+    "privateNote": "These resources are available only to authorized users.",
+    "oipTitle": "Secure Storage OIP",
+    "oipDesc": "Private technical briefings. GitHub access required.",
+    "pulseTitle": "TW Pulse Terminal",
+    "pulseDesc": "A simulated-data prototype, separate from the current Stock Terminal. No live market data. GitHub access required.",
+    "portraitTitle": "Portrait Archive",
+    "portraitDesc": "Private collection. Owner sign-in required.",
+    "footer": "KNOWLEDGE / ENGINEERING / INTERACTION",
+    "backTop": "Back to top",
     "external": "Opens in a new tab",
-    "page_title": "Sam Huang | Semiconductor knowledge, engineering & creative work",
-    "edition": "SAM HUANG / SELECTED WORK",
-    "hero_line1": "Understand deeply.",
-    "hero_line2": "Build thoughtfully.",
-    "feature_label": "FEATURED / SEMICONDUCTORS & SECURE STORAGE",
-    "nvm_statement": "A deeper look inside a bit.",
-    "nvm_preview": "Actual knowledge hub interface",
-    "nvm_alt": "NVM Knowledge Hub homepage with technical task entry points and a storage-state comparison",
-    "feature_foot": "PHYSICS → TECHNOLOGY → SYSTEM CONTEXT",
-    "process_kicker": "COMPANION / PROCESS & PACKAGING",
-    "engineering_kicker": "PUT KNOWLEDGE TO WORK",
-    "creative_kicker": "TECHNOLOGY YOU CAN EXPERIENCE",
-    "learn_preview": "Actual learning platform interface",
-    "learn_alt": "E-Learning homepage and course topics",
-    "studio_preview": "Actual studio interface · original bilingual labels",
-    "studio_alt": "Original bilingual Guangxi interface showing synthesizer controls, waveforms and a keyboard",
-    "arcade_preview": "Arcade mahjong theme · original Chinese edition",
-    "arcade_alt": "Taiwanese mahjong theme from the arcade, in the original Chinese edition",
-    "tools_note": "ENGINEERING NOTES / DEVELOPMENT SETUP",
-    "d2r_kicker": "GAME REFERENCE & BUILD EXPLORATION",
-    "about_kicker": "ABOUT SAM HUANG",
-    "about_short": "Knowledge with context.\nWork with character."
+    "viewEvidence": "View the actual interface",
+    "closeEvidence": "Close interface preview",
+    "previewLabel": "Project interface preview",
+    "quick": "Quick navigation",
+    "search": "Search work or settings",
+    "close": "Close",
+    "noResult": "No matching items",
+    "settings": "Settings",
+    "sound": "Toggle interface sounds",
+    "mono": "Toggle layer view",
+    "on": "On",
+    "off": "Off"
   }
 };
-function applyLanguage(value) {
-  const lang = value === 'en' ? 'en' : 'zh';
+function readInitialLanguage() {
+  const query = new URLSearchParams(location.search).get('lang');
+  if (query === 'en' || query === 'zh') return query;
+  try {
+    const saved = JSON.parse(localStorage.getItem('portal_language_choice_v1'));
+    if (saved?.source === 'explicit' && (saved.language === 'en' || saved.language === 'zh')) return saved.language;
+  } catch { /* 無儲存權限、損壞記錄皆使用英文。 */ }
+  return 'en';
+}
+function applyLanguage(value, persist = true) {
+  const lang = value === 'zh' ? 'zh' : 'en';
   const dictionary = I18N[lang];
   document.documentElement.lang = lang === 'en' ? 'en' : 'zh-Hant';
   document.documentElement.dataset.lang = lang;
-  document.querySelectorAll('[data-i18n]').forEach(element => {
-    element.textContent = dictionary[element.dataset.i18n];
+  document.documentElement.dataset.language = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = dictionary[el.dataset.i18n]; });
+  document.querySelectorAll('[data-i18n-label]').forEach(el => { el.setAttribute('aria-label', dictionary[el.dataset.i18nLabel]); });
+  document.querySelectorAll('[data-i18n-alt]').forEach(el => { el.alt = dictionary[el.dataset.i18nAlt]; });
+  document.querySelectorAll('[data-language-image]').forEach(el => {
+    const name = el.dataset.languageImage;
+    el.src = `assets/${name}-${lang}.jpg`;
+    el.closest('[data-evidence]')?.classList.toggle('evidence-crop', name === 'nvm' && lang === 'en');
   });
-  document.querySelectorAll('[data-i18n-label]').forEach(element => {
-    element.setAttribute('aria-label', dictionary[element.dataset.i18nLabel]);
-  });
-  document.querySelectorAll('[data-i18n-alt]').forEach(element => { element.alt = dictionary[element.dataset.i18nAlt]; });
-  document.querySelectorAll('[data-language-image]').forEach(element => {
-    const name = element.dataset.languageImage;
-    element.src = `assets/${name}-${lang}.jpg`;
-  });
-  document.querySelectorAll('[data-target-lang]').forEach(button => {
-    button.setAttribute('aria-pressed', String(button.dataset.targetLang === lang));
-  });
-  document.title = dictionary.page_title;
-  document.querySelector('meta[name="description"]').content = dictionary.intro;
-  document.querySelector('meta[property="og:title"]').content = dictionary.page_title;
-  document.querySelector('meta[property="og:description"]').content = dictionary.intro;
-  try { localStorage.setItem('sh_portal_lang', lang); } catch { /* 無儲存權限時仍可切換。 */ }
+  document.querySelectorAll('[data-target-lang]').forEach(button => { button.setAttribute('aria-pressed', String(button.dataset.targetLang === lang)); });
+  document.title = dictionary.pageTitle;
+  document.querySelector('meta[name="description"]').content = dictionary.heroIntro;
+  document.querySelector('meta[property="og:title"]').content = dictionary.pageTitle;
+  document.querySelector('meta[property="og:description"]').content = dictionary.heroIntro;
+  if (persist) {
+    try { localStorage.setItem('portal_language_choice_v1', JSON.stringify({language: lang, source: 'explicit'})); } catch { /* 當次切換仍生效。 */ }
+    // 手動選擇優先於舊網址上的 query；下一次重新載入須維持使用者選擇。
+    const url = new URL(location.href);if(url.searchParams.has('lang')) { url.searchParams.delete('lang');history.replaceState(null,'',url); }
+  }
   document.dispatchEvent(new CustomEvent('portal-languagechange'));
 }
-let initialLanguage = 'zh';
-try { if (localStorage.getItem('sh_portal_lang') === 'en') initialLanguage = 'en'; } catch { /* 預設繁中。 */ }
-applyLanguage(initialLanguage);
+applyLanguage(readInitialLanguage(), false);
 document.querySelectorAll('[data-target-lang]').forEach(button => button.addEventListener('click', () => applyLanguage(button.dataset.targetLang)));
 document.getElementById('commandTrigger').addEventListener('click', event => window.openCommandPalette(event.currentTarget));
-document.querySelectorAll('.project-card').forEach(card => card.addEventListener('pointerenter', () => window.SiliconAudio?.playHover()));
-document.addEventListener('click', event => { if (event.target.closest('a,button,summary')) window.SiliconAudio?.playClick(); });
+
+// 真實作品圖片放大，保留語系對應與來源局部範圍。
+(() => {
+  let returnFocus;
+  const dialog = document.createElement('dialog');dialog.className = 'evidence-dialog';dialog.id = 'evidenceModal';dialog.setAttribute('aria-labelledby','evidence-title');
+  dialog.innerHTML = '<div class="dialog-top"><h2 id="evidence-title"></h2><button class="dialog-close" type="button">×</button></div><div class="evidence-image"><img alt=""></div>';
+  document.body.append(dialog);
+  const close = () => { dialog.close();if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true}); };
+  const refresh = () => {
+    const copy=I18N[document.documentElement.dataset.lang];
+    dialog.querySelector('h2').textContent=copy.previewLabel;dialog.querySelector('button').setAttribute('aria-label',copy.closeEvidence);
+    const source=returnFocus?.querySelector('img');
+    if(source){dialog.querySelector('img').src=source.src;dialog.querySelector('img').alt=source.alt;dialog.querySelector('.evidence-image').classList.toggle('evidence-crop',returnFocus.classList.contains('evidence-crop'));}
+  };
+  document.addEventListener('portal-languagechange',refresh);refresh();
+  dialog.querySelector('button').addEventListener('click',close);
+  dialog.addEventListener('keydown',event => { if(event.key==='Tab'){event.preventDefault();dialog.querySelector('button').focus();} });
+  dialog.addEventListener('cancel',event => { event.preventDefault();close(); });
+  dialog.addEventListener('click',event => { const box=dialog.getBoundingClientRect();if(event.target===dialog&&(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom))close(); });
+  document.querySelectorAll('[data-evidence]').forEach(button => {
+    button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','evidenceModal');
+    button.addEventListener('click',() => {
+      returnFocus = button;refresh();dialog.showModal();
+    });
+  });
+})();
+document.querySelectorAll('[data-project]').forEach(link => link.addEventListener('pointerenter', () => window.SiliconAudio?.playHover()));
+document.addEventListener('click',event => { if(event.target.closest('a,button,summary'))window.SiliconAudio?.playClick(); });
