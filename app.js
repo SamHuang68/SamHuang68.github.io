@@ -1,277 +1,611 @@
-// 首頁內容權威來源；英文為無腳本與首次進入的基礎語系。
+/**
+ * @fileoverview Sam Huang Project Portal — Application Runtime
+ * Semiconductor & Systems Portal with Interactive Silicon Canvas,
+ * Bilingual i18n (ZH/EN), Card Specular Tracking, and Telemetry Counters.
+ */
+
+"use strict";
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   雙語詞典 (BILINGUAL DICTIONARY - TRADITIONAL CHINESE / ENGLISH)
+   ══════════════════════════════════════════════════════════════════════════════ */
 const I18N = {
-  "zh": {
-    "pageTitle": "技術作品集｜知識、工程與互動",
-    "home": "技術作品集首頁",
-    "nav": "主要導覽",
-    "skip": "跳至主要內容",
-    "language": "切換語言",
-    "zh": "繁中",
-    "en": "EN",
-    "field": "TECHNOLOGY / KNOWLEDGE / INTERACTION",
-    "edition": "技術與介面・作品選輯",
-    "navNvm": "NVM 主案例",
-    "navSelected": "精選成果",
-    "navExplore": "工程與創作",
-    "navContact": "Contact",
-    "heroTitle": "把技術的深度\n變成探索的起點",
-    "heroB": "從一個位元\n到一個可探索的世界",
-    "heroIntro": "聚焦非揮發性記憶體與安全儲存，將複雜原理整理為知識脈絡，再把想法做成可操作的介面。",
-    "ctaCase": "閱讀主案例",
-    "ctaWork": "探索作品",
-    "nvmKicker": "主案例 / 半導體與安全儲存",
-    "nvmTitle": "NVM Knowledge Hub",
-    "nvmLead": "讓記憶體知識\n有脈絡，也有入口",
-    "nvmSummary": "以元件原理為起點，串連 IP、製程、系統與公開文獻，讓不同任務有清楚的探索路徑。",
-    "challenge": "問題",
-    "approach": "做法",
-    "outcome": "可查看成果",
-    "nvmProblem": "記憶體議題橫跨物理、製程與系統，單一名詞清單難以串起完整脈絡。",
-    "nvmApproach": "以技術基礎、IP 與製程、應用與系統、文獻與工具四個視角，整理閱讀與探索入口。",
-    "nvmOutcome": "公開介面提供儲存狀態比較，以及選 NVM、估 SRAM 修復容量與準備技術說明的任務入口。",
-    "nvmOpen": "開啟知識中心",
-    "nvmTags": "非揮發性記憶體 / 安全儲存 / 技術文獻",
-    "sourceNvm": "公開作品實際介面 · 2026.10",
-    "nvmAlt": "NVM知識中心實際首頁與儲存狀態比較介面",
-    "diagramTitle": "一個位元，如何留下差異",
-    "diagramNote": "概念圖解，非實體晶片版圖或產品規格",
-    "stateA": "狀態 A",
-    "stateB": "狀態 B",
-    "stateNote": "儲存狀態的差異，成為讀取時可辨識的訊號。",
-    "device": "元件機制",
-    "organization": "知識脈絡",
-    "interface": "探索介面",
-    "diagramAlt": "記憶狀態到知識介面的概念示意，非實體晶片版圖",
-    "selectedKicker": "精選成果 / 工程與創作",
-    "selectedTitle": "讓知識可以練習\n讓想法可以參與",
-    "selectedIntro": "兩個不同的實作方向：一個以學習建立理解，一個把聲音探索帶進瀏覽器。",
-    "learnTitle": "E-Learning",
-    "learnLead": "讓學習有一個可進入的起點",
-    "learnProblem": "數理、程式與語言主題分散，學習需要看得見的主題與練習入口。",
-    "learnApproach": "將主題課程與互動練習整理在同一個學習介面中。",
-    "learnOutcome": "公開學習平台，提供課程主題導覽與練習入口。",
-    "learnOpen": "探索學習平台",
-    "learnTags": "互動學習 / 數理與語言",
-    "learnAlt": "E-Learning的課程主題與學習入口",
-    "sourceLearn": "公開學習平台實際介面 · 2026.10",
-    "studioTitle": "光汐工作站",
-    "studioLead": "把音色探索變成可操作的介面",
-    "studioProblem": "聲音的變化難以只靠文字理解，需要可以演奏與調整的探索介面。",
-    "studioApproach": "把音色控制、波形與鍵盤安排在同一個瀏覽器工作站。",
-    "studioOutcome": "Aurora Pad 介面展示音色參數、波形及演奏鍵盤，提供直接探索入口。",
-    "studioOpen": "進入工作站",
-    "studioTags": "聲音探索 / 瀏覽器工作站",
-    "studioAlt": "光汐Aurora Pad的原始雙語介面、波形與鍵盤",
-    "sourceStudio": "公開工作站實際介面 · 原站採中英標籤",
-    "exploreKicker": "延伸索引",
-    "exploreTitle": "繼續探索工程與創作",
-    "exploreIntro": "從製程與開發環境，到策略、遊戲資料與互動體驗。",
-    "semiTitle": "半導體製程知識庫",
-    "semiDesc": "晶圓製造、製程整合與先進封裝的知識入口。",
-    "hardwareTitle": "硬體與算力環境",
-    "hardwareDesc": "開發工作站、硬體規格與本機 AI 配置參考。",
-    "arcadeTitle": "多元遊戲大廳",
-    "arcadeDesc": "棋盤、策略、益智與街機的瀏覽器遊戲入口。",
-    "d2rTitle": "聖休亞瑞典藏中樞",
-    "d2rDesc": "D2R 配裝模擬與技能、裝備、符文之語資料入口。",
-    "open": "查看作品",
-    "contactTitle": "Contact / 關於這些作品",
-    "contactIntro": "持續整理半導體與安全儲存知識，也探索工程工具、學習與互動創作的不同可能。",
-    "github": "在 GitHub 查看更多作品",
-    "contactLabel": "Contact 聯絡區",
-    "privateTitle": "私人工作區",
-    "restricted": "需存取權限",
-    "privateNote": "以下入口僅供具權限者使用。",
-    "oipTitle": "Secure Storage OIP",
-    "oipDesc": "私人技術簡報；需 GitHub 存取權限。",
-    "pulseTitle": "TW Pulse Terminal",
-    "pulseDesc": "模擬資料原型，非目前 Stock Terminal，沒有真實行情服務；需 GitHub 存取權限。",
-    "portraitTitle": "武將典藏",
-    "portraitDesc": "私人典藏，限擁有者登入。",
-    "footer": "知識 / 工程 / 互動",
-    "backTop": "回到頂端",
-    "external": "於新分頁開啟",
-    "viewEvidence": "查看實際介面",
-    "closeEvidence": "關閉介面預覽",
-    "previewLabel": "作品介面預覽",
-    "quick": "快速導覽",
-    "search": "搜尋作品或設定",
-    "close": "關閉",
-    "noResult": "沒有符合項目",
-    "settings": "設定",
-    "sound": "切換操作音效",
-    "mono": "切換圖層檢視",
-    "on": "已開啟",
-    "off": "已關閉"
+  zh: {
+    brand_sub: "半導體 IP · 系統架構",
+    skip_projects: "跳至專案",
+    home_label: "專案入口首頁",
+    nav_label: "全域導覽",
+    language_label: "語言切換",
+    top_label: "回到頁首",
+    command_label: "搜尋與指令",
+    nav_projects: "專業",
+    nav_philosophy: "Contact",
+    status_online: "10 專案資源",
+    hero_telemetry: "PROJECT PORTAL · TAIWAN 2026 · SILICON ARCHITECTURE",
+    hero_headline_1: "從架構規劃",
+    hero_headline_2: "到可探索的專案",
+    hero_mission: "半導體知識、工程工具與互動作品，依專業或休閒探索。",
+    cta_explore: "探索專案",
+    cta_github: "Contact",
+    metric_nodes: "專業",
+    metric_live: "休閒",
+    metric_arcade: "公開入口",
+    metric_tracks: "需權限",
+    matrix_kicker: "知識與工程",
+    matrix_title: "專業",
+    matrix_subtitle: "半導體、工程參考與學習資源。",
+    badge_live: "公開網站",
+    badge_source: "私人儲存庫",
+    node01_domain: "SEMICONDUCTOR IP · RESEARCH",
+    node01_desc: "透過 OTP、MTP、eFlash、PUF 與技術文獻，探索非揮發性記憶體及安全儲存。",
+    node01_action: "記憶體與安全",
+    open_hub: "Open Hub",
+    node02_domain: "INTERACTIVE SYSTEMS · ARCADE",
+    node02_title: "多元遊戲大廳",
+    node02_desc: "在瀏覽器探索棋盤、策略、空間益智與街機遊戲。",
+    node02_action: "瀏覽器遊戲",
+    enter_arcade: "Enter Arcade",
+    node03_domain: "數理 · 程式 · 語言",
+    node03_desc: "數理、程式與語言的互動練習及學習資源。",
+    node03_action: "學習",
+    start_learning: "Start Learning",
+    node04_domain: "HARDWARE · ENGINEERING PROFILE",
+    node04_desc: "開發工作站、硬體規格與本機算力配置參考。",
+    node04_action: "硬體",
+    view_rig: "View Rig",
+    node07_domain: "SEMICONDUCTOR FAB · PROCESS HUB",
+    node07_title: "Semiconductor Knowledge Hub",
+    node07_desc: "從 FEOL、BEOL 到 CMOS 等整合技術，探索晶圓製造、製程整合與先進封裝。",
+    node07_action: "半導體製程",
+    node09_domain: "BROWSER MUSIC · CREATION STUDIO",
+    node09_title: "光汐工作站",
+    node09_desc: "在瀏覽器探索音色、演奏與編曲的音樂工作站。",
+    node09_action: "音樂工作站",
+    node10_domain: "GAME DATA · BUILD SIMULATOR",
+    node10_title: "聖休亞瑞典藏中樞",
+    node10_desc: "暗黑破壞神 II：獄火重生的配裝模擬，以及技能、裝備與符文之語資料入口。",
+    node10_action: "D2R 資料",
+    node05_domain: "私人簡報 · 本機展示",
+    node05_desc: "Secure Storage／OIP 私人技術簡報與本機展示工作區，整理硬體信任根（RoT）及非揮發性記憶體安全參考架構。",
+    node05_action: "私人簡報",
+    view_repo: "需 GitHub 存取權限",
+    node06_domain: "私人介面原型 · 模擬資料",
+    node06_desc: "私人模擬資料介面原型，非目前 Stock Terminal，沒有真實行情服務；需 GitHub 存取權限。",
+    node06_tag_modules: "私人原型",
+    node06_tag_data: "模擬資料",
+    node06_tag_prototype: "介面原型",
+    node06_action: "模擬資料",
+    node08_title: "光榮武將臉譜（私人）",
+    node08_domain: "武將臉譜 · 私人典藏",
+    node08_desc: "私人武將臉譜典藏，限擁有者登入；本頁僅提供入口。",
+    node08_action: "私人典藏",
+    badge_private_site: "私人網站",
+    owner_login: "限擁有者登入",
+    philo_kicker: "CONTACT",
+    philo_heading: "Sam Huang",
+    philo_p1: "透過公開 GitHub 個人頁查看專案紀錄與原始碼。",
+    philo_p2: "作品涵蓋公開網站、私人簡報與介面原型；私人資源仍需權限。",
+    footer_desc: "半導體 · 工程 · 互動專案",
+    back_to_top: "TOP",
+    page_title: "半導體與系統｜專案入口",
+    page_description: "知識、工程、學習、音樂與遊戲，依專業與休閒整理入口。",
+    brand_title: "專案入口",
+    nav_leisure: "休閒",
+    leisure_kicker: "音樂與遊戲",
+    leisure_title: "休閒",
+    leisure_subtitle: "聲音探索、瀏覽器遊戲與 D2R 資料工具。",
+    private_title: "私人工作區",
+    private_note: "需存取權限，以下資源僅供具權限者使用。",
+    contact_github: "GitHub 個人頁",
+    footer_title: "專案入口",
+    scroll_projects: "往下探索專案",
+    node01_role: "記憶體與安全",
+    node07_role: "半導體製程",
+    node03_role: "學習",
+    node04_role: "硬體",
+    node09_role: "音樂工作站",
+    node02_role: "瀏覽器遊戲",
+    node10_role: "D2R 資料",
+    node05_role: "私人簡報",
+    node06_role: "模擬資料",
+    node08_role: "私人典藏",
+    node01_tag0: "OTP / MTP",
+    node01_tag1: "eFlash",
+    node01_tag2: "PUF",
+    node07_tag0: "FEOL / BEOL",
+    node07_tag1: "製程整合",
+    node07_tag2: "封裝",
+    node03_tag0: "數理",
+    node03_tag1: "程式",
+    node03_tag2: "語言",
+    node04_tag0: "工作站",
+    node04_tag1: "硬體規格",
+    node04_tag2: "本機算力",
+    node09_tag0: "音色設計",
+    node09_tag1: "演奏",
+    node09_tag2: "編曲",
+    node02_tag0: "棋盤",
+    node02_tag1: "策略",
+    node02_tag2: "益智",
+    node10_tag0: "技能",
+    node10_tag1: "裝備",
+    node10_tag2: "符文之語",
+    node05_tag0: "安全儲存",
+    node05_tag1: "NVM",
+    node05_tag2: "私人",
+    node06_tag0: "模擬資料",
+    node06_tag1: "原型",
+    node06_tag2: "私人",
+    node08_tag0: "武將臉譜",
+    node08_tag1: "私人典藏",
+    lang_zh: "繁中"
   },
-  "en": {
-    "pageTitle": "Technology Portfolio | Knowledge, Engineering & Interaction",
-    "home": "Technology portfolio home",
-    "nav": "Main navigation",
-    "skip": "Skip to main content",
-    "language": "Switch language",
-    "zh": "ZH",
-    "en": "EN",
-    "field": "TECHNOLOGY / KNOWLEDGE / INTERACTION",
-    "edition": "A SELECTION OF TECHNICAL WORK",
-    "navNvm": "NVM case study",
-    "navSelected": "Selected work",
-    "navExplore": "Explore",
-    "navContact": "Contact",
-    "heroTitle": "Technical depth.\nA way to explore.",
-    "heroB": "From a single bit\nto a world to explore",
-    "heroIntro": "Exploring non-volatile memory and secure storage through connected knowledge, then turning ideas into interfaces you can use.",
-    "ctaCase": "Read the case study",
-    "ctaWork": "Explore the work",
-    "nvmKicker": "MAIN CASE / SEMICONDUCTORS & SECURE STORAGE",
-    "nvmTitle": "NVM Knowledge Hub",
-    "nvmLead": "Memory knowledge,\nwith context and direction",
-    "nvmSummary": "Start with device principles and connect IP, process, systems and public literature through clear paths for different tasks.",
-    "challenge": "Challenge",
-    "approach": "Approach",
-    "outcome": "Available work",
-    "nvmProblem": "Memory topics span physics, fabrication and systems. A list of terms alone cannot connect that context.",
-    "nvmApproach": "Organize entry points around four perspectives: fundamentals, IP and process, applications and systems, and literature and tools.",
-    "nvmOutcome": "The public interface presents storage-state comparisons and entry points for choosing NVM, estimating SRAM repair capacity and preparing a technical explanation.",
-    "nvmOpen": "Open the knowledge hub",
-    "nvmTags": "Non-volatile memory / Secure storage / Technical literature",
-    "sourceNvm": "Public interface detail · captured 2026.10",
-    "nvmAlt": "Detail of the actual English NVM Knowledge Hub overview and entry buttons",
-    "diagramTitle": "How a bit leaves a difference",
-    "diagramNote": "Conceptual illustration, not a physical floorplan or product specification",
-    "stateA": "State A",
-    "stateB": "State B",
-    "stateNote": "A difference in stored state becomes a distinguishable signal when read.",
-    "device": "Device mechanism",
-    "organization": "Knowledge structure",
-    "interface": "Exploration interface",
-    "diagramAlt": "Conceptual illustration from memory states to a knowledge interface, not a physical chip floorplan",
-    "selectedKicker": "SELECTED WORK / ENGINEERING & CREATION",
-    "selectedTitle": "Knowledge to practice.\nIdeas to experience.",
-    "selectedIntro": "Two directions in practice: one builds understanding through learning; the other brings sound exploration into the browser.",
-    "learnTitle": "E-Learning",
-    "learnLead": "A clear starting point for learning",
-    "learnProblem": "STEM, computing and language topics are scattered. Learning needs visible topics and ways to practice.",
-    "learnApproach": "Bring topic-based courses and interactive practice into one learning interface.",
-    "learnOutcome": "A public learning platform with course-topic navigation and entry points for practice.",
-    "learnOpen": "Explore the learning platform",
-    "learnTags": "Interactive learning / STEM & languages",
-    "learnAlt": "E-Learning course topics and entry points",
-    "sourceLearn": "Actual public learning interface · captured 2026.10",
-    "studioTitle": "Guangxi Studio",
-    "studioLead": "An interface for exploring sound",
-    "studioProblem": "Changes in sound are difficult to grasp through text alone. Exploration needs a playable, adjustable interface.",
-    "studioApproach": "Bring sound controls, waveforms and a keyboard into a browser-based studio.",
-    "studioOutcome": "The Aurora Pad interface presents sound parameters, waveforms and a performance keyboard, with a direct entry point to explore.",
-    "studioOpen": "Open the studio",
-    "studioTags": "Sound exploration / Browser studio",
-    "studioAlt": "Original bilingual Guangxi Aurora Pad interface, waveforms and keyboard",
-    "sourceStudio": "Actual public studio interface · original bilingual labels",
-    "exploreKicker": "FURTHER EXPLORATION",
-    "exploreTitle": "Engineering, reference and play",
-    "exploreIntro": "From processes and development environments to strategy, game reference and interactive experiences.",
-    "semiTitle": "Semiconductor Process Hub",
-    "semiDesc": "Knowledge on wafer fabrication, process integration and advanced packaging.",
-    "hardwareTitle": "Hardware & compute",
-    "hardwareDesc": "A reference for development workstations, hardware specifications and local AI setups.",
-    "arcadeTitle": "Interactive Game Arcade",
-    "arcadeDesc": "Browser entry points for board games, strategy, puzzles and arcade play.",
-    "d2rTitle": "D2R Sanctuary Codex",
-    "d2rDesc": "Build simulation and references for D2R skills, equipment and runewords.",
-    "open": "View the work",
-    "contactTitle": "Contact / About the work",
-    "contactIntro": "An ongoing collection of semiconductor and secure storage knowledge, engineering tools, learning and creative experiments.",
-    "github": "Explore more work on GitHub",
-    "contactLabel": "Contact section",
-    "privateTitle": "Private workspace",
-    "restricted": "Access required",
-    "privateNote": "These resources are available only to authorized users.",
-    "oipTitle": "Secure Storage OIP",
-    "oipDesc": "Private technical briefings. GitHub access required.",
-    "pulseTitle": "TW Pulse Terminal",
-    "pulseDesc": "A simulated-data prototype, separate from the current Stock Terminal. No live market data. GitHub access required.",
-    "portraitTitle": "Portrait Archive",
-    "portraitDesc": "Private collection. Owner sign-in required.",
-    "footer": "KNOWLEDGE / ENGINEERING / INTERACTION",
-    "backTop": "Back to top",
-    "external": "Opens in a new tab",
-    "viewEvidence": "View the actual interface",
-    "closeEvidence": "Close interface preview",
-    "previewLabel": "Project interface preview",
-    "quick": "Quick navigation",
-    "search": "Search work or settings",
-    "close": "Close",
-    "noResult": "No matching items",
-    "settings": "Settings",
-    "sound": "Toggle interface sounds",
-    "mono": "Toggle layer view",
-    "on": "On",
-    "off": "Off"
+  en: {
+    brand_sub: "Silicon IP · Systems Architecture",
+    skip_projects: "Skip to projects",
+    home_label: "Project portal home",
+    nav_label: "Main navigation",
+    language_label: "Language",
+    top_label: "Back to top",
+    command_label: "Search & commands",
+    nav_projects: "Professional",
+    nav_philosophy: "Contact",
+    status_online: "10 Resources",
+    hero_telemetry: "PROJECT PORTAL · TAIWAN 2026 · SILICON ARCHITECTURE",
+    hero_headline_1: "From Architecture",
+    hero_headline_2: "To Working Projects",
+    hero_mission: "Semiconductor knowledge, engineering tools and interactive projects. Browse by Professional or Leisure.",
+    cta_explore: "Explore projects",
+    cta_github: "Contact",
+    metric_nodes: "Professional",
+    metric_live: "Leisure",
+    metric_arcade: "Public",
+    metric_tracks: "Restricted",
+    matrix_kicker: "KNOWLEDGE & ENGINEERING",
+    matrix_title: "Professional",
+    matrix_subtitle: "Semiconductors, engineering references and learning resources.",
+    badge_live: "PUBLIC WEBSITE",
+    badge_source: "PRIVATE REPOSITORY",
+    node01_domain: "SEMICONDUCTOR IP · RESEARCH",
+    node01_desc: "Explore non-volatile memory and secure storage through OTP, MTP, eFlash, PUF and technical literature.",
+    node01_action: "MEMORY & SECURITY",
+    open_hub: "Open Hub",
+    node02_domain: "INTERACTIVE SYSTEMS · ARCADE",
+    node02_title: "Interactive Game Arcade",
+    node02_desc: "Board games, strategy, spatial puzzles and arcade experiences in the browser.",
+    node02_action: "BROWSER GAMES",
+    enter_arcade: "Enter Arcade",
+    node03_domain: "STEM · COMPUTING · LANGUAGES",
+    node03_desc: "Interactive practice and learning resources across STEM, computing and languages.",
+    node03_action: "LEARNING",
+    start_learning: "Start Learning",
+    node04_domain: "HARDWARE · ENGINEERING PROFILE",
+    node04_desc: "Development workstations, hardware specifications and local compute references.",
+    node04_action: "HARDWARE",
+    view_rig: "View Rig",
+    node07_domain: "SEMICONDUCTOR FAB · PROCESS HUB",
+    node07_title: "Semiconductor Knowledge Hub",
+    node07_desc: "Wafer fabrication, process integration and advanced packaging, from FEOL and BEOL to CMOS and beyond.",
+    node07_action: "SEMICONDUCTOR PROCESS",
+    node09_domain: "BROWSER MUSIC · CREATION STUDIO",
+    node09_title: "Guangxi Studio",
+    node09_desc: "A browser music workstation for exploring sound, playing and arranging musical ideas.",
+    node09_action: "MUSIC STUDIO",
+    node10_domain: "GAME DATA · BUILD SIMULATOR",
+    node10_title: "D2R Sanctuary Codex",
+    node10_desc: "Build simulation and references for Diablo II: Resurrected skills, equipment and runewords.",
+    node10_action: "D2R REFERENCE",
+    node05_domain: "PRIVATE BRIEFINGS · LOCAL DEMOS",
+    node05_desc: "Private Secure Storage/OIP briefings and a local demo workspace for hardware Root of Trust and NVM security reference architectures.",
+    node05_action: "PRIVATE BRIEFINGS",
+    view_repo: "GitHub Access Required",
+    node06_domain: "PRIVATE UI PROTOTYPE · SIMULATED DATA",
+    node06_desc: "A private simulated-data interface prototype, separate from the current Stock Terminal. No live market data; GitHub access required.",
+    node06_tag_modules: "Private prototype",
+    node06_tag_data: "Simulated Data",
+    node06_tag_prototype: "Interface Prototype",
+    node06_action: "SIMULATED DATA",
+    node08_title: "Portrait Archive (Private)",
+    node08_domain: "PORTRAITS · PRIVATE COLLECTION",
+    node08_desc: "Private character portrait collection. Owner sign-in required; this page provides only the entry point.",
+    node08_action: "PRIVATE ARCHIVE",
+    badge_private_site: "PRIVATE SITE",
+    owner_login: "Owner sign-in required",
+    philo_kicker: "CONTACT",
+    philo_heading: "Sam Huang",
+    philo_p1: "Project notes and source repositories are available through the public GitHub profile.",
+    philo_p2: "Projects span public websites, private briefings and interface prototypes. Private resources require permission.",
+    footer_desc: "Semiconductors · Engineering · Interactive projects",
+    back_to_top: "TOP",
+    page_title: "Semiconductor & Systems | Project Portal",
+    page_description: "Knowledge, engineering, learning, music and games — organized into Professional and Leisure.",
+    brand_title: "PROJECT PORTAL",
+    nav_leisure: "Leisure",
+    leisure_kicker: "MUSIC & GAMES",
+    leisure_title: "Leisure",
+    leisure_subtitle: "Sound exploration, browser games and D2R reference tools.",
+    private_title: "Private workspace",
+    private_note: "Access required. These resources are for authorized users only.",
+    contact_github: "GitHub profile",
+    footer_title: "PROJECT PORTAL",
+    scroll_projects: "SCROLL TO PROJECTS",
+    node01_role: "MEMORY & SECURITY",
+    node07_role: "SEMICONDUCTOR PROCESS",
+    node03_role: "LEARNING",
+    node04_role: "HARDWARE",
+    node09_role: "MUSIC STUDIO",
+    node02_role: "BROWSER GAMES",
+    node10_role: "D2R REFERENCE",
+    node05_role: "PRIVATE BRIEFINGS",
+    node06_role: "SIMULATED DATA",
+    node08_role: "PRIVATE ARCHIVE",
+    node01_tag0: "OTP / MTP",
+    node01_tag1: "eFlash",
+    node01_tag2: "PUF",
+    node07_tag0: "FEOL / BEOL",
+    node07_tag1: "Process integration",
+    node07_tag2: "Packaging",
+    node03_tag0: "STEM",
+    node03_tag1: "Computing",
+    node03_tag2: "Languages",
+    node04_tag0: "Workstations",
+    node04_tag1: "Hardware specs",
+    node04_tag2: "Local compute",
+    node09_tag0: "Sound design",
+    node09_tag1: "Playing",
+    node09_tag2: "Arrangement",
+    node02_tag0: "Board games",
+    node02_tag1: "Strategy",
+    node02_tag2: "Puzzles",
+    node10_tag0: "Skills",
+    node10_tag1: "Equipment",
+    node10_tag2: "Runewords",
+    node05_tag0: "Secure storage",
+    node05_tag1: "NVM",
+    node05_tag2: "Private",
+    node06_tag0: "Simulated data",
+    node06_tag1: "Prototype",
+    node06_tag2: "Private",
+    node08_tag0: "Portraits",
+    node08_tag1: "Private archive",
+    lang_zh: "ZH"
   }
 };
-function readInitialLanguage() {
-  const query = new URLSearchParams(location.search).get('lang');
-  if (query === 'en' || query === 'zh') return query;
-  try {
-    const saved = JSON.parse(localStorage.getItem('portal_language_choice_v1'));
-    if (saved?.source === 'explicit' && (saved.language === 'en' || saved.language === 'zh')) return saved.language;
-  } catch { /* 無儲存權限、損壞記錄皆使用英文。 */ }
-  return 'en';
-}
-function applyLanguage(value, persist = true) {
-  const lang = value === 'zh' ? 'zh' : 'en';
-  const dictionary = I18N[lang];
-  document.documentElement.lang = lang === 'en' ? 'en' : 'zh-Hant';
-  document.documentElement.dataset.lang = lang;
-  document.documentElement.dataset.language = lang;
-  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = dictionary[el.dataset.i18n]; });
-  document.querySelectorAll('[data-i18n-label]').forEach(el => { el.setAttribute('aria-label', dictionary[el.dataset.i18nLabel]); });
-  document.querySelectorAll('[data-i18n-alt]').forEach(el => { el.alt = dictionary[el.dataset.i18nAlt]; });
-  document.querySelectorAll('[data-language-image]').forEach(el => {
-    const name = el.dataset.languageImage;
-    el.src = `assets/${name}-${lang}.jpg`;
-    el.closest('[data-evidence]')?.classList.toggle('evidence-crop', name === 'nvm' && lang === 'en');
-  });
-  document.querySelectorAll('[data-target-lang]').forEach(button => { button.setAttribute('aria-pressed', String(button.dataset.targetLang === lang)); });
-  document.title = dictionary.pageTitle;
-  document.querySelector('meta[name="description"]').content = dictionary.heroIntro;
-  document.querySelector('meta[property="og:title"]').content = dictionary.pageTitle;
-  document.querySelector('meta[property="og:description"]').content = dictionary.heroIntro;
-  if (persist) {
-    try { localStorage.setItem('portal_language_choice_v1', JSON.stringify({language: lang, source: 'explicit'})); } catch { /* 當次切換仍生效。 */ }
-    // 手動選擇優先於舊網址上的 query；下一次重新載入須維持使用者選擇。
-    const url = new URL(location.href);if(url.searchParams.has('lang')) { url.searchParams.delete('lang');history.replaceState(null,'',url); }
-  }
-  document.dispatchEvent(new CustomEvent('portal-languagechange'));
-}
-applyLanguage(readInitialLanguage(), false);
-document.querySelectorAll('[data-target-lang]').forEach(button => button.addEventListener('click', () => applyLanguage(button.dataset.targetLang)));
-document.getElementById('commandTrigger').addEventListener('click', event => window.openCommandPalette(event.currentTarget));
 
-// 真實作品圖片放大，保留語系對應與來源局部範圍。
-(() => {
-  let returnFocus;
-  const dialog = document.createElement('dialog');dialog.className = 'evidence-dialog';dialog.id = 'evidenceModal';dialog.setAttribute('aria-labelledby','evidence-title');
-  dialog.innerHTML = '<div class="dialog-top"><h2 id="evidence-title"></h2><button class="dialog-close" type="button">×</button></div><div class="evidence-image"><img alt=""></div>';
-  document.body.append(dialog);
-  const close = () => { dialog.close();if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true}); };
-  const refresh = () => {
-    const copy=I18N[document.documentElement.dataset.lang];
-    dialog.querySelector('h2').textContent=copy.previewLabel;dialog.querySelector('button').setAttribute('aria-label',copy.closeEvidence);
-    const source=returnFocus?.querySelector('img');
-    if(source){dialog.querySelector('img').src=source.src;dialog.querySelector('img').alt=source.alt;dialog.querySelector('.evidence-image').classList.toggle('evidence-crop',returnFocus.classList.contains('evidence-crop'));}
-  };
-  document.addEventListener('portal-languagechange',refresh);refresh();
-  dialog.querySelector('button').addEventListener('click',close);
-  dialog.addEventListener('keydown',event => { if(event.key==='Tab'){event.preventDefault();dialog.querySelector('button').focus();} });
-  dialog.addEventListener('cancel',event => { event.preventDefault();close(); });
-  dialog.addEventListener('click',event => { const box=dialog.getBoundingClientRect();if(event.target===dialog&&(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom))close(); });
-  document.querySelectorAll('[data-evidence]').forEach(button => {
-    button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','evidenceModal');
-    button.addEventListener('click',() => {
-      returnFocus = button;refresh();dialog.showModal();
+let currentLang = "en";
+
+function applyLanguage(lang, persist = true) {
+  const dict = I18N[lang];
+  if (!dict) return;
+  currentLang = lang;
+
+  document.documentElement.lang = lang === "zh" ? "zh-Hant" : "en";
+  document.documentElement.setAttribute("data-lang", lang);
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[key] !== undefined) {
+      el.textContent = dict[key];
+    }
+  });
+
+  document.querySelectorAll("[data-i18n-label]").forEach((el) => {
+    el.setAttribute("aria-label", dict[el.dataset.i18nLabel]);
+  });
+  document.querySelectorAll(".node-card").forEach((card) => {
+    const title = card.querySelector(".node-headline").textContent;
+    const actionLabel = dict[card.dataset.actionI18n] ?? (card.querySelector(".badge-source") ? dict.view_repo : (lang === "zh" ? "開啟網站" : "Open website"));
+    card.setAttribute("aria-label", `${title} — ${actionLabel}`);
+  });
+  document.dispatchEvent(new Event("portal-languagechange"));
+
+  document.querySelectorAll(".lang-switch-btn").forEach((btn) => {
+    const isTarget = btn.getAttribute("data-target-lang") === lang;
+    btn.classList.toggle("active", isTarget);
+    btn.setAttribute("aria-pressed", String(isTarget));
+  });
+
+  document.title = dict.page_title;
+  document.querySelector('meta[name="description"]').content = dict.page_description;
+  document.querySelector('meta[property="og:title"]').content = dict.page_title;
+  document.querySelector('meta[property="og:description"]').content = dict.page_description;
+  if (persist) {
+    try { localStorage.setItem('portal_language_choice_v1', JSON.stringify({language:lang,source:'explicit'})); } catch {}
+    const url=new URL(location.href);url.searchParams.set('lang',lang);history.replaceState(null,'',url);
+  }
+}
+
+window.toggleLanguage = () => applyLanguage(currentLang === "zh" ? "en" : "zh");
+
+function initLanguage() {
+  const query=new URLSearchParams(location.search).get('lang');
+  if(query==='en'||query==='zh')currentLang=query;
+  else {
+    try {const saved=JSON.parse(localStorage.getItem('portal_language_choice_v1'));if(saved?.source==='explicit'&&(saved.language==='en'||saved.language==='zh'))currentLang=saved.language;} catch {}
+  }
+  applyLanguage(currentLang, false);
+
+  document.querySelectorAll(".lang-switch-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = btn.getAttribute("data-target-lang");
+      if (target && target !== currentLang) {
+        currentLang = target;
+        applyLanguage(currentLang);
+      }
     });
   });
-})();
-document.querySelectorAll('[data-project]').forEach(link => link.addEventListener('pointerenter', () => window.SiliconAudio?.playHover()));
-document.addEventListener('click',event => { if(event.target.closest('a,button,summary'))window.SiliconAudio?.playClick(); });
+}
+
+function initSiliconCanvas() {
+  const canvas = document.getElementById("silicon-canvas");
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  let width = 0;
+  let height = 0;
+  let dpr = 1;
+  let animationFrameId = null;
+  const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  const nodes = [];
+  const maxNodes = 48;
+  const connectDistance = 140;
+
+  const mouse = { x: -9999, y: -9999, radius: 160 };
+
+  function resizeCanvas() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.parentElement.getBoundingClientRect();
+    width = rect.width;
+    height = rect.height;
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    initNodes();
+  }
+
+  function initNodes() {
+    nodes.length = 0;
+    const count = Math.min(Math.floor((width * height) / 24000), maxNodes);
+
+    for (let i = 0; i < count; i++) {
+      nodes.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        radius: Math.random() * 1.8 + 1.2,
+        baseAlpha: Math.random() * 0.3 + 0.15,
+        color: Math.random() > 0.4 ? "rgba(37, 99, 235, " : "rgba(100, 116, 139, "
+      });
+    }
+  }
+
+  function drawScene() {
+    animationFrameId = null;
+    if (motionPreference.matches || document.hidden) return;
+    ctx.clearRect(0, 0, width, height);
+
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      node.x += node.vx;
+      node.y += node.vy;
+
+      if (node.x < 0) node.x = width;
+      if (node.x > width) node.x = 0;
+      if (node.y < 0) node.y = height;
+      if (node.y > height) node.y = 0;
+
+      const dxMouse = node.x - mouse.x;
+      const dyMouse = node.y - mouse.y;
+      const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+      if (distMouse < mouse.radius && distMouse > 0) {
+        const force = (1 - distMouse / mouse.radius) * 1.5;
+        node.x += (dxMouse / distMouse) * force;
+        node.y += (dyMouse / distMouse) * force;
+      }
+    }
+
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < connectDistance) {
+          const alpha = (1 - dist / connectDistance) * 0.18;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = `rgba(37, 99, 235, ${alpha * 0.75})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+      ctx.fillStyle = node.color + node.baseAlpha + ")";
+      ctx.fill();
+    }
+
+    animationFrameId = requestAnimationFrame(drawScene);
+  }
+
+  window.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  }, { passive: true });
+
+  window.addEventListener("mouseleave", () => {
+    mouse.x = -9999;
+    mouse.y = -9999;
+  });
+
+  function updateMotion() {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+    canvas.style.display = motionPreference.matches ? "none" : "";
+    if (!motionPreference.matches && !document.hidden) {
+      animationFrameId = requestAnimationFrame(drawScene);
+    }
+  }
+  document.addEventListener("visibilitychange", updateMotion);
+  motionPreference.addEventListener("change", updateMotion);
+  window.addEventListener("resize", resizeCanvas, { passive: true });
+  resizeCanvas();
+  updateMotion();
+}
+
+function initTelemetryCounters() {
+  const targets = document.querySelectorAll("[data-count]");
+  if (!targets.length) return;
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    targets.forEach((el) => {
+      const targetValue = parseInt(el.getAttribute("data-count"), 10);
+      if (!isNaN(targetValue)) el.textContent = String(targetValue);
+    });
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const targetValue = parseInt(el.getAttribute("data-count"), 10);
+        if (!isNaN(targetValue)) {
+          animateValue(el, 0, targetValue, 900);
+          observer.unobserve(el);
+        }
+      }
+    });
+  }, { threshold: 0.4 });
+
+  targets.forEach((el) => observer.observe(el));
+}
+
+function animateValue(element, start, end, duration) {
+  const startTime = performance.now();
+  const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+  function update(now) {
+    if (motionPreference.matches) {
+      element.textContent = String(end);
+      return;
+    }
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    element.textContent = Math.round(start + (end - start) * eased);
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+  requestAnimationFrame(update);
+}
+
+function initCardSpecularGlow() {
+  const cards = document.querySelectorAll(".node-card");
+  cards.forEach((card) => {
+    card.addEventListener("mousemove", (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      card.style.setProperty("--mouse-x", `${x}px`);
+      card.style.setProperty("--mouse-y", `${y}px`);
+    });
+  });
+}
+
+function initScrollInteractions() {
+  const header = document.getElementById("site-header");
+  let ticking = false;
+
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        if (header) {
+          header.classList.toggle("scrolled", window.scrollY > 40);
+        }
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+
+  const revealElements = document.querySelectorAll(".reveal");
+  if (!revealElements.length) return;
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+
+  revealElements.forEach((el) => revealObserver.observe(el));
+}
+
+function initNavigation() {
+  const header = document.getElementById("site-header");
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty("--header-height", header.getBoundingClientRect().height + "px");
+  }).observe(header);
+  const revealPhilosophy = () => {
+    if (["#philosophy", "#contact", "#about"].includes(location.hash)) {
+      document.querySelector("#contact .philosophy-disclosure").open = true;
+      document.getElementById("contact").scrollIntoView();
+    }
+  };
+  document.querySelectorAll('a[href="#contact"]').forEach(link => link.addEventListener("click", () => {
+    document.querySelector("#contact .philosophy-disclosure").open = true;
+  }));
+  window.addEventListener("hashchange", revealPhilosophy);
+  revealPhilosophy();
+  // Align published bookmarks after the original web fonts set the header height.
+  document.fonts.ready.then(() => requestAnimationFrame(() => {
+    if (["#knowledge", "#engineering", "#creative"].includes(location.hash)) {
+      document.documentElement.style.setProperty("--header-height", header.getBoundingClientRect().height + "px");
+      document.querySelector(location.hash).scrollIntoView();
+    }
+  }));
+  document.querySelectorAll(".node-card").forEach(card => {
+    card.addEventListener("focus", () => requestAnimationFrame(() => {
+      if (document.activeElement !== card) return;
+      const title = card.querySelector(".node-headline").getBoundingClientRect();
+      const obstruction = getComputedStyle(header).position === "sticky" ? header.getBoundingClientRect().bottom : 0;
+      if (title.top < obstruction || title.bottom > window.innerHeight) {
+        card.scrollIntoView({ block: "start", behavior: "instant" });
+      }
+    }));
+  });
+  document.getElementById("commandTrigger").addEventListener("click", event => window.openCommandPalette(event.currentTarget));
+}
+
+function bootstrap() {
+  initLanguage();
+  initNavigation();
+  initSiliconCanvas();
+  initTelemetryCounters();
+  initCardSpecularGlow();
+  initScrollInteractions();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootstrap);
+} else {
+  bootstrap();
+}

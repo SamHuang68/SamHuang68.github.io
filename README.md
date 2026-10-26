@@ -1,40 +1,42 @@
-# 技術作品集
+# 原作分類微調首頁
 
-版本 **3.2.0**。正式目的地：<https://samhuang68.github.io/>。
+版本 **3.4.0**。正式目的地：https://samhuang68.github.io/ 。本輪已獲准發布 original-refined；實際推送、合併與部署狀態以同版本發布紀錄為準。
 
-以 Executive Editorial 呈現技術命題、NVM 主案例、E-Learning 與光汐精選成果，以及工程／創作延伸索引。姓名與公開 GitHub 個人入口只在 Contact；七個公開作品、三個私人入口保留原網址，私人存取權限仍由目的服務管理。
+本候選直接從首次重整PR #10之前的原作 `c389121b424582c8a75f155cab95ef2d33003e55` 建立；其index.html blob為 `de539f3595f21dd3a1649c8dbe2b534396ac1bfc`，與最初核實來源一致。不是從Editorial、Studio或雙頁方案繼續改造。
 
-純靜態 HTML、CSS、JavaScript，不含資料庫或建置步驟。沿用本機字型、公開作品 JPEG 與原創概念 SVG；首頁不呼叫外部資料 API，也不即時嵌入子站。圖片來源與限制見 [作品畫面來源](assets/作品畫面來源.md)。
+保留原作晶圓背景、色彩token、緊湊首屏、頂部導覽、半透明圓角卡片、字型及互動。整份原styles.css保留，只追加同頁分組與少量對齊規則；背景JPEG、effects.js及audio-engine.js沒有修改。
 
-## 英文預設與手動選擇
+## 分類與內容
 
-基礎 HTML、title、description、lang、導覽、案例、圖說與 Contact 皆為英文，停用 JavaScript 亦可閱讀英文內容、開啟作品與操作原生私人區收合。瀏覽器語言不決定初始語系。
+- Professional：NVM、半導體製程、E-Learning、Hardware；桌面局部2×2。
+- Leisure：光汐工作站、Arcade、D2R；沿用原三欄。
+- 私人工作區：OIP、TW Pulse、武將典藏折疊保留，仍有權限提示；TW Pulse明示模擬資料、非目前Stock Terminal、沒有真實行情服務。
 
-JavaScript 啟用時的優先序為：有效 `?lang=en|zh` → `portal_language_choice_v1` 中有效的 `{language, source:"explicit"}` → EN。初始化與 query 不寫入偏好；只有語言按鈕或快速導覽語言指令會保存明確選擇。手動切換會移除舊 `lang` query，使重新載入遵循選擇。儲存遭封鎖時仍可當次切換，重新進入回到英文。
+七個公開入口與三個私人目的URL完全保留。同頁原生導覽取代Node序號主導覽；內部data-node及舊Node搜尋別名保留。用途文字、較短描述與最多三個標籤改善閱讀，未替目的網站背書或重新驗證其功能。數字統計只表示本頁分類數量，不再顯示未核實的Engines等統計。
 
-3.1.0 的 `sh_portal_lang` 在初始化時也會自動寫入，無法證明是否為手動選擇，因此不作為新版偏好的依據；原值不刪除。沒有登入、跨裝置同步或修改子站語系。
+姓名及公開GitHub個人入口只在Contact，沿用原philosophy收合區的形狀。沒有增加品牌宣言、案例敘事、大型圖解或作品截圖。
 
-## 首頁操作
+## 語系與原互動
 
-`Ctrl+K`／`⌘K` 或頁首搜尋圖示開啟快速導覽。可搜尋十個作品的中英名稱、描述與既有搜尋別名；私人結果仍有權限提示及完整 TW Pulse 模擬資料警語。方向鍵選擇、Enter 執行、Escape 關閉並復原焦點。
+完整英文基礎HTML，包含title、description、lang、可及名稱及私人文字；無JavaScript也能使用原生導覽、Contact與私人收合。語言與搜尋控制在無JS時隱藏。
 
-原有語言、操作音效與 NVM 單色圖層指令保留；音效預設靜音。作品畫面可放大查看。既有 `#hero`、`#projects`、`#knowledge`、`#engineering`、`#creative`、`#about` 與 `#philosophy` 錨點保留。
+JS初始優先順序：有效`?lang=en|zh` → `portal_language_choice_v1`內有效的`{language,source:"explicit"}` → EN。不依瀏覽器中文、不採用舊版自動寫入的`sh_portal_lang`，初始化不保存偏好。只有手動選擇才保存，並更新當頁query；storage受阻仍能切換，沒有query的新進入仍為英文。
 
-## 本機預覽與限定驗證
+原搜尋dialog、Ctrl+K／⌘K、鍵盤選取、Escape與焦點返回保留；音效預設靜音，X-Ray圖層、canvas、卡片光澤、捲動行為沿用原作。所有Contact連結都能在同hash下重新展開收合內容。
 
-在工作樹執行 `node scripts/serve-local.mjs`，開啟 <http://127.0.0.1:4176/>；可用 `PORT` 指定不同連接埠。這是該機器的 loopback 預覽，沒有公開 tunnel。
+## 本機預覽與驗證
 
-依既有 `verification_gate.py` 先明列變更、輸入與案例，再執行：
+一般預覽：工作樹執行`node scripts/serve-local.mjs`，預設<http://127.0.0.1:4176/>，可用PORT設定連接埠。本輪專用比較器在<http://127.0.0.1:4181/>，直接候選<http://127.0.0.1:4181/candidate/>、原作<http://127.0.0.1:4181/original/>。僅NucBox loopback，沒有公開預覽或tunnel。
 
-- `node scripts/check-home.mjs`：結構、十個原 URL、雙語鍵、資產、語法與版本。
-- `node scripts/qa-home.mjs`：首頁桌面／手機兩語、英文初始化邊界、私人區、快速導覽、圖片模態、焦點、窄螢幕與文字放大。只使用本機伺服器，攔截所有外部請求。
+驗證前使用既有verification_gate.py列出變更、案例與依賴：
 
-`qa:accessibility` 仍是同一份 Chromium 案例的相容入口，不需重複執行。`--remaining` 為本次已取得前段證據後的續驗選項，不代表完整通過；必須與對應的前段結果一併引用。
+- `node scripts/check-original-refined.mjs`：語法、雙語、版本、分類及10個原URL，預設不讀取歷史Git物件。
+- 加`--baseline-proof`才比較指定原作的CSS／背景／互動引擎，需完整原作Git物件；本輪已實際執行通過。
+- `node scripts/qa-original-refined.mjs`：預設使用套件playwright、4176本機預覽與相對qa-artifacts目錄。可用`--playwright`／PLAYWRIGHT_MODULE、`--base`／PORTAL_BASE_URL、`--out`／PORTAL_EVIDENCE_DIR配置。`--only=<名稱片段>`只執行指定案例。
+- 本輪外部比較器測試只在明示`--comparison=http://127.0.0.1:4181/`時執行，不是一般checkout的必要服務。
 
-可用 `PLAYWRIGHT_MODULE` 指定既有模組、`PORTAL_EVIDENCE_DIR` 指定本機證據目錄；不自動安裝套件或下載瀏覽器。本輪使用 NucBox Chromium 145／Playwright 1.58。手機畫面是 viewport 模擬，沒有 Firefox／WebKit、真機或讀屏聽讀驗收。
+main 的歷史QA腳本保留原位，標準npm入口指向新契約的限定檢查，不執行舊版中文預設／未分類的期望。本輪12個不同案例通過；Contact重複開啟補驗取代原同名案例，其餘成功證據沿用，沒有全站掃描或子站測試。
 
-## 版本與發布
+實際環境為NucBox Chromium145／Playwright1.58；原作與候選同樣載入原Google字型、同樣1440×1000／390×844及reduced motion，另測320px、200%文字。手機為viewport，非真機。未驗其他瀏覽器、讀屏聽讀、音效聽感或子站功能。
 
-修訂內容見 [修訂紀錄](修訂紀錄.md)。本機候選、精確提交、PR、CI、部署與 live 結果分開記錄於 `C:/Users/Sam/AI-Workspace/docs/portal/homepage-editorial-release/發布紀錄.md`；GitHub 部署狀態須以該版本實際 run 與 deployment 為準，不以來源檔版本號代替發布證明。
-
-既有 `.github/workflows/deploy-pages.yml` 僅在 main push／手動觸發時將靜態來源發布至 GitHub Pages，沒有執行全站測試。此輪不變更部署流程、子站或私人權限。
+精確SHA、前後截圖、收據及限制見`C:/Users/Sam/AI-Workspace/docs/portal/homepage-original-refined/handoff.md`。既有歷史見[修訂紀錄](修訂紀錄.md)。發布分支從最新 main `75f82845e7fbe115d360739a751515b2c42766f4` 建立，僅整合核准候選 `8b97d2204ea6c74de73a8bd920b6fb7d3f8803d0` 的首頁檔案，保留 main 其餘檔案與完整修訂歷史。保留已發布的 #knowledge／#engineering／#creative／#about 書籤，對應現有區塊，沒有新增版面。精確來源、CI、部署與正式驗證見 `C:/Users/Sam/AI-Workspace/docs/portal/homepage-original-release/release.md`。

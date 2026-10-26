@@ -1,13 +1,13 @@
 {
   "name": "sam-huang-project-index",
-  "version": "3.2.0",
+  "version": "3.4.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node scripts/check-home.mjs",
+    "check": "node scripts/check-original-refined.mjs",
     "serve": "node scripts/serve-local.mjs",
-    "qa:render": "node scripts/qa-home.mjs",
-    "qa:accessibility": "node scripts/qa-accessibility.mjs",
+    "qa:render": "node scripts/qa-original-refined.mjs",
+    "qa:accessibility": "node scripts/qa-original-refined.mjs --only=keyboard",
     "qa": "npm run check && npm run qa:render"
   },
   "devDependencies": {
