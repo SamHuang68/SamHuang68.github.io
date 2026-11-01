@@ -20,7 +20,7 @@ const mime = new Map([
 
 const server = createServer(async (request, response) => {
   const pathname = decodeURIComponent(new URL(request.url, `http://${request.headers.host}`).pathname);
-  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+  const relative = pathname.endsWith('/') ? `${pathname.slice(1)}index.html` : pathname.replace(/^\/+/, '');
   const resolved = path.resolve(root, relative);
   if (!resolved.startsWith(root)) {
     response.writeHead(403).end('Forbidden');

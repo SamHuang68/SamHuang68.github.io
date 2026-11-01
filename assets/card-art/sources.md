@@ -1,6 +1,6 @@
 # 卡片圖片來源與界線
 
-版本：3.4.2，2026-10-26。核准發布版本；實際發布證據見同版 release.md。所有新檔名使用英文。圖像只作入口的題材預覽，不代表本輪驗證目的網站功能。
+版本：3.5.0，2026-11-02。新增 3D 台灣數位孿生導覽（Taiwan 3D Digital Twin）卡片縮圖；所有新檔名使用英文。圖像只作入口的題材預覽。
 
 | 卡片 | 實際素材／來源 | 取景與使用界線 |
 |---|---|---|
@@ -8,6 +8,7 @@
 | Semiconductor Knowledge Hub | `process-wafer.jpg`；Rob Bulmahn，Silicon Wafer 20200519 | 真實矽晶圓微距照片，CC BY 2.0；短幅顯示裁切，未改像素。照片、作者、來源、授權及裁切說明位於 Contact 的圖片來源收合區。未沿用來源未明的舊製程照片。 |
 | E-Learning | 既有 `assets/learn-en.jpg`／`learn-zh.jpg`；https://learn.samhuang68.org/ | 2026-10-25 NucBox 擷取的公開首頁，依手動語言切換圖片；CSS 聚焦首頁概述。 |
 | Hardware Profile | `hardware-rig.jpg`；既有公開專案 `C:/Users/Sam/AI-Workspace/projects/hardware/images/gmk_evo_t1.jpg`，data.json 實際引用；https://hardware.samhuang68.org/ | 原樣複用既有專案示意圖，非本輪實機攝影或硬體能力驗證。原站未附獨立素材授權文件，本輪不宣稱另獲商業再授權。 |
+| Taiwan 3D Digital Twin | `taiwan-3d-map.webp`；本庫子站 `taiwan-3d-map/index.html`（https://samhuang68.github.io/taiwan-3d-map/）實際 3D 渲染局部 | 本機無頭瀏覽器實際渲染之 3D 台灣地形、水文與 GIS 畫面局部，71,370 bytes；原圖含繁體中文地標標籤，圖說與 alt 明示。 |
 | Guangxi Studio | 既有 `assets/studio-en.jpg`；https://guangxi-studio.samhuang68.workers.dev/ | 2026-10-25 公開工作站實際畫面，CSS 聚焦合成器與琴鍵；原圖含雙語，圖說與 alt 明示，不假造英文介面。 |
 | Interactive Game Arcade | `arcade-chess.webp`；公開專案 `C:/Users/Sam/AI-Workspace/projects/arcade/public/hall-thumb-chess.webp`；https://arcade.samhuang68.org/ | 既有原創西洋棋題材視覺，未啟動遊戲或讀取資料庫。 |
 | D2R Sanctuary Codex | `d2r-key-art.jpg`、`d2r-logo.jpg`；Blizzard 官方 Diablo II: Resurrected Press Kit | 正式紅兜帽骷髏封面與火焰標誌，兩張均完整 contain，沒有裁切、濾鏡、改畫或去除通知。來源是官方自行提供的250px縮圖。 |

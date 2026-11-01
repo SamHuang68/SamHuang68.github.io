@@ -58,6 +58,16 @@
       badge: 'LIVE WEB',
     },
     {
+      id: 'node-taiwan-3d',
+      titleZh: '3D 台灣數位孿生導覽',
+      titleEn: 'Taiwan 3D Digital Twin',
+      searchAliases: "Node-11 3D 台灣全島數位孿生與水文山川導覽 百岳 河川 斷層 科學園區 3D Taiwan Digital Twin terrain hydrology mountains GIS tour",
+      descZh: "結合 3D 實測地形、水文流域、斷層地質、科學園區與環島主題路線的互動地理導覽。",
+      descEn: "Interactive 3D Taiwan terrain, river basins, tectonic faults, science parks and guided island tours.",
+      action: () => (window.location.href = 'https://samhuang68.github.io/taiwan-3d-map/'),
+      badge: 'LIVE WEB',
+    },
+    {
       id: 'node-guangxi',
       titleZh: '光汐工作站',
       titleEn: 'Guangxi Studio',
