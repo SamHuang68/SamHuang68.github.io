@@ -138,6 +138,21 @@ function demTile(z, x, y) {
   return p;
 }
 
+// Terrarium 的水深只到 zoom 10；zoom 11 起海域一律是 0 m（實測東部外海 122.80°E 23.81°N：z10 −3,351 m、z11 起 0 m）。
+// 高縮放時，恰好 0 m 的像素改用 zoom 10 父圖磚補回水深。
+const BATHY_MAX_Z = 10;
+
+// 以圖磚內的像素座標（可為小數）做雙線性取樣，超出邊界時貼齊邊緣
+function sampleTile(t, px, py) {
+  const S = t.size, H = t.h;
+  px = clamp(px, 0, S - 1); py = clamp(py, 0, S - 1);
+  const x0 = Math.floor(px), y0 = Math.floor(py), x1 = Math.min(S - 1, x0 + 1), y1 = Math.min(S - 1, y0 + 1);
+  const dx = px - x0, dy = py - y0;
+  const top = H[y0 * S + x0] * (1 - dx) + H[y0 * S + x1] * dx;
+  const bot = H[y1 * S + x0] * (1 - dx) + H[y1 * S + x1] * dx;
+  return top * (1 - dy) + bot * dy;
+}
+
 async function elevationAt(lng, lat, z = 12) {
   const n = 2 ** z;
   const s = Math.sin((lat * Math.PI) / 180);
@@ -145,23 +160,56 @@ async function elevationAt(lng, lat, z = 12) {
   const fy = (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * n;
   const tx = Math.floor(fx), ty = Math.floor(fy);
   const t = await demTile(z, tx, ty);
-  const S = t.size;
-  const px = clamp((fx - tx) * S - 0.5, 0, S - 1), py = clamp((fy - ty) * S - 0.5, 0, S - 1);
-  const x0 = Math.floor(px), y0 = Math.floor(py), x1 = Math.min(S - 1, x0 + 1), y1 = Math.min(S - 1, y0 + 1);
-  const dx = px - x0, dy = py - y0, H = t.h;
-  const top = H[y0 * S + x0] * (1 - dx) + H[y0 * S + x1] * dx;
-  const bot = H[y1 * S + x0] * (1 - dx) + H[y1 * S + x1] * dx;
-  return top * (1 - dy) + bot * dy;
+  const v = sampleTile(t, (fx - tx) * t.size - 0.5, (fy - ty) * t.size - 0.5);
+  if (z > BATHY_MAX_Z && Math.abs(v) < 0.5) {
+    const b = await elevationAt(lng, lat, BATHY_MAX_Z);
+    if (b < 0) return b;
+  }
+  return v;
 }
 
-// 衛星與地勢模式的 3D 地形把海面以下壓平到 0 m，避免海面影像被拉進數千公尺的海溝；
-// 海底地形模式改用原始圖磚。
+function encodeTerrarium(d, i, e) {
+  const v = e + 32768;
+  d[i] = Math.floor(v / 256);
+  d[i + 1] = Math.floor(v) % 256;
+  d[i + 2] = Math.min(255, Math.round((v - Math.floor(v)) * 256));
+}
+
+// twdem://z/x/y?mode=flat：海面以下壓平到 0 m。衛星與地勢模式的 3D 地形用，避免海面影像被拉進數千公尺的海溝。
+// twdem://z/x/y?mode=bathy：保留水深，zoom 11 以上補回 zoom 10 的水深。海底地形模式的地形與所有色階、暈渲用。
 maplibregl.addProtocol('twdem', async (params, abort) => {
-  const [z, x, y] = params.url.replace('twdem://', '').split('/').map(Number);
+  const [path, query] = params.url.replace('twdem://', '').split('?');
+  const [z, x, y] = path.split('/').map(Number);
+  const mode = new URLSearchParams(query).get('mode') || 'flat';
+  if (mode === 'bathy' && z <= BATHY_MAX_Z) {
+    const url = TERRARIUM.replace('{z}', z).replace('{x}', x).replace('{y}', y);
+    const res = await fetch(url, { signal: withTimeout(abort.signal), mode: 'cors' });
+    if (!res.ok) throw new Error(`DEM ${res.status} ${z}/${x}/${y}`);
+    return { data: await res.arrayBuffer() };
+  }
   const { canvas, ctx, img } = await fetchTerrarium(z, x, y, abort.signal);
-  const d = img.data;
-  for (let i = 0; i < d.length; i += 4) {
-    if (d[i] < 128) { d[i] = 128; d[i + 1] = 0; d[i + 2] = 0; }
+  const d = img.data, S = img.width;
+  if (mode === 'flat') {
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i] < 128) { d[i] = 128; d[i + 1] = 0; d[i + 2] = 0; }
+    }
+  } else {
+    let hasVoid = false;
+    for (let i = 0; i < d.length && !hasVoid; i += 4) hasVoid = d[i] === 128 && d[i + 1] === 0 && d[i + 2] === 0;
+    if (hasVoid) {
+      const dz = z - BATHY_MAX_Z, k = 2 ** dz;
+      const parent = await demTile(BATHY_MAX_Z, x >> dz, y >> dz);
+      const ox = (x - (x >> dz) * k) / k, oy = (y - (y >> dz) * k) / k;
+      const P = parent.size;
+      for (let py = 0; py < S; py++) {
+        for (let px = 0; px < S; px++) {
+          const i = (py * S + px) * 4;
+          if (d[i] !== 128 || d[i + 1] !== 0 || d[i + 2] !== 0) continue;
+          const e = sampleTile(parent, (ox + (px + 0.5) / (S * k)) * P - 0.5, (oy + (py + 0.5) / (S * k)) * P - 0.5);
+          if (e < 0) encodeTerrarium(d, i, e);
+        }
+      }
+    }
   }
   ctx.putImageData(img, 0, 0);
   return { data: await createImageBitmap(canvas) };
@@ -266,9 +314,9 @@ function buildStyle() {
     sources: {
       sat: { type: 'raster', tiles: [ESRI], tileSize: 256, maxzoom: 19, attribution: '影像 © Esri, Maxar, Earthstar Geographics' },
       night: { type: 'raster', tiles: [NIGHT], tileSize: 256, maxzoom: 8, attribution: '夜光 NASA Black Marble' },
-      'dem-flat': { type: 'raster-dem', tiles: ['twdem://{z}/{x}/{y}'], encoding: 'terrarium', tileSize: 256, maxzoom: 14, attribution: '地形 Mapzen Terrarium / AWS Open Data' },
-      'dem-raw': { type: 'raster-dem', tiles: [TERRARIUM], encoding: 'terrarium', tileSize: 256, maxzoom: 14 },
-      'dem-shade': { type: 'raster-dem', tiles: [TERRARIUM], encoding: 'terrarium', tileSize: 256, maxzoom: 13 },
+      'dem-flat': { type: 'raster-dem', tiles: ['twdem://{z}/{x}/{y}?mode=flat'], encoding: 'terrarium', tileSize: 256, maxzoom: 14, attribution: '地形 Mapzen Terrarium / AWS Open Data' },
+      'dem-raw': { type: 'raster-dem', tiles: ['twdem://{z}/{x}/{y}?mode=bathy'], encoding: 'terrarium', tileSize: 256, maxzoom: 14 },
+      'dem-shade': { type: 'raster-dem', tiles: ['twdem://{z}/{x}/{y}?mode=bathy'], encoding: 'terrarium', tileSize: 256, maxzoom: 13 },
       omt: { type: 'vector', url: OMT },
       spots: { type: 'geojson', data: spotsGeoJSON() },
       quakes: { type: 'geojson', data: quakesGeoJSON() },
@@ -651,7 +699,7 @@ function stepSpot(delta) {
 
 // ---------------------------------------------------------------- 路線播放
 const DWELL = 8500;
-const tour = { def: null, i: 0, playing: false, token: 0, dwellStart: 0, dwellLeft: DWELL, raf: 0, timer: 0, cam: null, arrived: false };
+const tour = { def: null, i: 0, playing: false, token: 0, dwellDone: 0, raf: 0, timer: 0, cam: null, arrived: false };
 
 function startTour(def, i = 0) {
   stopOrbit();
@@ -697,8 +745,7 @@ function goStop() {
   selectSpot(s, { fly: false });
   history.replaceState(null, '', `#tour=${tour.def.id}`);
   $('playerStop').textContent = `${tour.i + 1}. ${s.short}`;
-  tour.dwellLeft = DWELL;
-  tour.dwellStart = 0;
+  tour.dwellDone = 0;
   tour.arrived = false;
   paintTrack(0);
   setPlayIcon();
@@ -718,20 +765,29 @@ function arrive(token) {
   const off = distanceKm([c.lng, c.lat], tour.cam.center);
   if (off > 1.5 || Math.abs(map.getZoom() - tour.cam.zoom) > 0.35) { pauseTour('已暫停路線，按播放鍵繼續'); return; }
   tour.arrived = true;
-  dwell(token);
+  // 到站後常有幾秒在載高縮放圖磚；等畫面 idle 再開始停留，最多等 3 秒
+  let started = false;
+  const start = () => {
+    if (started) return;
+    started = true;
+    clearTimeout(tour.timer);
+    if (token === tour.token && tour.playing) dwell(token);
+  };
+  map.once('idle', start);
+  tour.timer = setTimeout(start, 3000);
 }
 
 function dwell(token) {
-  const left = tour.dwellLeft;
-  tour.dwellStart = performance.now();
-  const startBearing = map.getBearing();
-  const sweep = 36 * (left / DWELL);
-  map.easeTo({ bearing: startBearing + sweep, duration: left, easing: (t) => t, padding: viewPadding() });
+  const left = DWELL - tour.dwellDone;
+  map.easeTo({ bearing: map.getBearing() + 36 * (left / DWELL), duration: left, easing: (t) => t, padding: viewPadding() });
+  let last = performance.now();
   const tick = (now) => {
     if (token !== tour.token || !tour.playing) return;
-    const done = DWELL - left + (now - tour.dwellStart);
-    paintTrack(clamp(done / DWELL, 0, 1));
-    if (done >= DWELL) return tourStep(1);
+    // 停留以畫格累計、每格最多 250 ms：數秒的畫面卡頓不算進停留，每秒 4 格以上仍是實際時間
+    tour.dwellDone += clamp(now - last, 0, 250);
+    last = now;
+    paintTrack(clamp(tour.dwellDone / DWELL, 0, 1));
+    if (tour.dwellDone >= DWELL) return tourStep(1);
     tour.raf = requestAnimationFrame(tick);
   };
   tour.raf = requestAnimationFrame(tick);
@@ -742,11 +798,6 @@ function pauseTour(reason) {
   tour.playing = false;
   tour.token++;
   clearTourTimers();
-  if (tour.arrived && tour.dwellStart) {
-    const elapsed = performance.now() - tour.dwellStart;
-    tour.dwellLeft = Math.max(800, tour.dwellLeft - elapsed);
-    tour.dwellStart = 0;
-  }
   // stop(true)：保留進行中的手勢，使用者第一次拖曳就能直接移動地圖
   map.stop(true);
   setPlayIcon();
@@ -782,7 +833,6 @@ function stopTour() {
   map.stop(true);
   tour.def = null;
   tour.playing = false;
-  tour.dwellStart = 0;
   $('player').hidden = true;
   document.querySelectorAll('#tourList button').forEach((b) => b.setAttribute('aria-current', 'false'));
   if (state.current) { renderCard(state.current); history.replaceState(null, '', `#spot=${state.current.id}`); }
@@ -800,7 +850,8 @@ function startOrbit() {
   orbit.last = performance.now();
   const step = (now) => {
     if (!orbit.on) return;
-    const dt = Math.min(64, now - orbit.last);
+    // 低幀率裝置也維持每秒約 4.5°；上限只用來避免切回分頁時一次轉太多
+    const dt = Math.min(250, now - orbit.last);
     orbit.last = now;
     // 開始環繞時可能還在 easeTo 俯角；等它結束再轉，避免 setBearing 打斷
     if (!map.isMoving()) map.setBearing(map.getBearing() + dt * 0.0045);
@@ -1453,4 +1504,4 @@ map.on('load', () => {
 addEventListener('hashchange', () => applyHash());
 
 // 方便除錯：在 console 存取 map
-window.__tw3d = { map, state, SPOTS, TOURS, elevationAt, sunPosition };
+window.__tw3d = { map, state, tour, SPOTS, TOURS, elevationAt, sunPosition };
