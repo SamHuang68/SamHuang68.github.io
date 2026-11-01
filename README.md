@@ -1,6 +1,8 @@
 # 原作分類微調首頁
 
-版本 **3.4.2**，已獲核准發布的專案卡片圖片版本。實際來源／merge SHA、PR、CI與部署核對見 `C:/Users/Sam/AI-Workspace/docs/portal/homepage-card-art/release.md`；不以版本號宣稱已部署。
+版本 **3.5.0**，新增公開子站「3D 台灣數位孿生導覽」（Taiwan 3D Digital Twin，`taiwan-3d-map/index.html`，對應 `https://samhuang68.github.io/taiwan-3d-map/`）與首頁專案卡片 `data-node="11"`。
+
+以下保留 **3.4.2** 及更早版本說明：版本 **3.4.2**，已獲核准發布的專案卡片圖片版本。實際來源／merge SHA、PR、CI與部署核對見 `C:/Users/Sam/AI-Workspace/docs/portal/homepage-card-art/release.md`；不以版本號宣稱已部署。
 
 本輪只替10張既有作品卡片加入短幅圖片：NVM技術圖、製程晶圓照片、學習與音樂公開介面、硬體與Arcade既有主視覺、D2R官方完整封面，以及3張不展示私有內容的主題圖。維持原背景、玻璃卡片、網格、導航圖示與全部URL。英文基礎HTML和繁中切換延續；新增alt、圖說、備援及來源說明皆雙語。素材詳見 [來源紀錄](assets/card-art/sources.md)。
 
@@ -16,7 +18,7 @@ NucBox本機預覽 <http://127.0.0.1:4184/#professional>，休閒區 <http://127
 
 ## 分類與內容
 
-- Professional：NVM、半導體製程、E-Learning、Hardware；桌面局部2×2。
+- Professional：NVM、半導體製程、E-Learning、Hardware、Taiwan 3D Digital Twin（3D 台灣數位孿生導覽）；桌面局部2欄。
 - Leisure：光汐工作站、Arcade、D2R；沿用原三欄。
 - 私人工作區：OIP、TW Pulse、武將典藏折疊保留，仍有權限提示；TW Pulse明示模擬資料、非目前Stock Terminal、沒有真實行情服務。
 
@@ -38,7 +40,7 @@ JS初始優先順序：有效`?lang=en|zh` → `portal_language_choice_v1`內有
 
 驗證前使用既有verification_gate.py列出變更、案例與依賴：
 
-- `node scripts/check-original-refined.mjs`：語法、雙語、版本、分類及10個原URL，預設不讀取歷史Git物件。
+- `node scripts/check-original-refined.mjs`：語法、雙語、版本、分類及11個專案URL（含原10個URL與新增之3D台灣數位孿生導覽），預設不讀取歷史Git物件。
 - 加`--baseline-proof`才比較指定原作的CSS／背景／互動引擎，需完整原作Git物件；本輪已實際執行通過。
 - `node scripts/qa-original-refined.mjs`：預設使用套件playwright、4176本機預覽與相對qa-artifacts目錄。可用`--playwright`／PLAYWRIGHT_MODULE、`--base`／PORTAL_BASE_URL、`--out`／PORTAL_EVIDENCE_DIR配置。`--only=<名稱片段>`只執行指定案例。
 - 本輪外部比較器測試只在明示`--comparison=http://127.0.0.1:4181/`時執行，不是一般checkout的必要服務。
