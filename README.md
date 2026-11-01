@@ -1,6 +1,8 @@
 # 原作分類微調首頁
 
-版本 **3.5.0**，新增公開子站「3D 台灣數位孿生導覽」（Taiwan 3D Digital Twin，`taiwan-3d-map/index.html`，對應 `https://samhuang68.github.io/taiwan-3d-map/`）與首頁專案卡片 `data-node="11"`。
+版本 **3.5.1**，子站 `taiwan-3d-map/` 改版為 2.0.0「台灣 3D 地景」（MapLibre 全螢幕 3D 地球、即時衛星與實測地形）；舊版保留於 `taiwan-3d-map/classic.html`，首頁卡片縮圖同步更新。詳見[修訂紀錄](修訂紀錄.md)。
+
+以下保留 **3.5.0** 說明：版本 **3.5.0**，新增公開子站「3D 台灣數位孿生導覽」（Taiwan 3D Digital Twin，`taiwan-3d-map/index.html`，對應 `https://samhuang68.github.io/taiwan-3d-map/`）與首頁專案卡片 `data-node="11"`。
 
 以下保留 **3.4.2** 及更早版本說明：版本 **3.4.2**，已獲核准發布的專案卡片圖片版本。實際來源／merge SHA、PR、CI與部署核對見 `C:/Users/Sam/AI-Workspace/docs/portal/homepage-card-art/release.md`；不以版本號宣稱已部署。
 
