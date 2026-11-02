@@ -346,6 +346,12 @@ function plateNotes() {
 const magScale = (k) => ['*', k, ['^', 1.85, ['-', ['get', 'm'], 4]]];
 const DEPTH_COLOR = ['interpolate', ['linear'], ['get', 'd'], ...DEPTH_STOPS];
 
+// 旅遊專項配色：環島坡度（%）、步道難度（林業保育署 0–6 級）
+const GRADE_STOPS = [0, '#7fd1ae', 3, '#cfe27a', 5, '#f2c46d', 7, '#ff9b73', 10, '#ff5d6c'];
+const GRADE_COLOR = ['interpolate', ['linear'], ['get', 'g'], ...GRADE_STOPS];
+const DIF_COLORS = ['#7fd1ae', '#7fd1ae', '#cfe27a', '#f2c46d', '#ff9b73', '#ff6b6b', '#e07ad0'];
+const DIF_EXPR = ['match', ['get', 'dif'], ...DIF_COLORS.flatMap((c, i) => [i, c]), '#cccccc'];
+
 const EMPTY = { type: 'FeatureCollection', features: [] };
 const SPOT_LABEL_LAYOUT = { 'text-field': ['get', 'short'], 'text-font': ['Noto Sans Bold'], 'text-size': ['interpolate', ['linear'], ['zoom'], 6, 12, 11, 13.5], 'text-variable-anchor': ['left', 'right', 'top', 'bottom'], 'text-radial-offset': 0.85, 'text-justify': 'auto', 'text-padding': 3, 'symbol-sort-key': ['get', 'rank'] };
 const SPOT_LABEL_PAINT = { 'text-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#ffd88a', '#ffffff'], 'text-halo-color': 'rgba(8,10,14,0.88)', 'text-halo-width': 1.6 };
@@ -369,6 +375,13 @@ function buildStyle() {
       catalog: { type: 'geojson', data: EMPTY, attribution: '地震目錄 USGS ComCat' },
       plates: { type: 'geojson', data: EMPTY, attribution: '板塊邊界 Bird (2003) PB2002' },
       'plate-notes': { type: 'geojson', data: plateNotes() },
+      'bike-route': { type: 'geojson', data: EMPTY, attribution: '環島 1 號線與沿線設施 © OpenStreetMap 貢獻者' },
+      'bike-hl': { type: 'geojson', data: EMPTY },
+      'bike-pois': { type: 'geojson', data: EMPTY },
+      'bike-stages': { type: 'geojson', data: EMPTY },
+      trails: { type: 'geojson', data: EMPTY, attribution: '步道 林業及自然保育署' },
+      'trail-heads': { type: 'geojson', data: EMPTY },
+      peaks: { type: 'geojson', data: EMPTY },
       profile: { type: 'geojson', data: EMPTY },
       cursor: { type: 'geojson', data: EMPTY },
     },
@@ -395,6 +408,12 @@ function buildStyle() {
       // 播放時新出現的地震擴散一圈，約半年內淡出
       { id: 'catalog-flash', type: 'circle', source: 'catalog', filter: ['<', ['get', 'age'], 0.6], layout: { visibility: 'none' }, paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, ['*', magScale(1.4), ['+', 1.4, ['*', 9, ['get', 'age']]]], 11, ['*', magScale(2.8), ['+', 1.4, ['*', 9, ['get', 'age']]]]], 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': DEPTH_COLOR, 'circle-stroke-width': 1.6, 'circle-stroke-opacity': ['interpolate', ['linear'], ['get', 'age'], 0, 0.95, 0.6, 0], 'circle-pitch-alignment': 'map' } },
       { id: 'catalog-dot', type: 'circle', source: 'catalog', layout: { visibility: 'none', 'circle-sort-key': ['get', 'm'] }, paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, magScale(1.4), 8, magScale(1.9), 11, magScale(2.6), 14, magScale(3.4)], 'circle-color': DEPTH_COLOR, 'circle-opacity': ['interpolate', ['linear'], ['get', 'age'], 0, 0.95, 3, 0.85, 20, 0.66], 'circle-stroke-color': ['case', ['<', ['get', 'age'], 0.08], '#ffffff', 'rgba(8,10,14,0.75)'], 'circle-stroke-width': ['case', ['<', ['get', 'age'], 0.08], 1.4, 0.6] } },
+      // 旅遊專項：環島依坡度著色（g：0.5 km 平均坡度 %），步道依難度著色
+      { id: 'bike-route-casing', type: 'line', source: 'bike-route', layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': 'rgba(8,10,14,0.7)', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 4, 12, 9] } },
+      { id: 'bike-route', type: 'line', source: 'bike-route', layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': GRADE_COLOR, 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 2.2, 12, 5] } },
+      { id: 'bike-hl', type: 'line', source: 'bike-hl', layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 2, 12, 3.5], 'line-dasharray': [1.6, 1.2], 'line-opacity': 0.95 } },
+      { id: 'trail-line', type: 'line', source: 'trails', layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': DIF_EXPR, 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1.4, 13, 3.4], 'line-opacity': 0.9 } },
+      { id: 'trail-hl', type: 'line', source: 'trails', filter: ['==', ['get', 'id'], ''], layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 3, 13, 6], 'line-opacity': 0.9 } },
       { id: 'profile-line-casing', type: 'line', source: 'profile', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round' }, paint: { 'line-color': 'rgba(0,0,0,0.45)', 'line-width': 5 } },
       { id: 'profile-line', type: 'line', source: 'profile', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 2.2, 'line-dasharray': [2, 1.4] } },
       { id: 'profile-ends', type: 'circle', source: 'profile', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 5, 'circle-color': '#e9b44c', 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 2 } },
@@ -408,6 +427,15 @@ function buildStyle() {
       { id: 'peaks-label', type: 'symbol', source: 'omt', 'source-layer': 'mountain_peak', minzoom: 9.5, filter: ['has', 'ele'], layout: { 'text-field': ['format', NAME, {}, '\n', {}, ['concat', ['to-string', ['get', 'ele']], ' m'], { 'font-scale': 0.82, 'text-color': '#f2c46d' }], 'text-font': ['Noto Sans Regular'], 'text-size': 11.5, 'text-anchor': 'top', 'text-offset': [0, 0.45], 'text-padding': 4, 'symbol-sort-key': ['*', -1, ['to-number', ['get', 'ele'], 0]] }, paint: TEXT_PAINT },
       { id: 'quakes-label', type: 'symbol', source: 'quakes', layout: { visibility: 'none', 'text-field': ['get', 'label'], 'text-font': ['Noto Sans Bold'], 'text-size': 11.5, 'text-allow-overlap': true }, paint: { ...TEXT_PAINT, 'text-color': '#ffb39e' } },
       { id: 'plates-name', type: 'symbol', source: 'plate-notes', filter: ['==', ['geometry-type'], 'Point'], layout: { visibility: 'none', 'text-field': ['get', 'label'], 'text-font': ['Noto Sans Bold'], 'text-size': ['match', ['get', 'kind'], 'plate', 16, 12.5], 'text-letter-spacing': ['match', ['get', 'kind'], 'plate', 0.35, 'rate', 0.04, 0.18], 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { ...TEXT_PAINT, 'text-color': ['match', ['get', 'kind'], 'trench', '#ffb8c6', 'rift', '#ffd2a8', 'rgba(255,255,255,0.94)'], 'text-halo-width': 2 } },
+      // 補給點拉近才顯示：全島尺度只留依坡度著色的路線與每日終點
+      { id: 'bike-poi', type: 'circle', source: 'bike-pois', minzoom: 8.5, filter: ['in', ['get', 'kind'], ['literal', ['station']]], layout: { visibility: 'none', 'circle-sort-key': ['match', ['get', 'kind'], 'station', 2, 1] }, paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, ['match', ['get', 'kind'], 'station', 3.6, 2.4], 12, ['match', ['get', 'kind'], 'station', 6, 4.5]], 'circle-color': ['match', ['get', 'kind'], 'station', '#ffffff', 'store', '#9be15d', 'police', '#5ec2e6', '#e9b44c'], 'circle-stroke-color': 'rgba(8,10,14,0.9)', 'circle-stroke-width': 1.2 } },
+      { id: 'bike-poi-label', type: 'symbol', source: 'bike-pois', minzoom: 9, filter: ['==', ['get', 'kind'], 'station'], layout: { visibility: 'none', 'text-field': ['concat', ['get', 'name'], '站'], 'text-font': ['Noto Sans Regular'], 'text-size': 11.5, 'text-offset': [0, 1.05], 'text-anchor': 'top', 'text-padding': 4 }, paint: { ...TEXT_PAINT, 'text-color': '#ffffff' } },
+      { id: 'bike-stage', type: 'circle', source: 'bike-stages', layout: { visibility: 'none' }, paint: { 'circle-radius': 7, 'circle-color': '#e9b44c', 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 2, 'circle-pitch-alignment': 'viewport' } },
+      { id: 'bike-stage-label', type: 'symbol', source: 'bike-stages', layout: { visibility: 'none', 'text-field': ['get', 'label'], 'text-font': ['Noto Sans Bold'], 'text-size': 12, 'text-variable-anchor': ['left', 'right'], 'text-radial-offset': 1, 'text-allow-overlap': true }, paint: { ...TEXT_PAINT, 'text-color': '#ffd88a' } },
+      { id: 'trail-head', type: 'circle', source: 'trail-heads', layout: { visibility: 'none' }, paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 3.4, 12, 6], 'circle-color': DIF_EXPR, 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 1.4, 'circle-pitch-alignment': 'viewport' } },
+      { id: 'trail-label', type: 'symbol', source: 'trail-heads', minzoom: 9.5, layout: { visibility: 'none', 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'], 'text-size': 11.5, 'text-offset': [0, 1], 'text-anchor': 'top', 'text-padding': 4 }, paint: { ...TEXT_PAINT, 'text-color': '#d9f2c8' } },
+      { id: 'peak-dot', type: 'circle', source: 'peaks', layout: { visibility: 'none', 'circle-sort-key': ['-', 0, ['get', 'rank']] }, paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 3, 10, 5.5, 13, 7], 'circle-color': ['case', ['get', 'done'], '#e9b44c', '#ffffff'], 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 1.4, 'circle-pitch-alignment': 'viewport' } },
+      { id: 'peak-label', type: 'symbol', source: 'peaks', minzoom: 8.6, layout: { visibility: 'none', 'text-field': ['format', ['get', 'name'], {}, '\n', {}, ['concat', ['to-string', ['get', 'h']], ' m'], { 'font-scale': 0.82 }], 'text-font': ['Noto Sans Bold'], 'text-size': 11.5, 'text-anchor': 'top', 'text-offset': [0, 0.7], 'text-padding': 3, 'symbol-sort-key': ['get', 'rank'] }, paint: { ...TEXT_PAINT, 'text-color': ['case', ['get', 'done'], '#ffd88a', '#ffffff'] } },
       { id: 'spots-halo', type: 'circle', source: 'spots', paint: { 'circle-radius': ['case', ['boolean', ['feature-state', 'selected'], false], 16, 0], 'circle-color': 'rgba(233,180,76,0.22)', 'circle-stroke-color': 'rgba(233,180,76,0.85)', 'circle-stroke-width': ['case', ['boolean', ['feature-state', 'selected'], false], 1.2, 0], 'circle-pitch-alignment': 'viewport' } },
       { id: 'spots-dot', type: 'circle', source: 'spots', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, spotRadius(3.4), 9, spotRadius(5), 13, spotRadius(6)], 'circle-color': ['get', 'color'], 'circle-stroke-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#ffffff', 'rgba(8,10,14,0.9)'], 'circle-stroke-width': ['case', ['boolean', ['feature-state', 'selected'], false], 2.4, 1.4], 'circle-pitch-alignment': 'viewport' } },
       { id: 'spots-label-major', type: 'symbol', source: 'spots', minzoom: 5.6, maxzoom: 9.2, filter: ['get', 'featured'], layout: SPOT_LABEL_LAYOUT, paint: SPOT_LABEL_PAINT },
@@ -457,6 +485,7 @@ map.addControl(attribution, 'bottom-right');
 map.once('idle', () => attribution._container?.classList.remove('maplibregl-compact-show'));
 map.addControl(new maplibregl.ScaleControl({ unit: 'metric', maxWidth: 110 }), 'bottom-left');
 map.on('error', (e) => console.warn('[map]', e.error?.message || e));
+const mapReady = new Promise((resolve) => map.once('load', resolve));
 
 const beaconEl = document.createElement('div');
 beaconEl.className = 'beacon';
@@ -706,6 +735,8 @@ function flyToSpot(s, extra = {}) {
 let selectedFid = null;
 function selectSpot(s, { fly = true } = {}) {
   stopOrbit();
+  stopRide();
+  clearTravelSel();
   state.current = s;
   if (selectedFid !== null) map.setFeatureState({ source: 'spots', id: selectedFid }, { selected: false });
   selectedFid = s.index;
@@ -726,8 +757,14 @@ function renderCard(s) {
     : `${String(s.index + 1).padStart(2, '0')} / ${SPOTS.length}`;
   $('cardTitle').textContent = s.name;
   $('cardBadge').textContent = s.badge;
+  $('cardElevLabel').textContent = '海拔';
+  $('cardCoordLabel').textContent = '座標';
   $('cardElev').textContent = s.elev < 0 ? `水深 ${fmtInt(-s.elev)} m` : `${fmtInt(s.elev)} m`;
   $('cardCoord').textContent = `${s.lat.toFixed(3)}°N ${s.lon.toFixed(3)}°E`;
+  $('cardRide').hidden = true;
+  $('cardOrbit').hidden = false;
+  $('cardPrev').setAttribute('aria-label', '上一個導覽點');
+  $('cardNext').setAttribute('aria-label', '下一個導覽點');
   $('cardMetric').textContent = s.metric;
   $('cardDesc').textContent = s.desc;
   const wasHidden = cardEl.hidden;
@@ -736,14 +773,20 @@ function renderCard(s) {
   if (wasHidden && !map.isMoving()) relayout();
 }
 
-function closeCard() {
-  cardEl.hidden = true;
-  document.body.classList.remove('card-open');
+// 只清掉導覽點的選取（地圖高亮、信標、清單標記），不關卡片
+function clearSpot() {
   if (selectedFid !== null) map.setFeatureState({ source: 'spots', id: selectedFid }, { selected: false });
   selectedFid = null;
   state.current = null;
   beacon.remove();
   markListCurrent();
+}
+
+function closeCard() {
+  cardEl.hidden = true;
+  document.body.classList.remove('card-open');
+  clearSpot();
+  clearTravelSel();
   history.replaceState(null, '', location.pathname + location.search);
   if (!tour.playing) relayout();
 }
@@ -762,6 +805,7 @@ const tour = { def: null, i: 0, playing: false, token: 0, dwellDone: 0, raf: 0, 
 
 function startTour(def, i = 0) {
   stopOrbit();
+  stopRide();
   tour.def = def;
   tour.i = i;
   tour.playing = true;
@@ -791,10 +835,12 @@ function paintTrack(progress = 0) {
   }
 }
 
+// 播放器同時服務路線導覽與虛擬騎乘
 function setPlayIcon() {
   const btn = $('pPlay');
-  btn.querySelector('use').setAttribute('href', tour.playing ? '#i-pause' : '#i-play');
-  btn.setAttribute('aria-label', tour.playing ? '暫停' : '播放');
+  const playing = ride.on ? ride.playing : tour.playing;
+  btn.querySelector('use').setAttribute('href', playing ? '#i-pause' : '#i-play');
+  btn.setAttribute('aria-label', playing ? '暫停' : '播放');
 }
 
 function goStop() {
@@ -902,6 +948,7 @@ const orbit = { on: false, raf: 0, last: 0 };
 function startOrbit() {
   if (orbit.on) return;
   pauseTour();
+  stopRide();
   orbit.on = true;
   $('tOrbit').setAttribute('aria-pressed', 'true');
   $('cardOrbit').setAttribute('aria-pressed', 'true');
@@ -927,11 +974,12 @@ function stopOrbit() {
 }
 
 // ---------------------------------------------------------------- 地形剖面
-const profile = { picking: false, pts: [], samples: null, token: 0, section: null };
+// path：沿路徑剖面（旅遊專項）的標題、統計、標記與點選回呼；直線剖面為 null
+const profile = { picking: false, pts: [], samples: null, token: 0, section: null, path: null, showAt: null };
 
-// 地震目錄開著時，剖面加高並多畫一層震源深度
+// 地震目錄開著時，直線剖面加高並多畫一層震源深度
 function syncProfileDepth() {
-  const deep = quake.on && !!quake.list && !profileEl.hidden;
+  const deep = quake.on && !!quake.list && !profileEl.hidden && !profile.path;
   if (document.body.classList.contains('profile-deep') === deep) return;
   document.body.classList.toggle('profile-deep', deep);
   relayout();
@@ -970,6 +1018,9 @@ function closeProfile() {
   profile.picking = false;
   profile.pts = [];
   profile.samples = null;
+  profile.path = null;
+  profile.showAt = null;
+  $('profileTitle').textContent = '地形剖面';
   profile.token++;
   clearSection();
   document.body.classList.remove('profile-open', 'map-cursor-pick', 'profile-deep');
@@ -981,6 +1032,7 @@ function closeProfile() {
 
 function startPicking() {
   openProfile();
+  resetPathProfile();
   profile.picking = true;
   profile.pts = [];
   profile.samples = null;
@@ -1018,6 +1070,7 @@ async function openSection(key) {
   if (!s) return;
   if (isMobile()) setSheet(false);
   stopTour();
+  stopRide();
   stopQuakes();
   stopPicking();
   quake.T = Infinity;
@@ -1035,9 +1088,19 @@ async function openSection(key) {
   runProfile(s.a, s.b, { frame: true });
 }
 
+// 改回直線剖面：清掉路徑剖面的標題與設定，必要時恢復震源層
+function resetPathProfile() {
+  if (!profile.path) return;
+  profile.path = null;
+  profile.showAt = null;
+  $('profileTitle').textContent = '地形剖面';
+  syncProfileDepth();
+}
+
 async function runProfile(a, b, { frame }) {
   const token = ++profile.token;
   profile.samples = null;
+  resetPathProfile();
   const len = distanceKm(a, b);
   const N = 240;
   const z = len > 140 ? 10 : len > 45 ? 11 : 12;
@@ -1084,7 +1147,7 @@ function niceStep(range, target) {
 
 // 線兩側的震源投影到剖面：局部平面 km 座標，沿線距離再換回與地形同一把尺
 function quakeSection(S) {
-  if (!quake.on || !quake.list) return null;
+  if (!quake.on || !quake.list || profile.path) return null;
   const a = S[0].p, b = S[S.length - 1].p, len = S[S.length - 1].d;
   const half = SECTIONS[profile.section]?.half ?? Math.round(clamp(len * 0.1, 12, 30));
   const kx = 111.32 * Math.cos((((a[1] + b[1]) / 2) * Math.PI) / 180), ky = 110.57;
@@ -1128,22 +1191,28 @@ function drawProfile() {
   const tBot = sec ? T + Math.round((H - T - B) * 0.34) : H - B;
   const dTop = tBot + 16, dBot = H - B;
   const len = S[S.length - 1].d;
-  let lo = Math.min(0, ...S.map((s) => s.e)), hi = Math.max(10, ...S.map((s) => s.e));
+  const path = profile.path;
+  let emin = Infinity, emax = -Infinity;
+  for (const s of S) { if (s.e < emin) emin = s.e; if (s.e > emax) emax = s.e; }
+  // 山區步道從最低點附近畫起；直線剖面與環島保留海平面基準
+  let lo = path?.floor && emin > 60 ? emin : Math.min(0, emin), hi = Math.max(10, emax);
   const padY = (hi - lo) * 0.08;
-  hi += padY; lo -= lo < 0 ? padY : 0;
+  hi += padY; lo -= lo < 0 || path?.floor ? padY : 0;
   const x = (d) => L + ((W - L - R) * d) / len;
   const y = (e) => T + ((tBot - T) * (hi - e)) / (hi - lo);
 
-  let gain = 0;
-  for (let i = 1; i < S.length; i++) gain += Math.max(0, S[i].e - S[i - 1].e);
-  const maxS = S.reduce((m, s) => (s.e > m.e ? s : m), S[0]);
-  const minS = S.reduce((m, s) => (s.e < m.e ? s : m), S[0]);
-  $('profileStats').innerHTML = `長 <b>${len.toFixed(1)}</b> km · 最高 <b>${fmtInt(maxS.e)}</b> m · 最低 <b>${fmtInt(minS.e)}</b> m · 累積爬升 <b>${fmtInt(gain)}</b> m`;
+  if (path?.stats) $('profileStats').innerHTML = path.stats;
+  else {
+    let gain = 0;
+    for (let i = 1; i < S.length; i++) gain += Math.max(0, S[i].e - S[i - 1].e);
+    $('profileStats').innerHTML = `長 <b>${len.toFixed(1)}</b> km · 最高 <b>${fmtInt(emax)}</b> m · 最低 <b>${fmtInt(emin)}</b> m · 累積爬升 <b>${fmtInt(gain)}</b> m`;
+  }
 
   const top = S.map((s) => `${x(s.d).toFixed(1)},${y(s.e).toFixed(1)}`).join(' L');
   const base = y(lo);
   const y0 = y(0);
-  const ys = niceStep(hi - lo, sec ? 2 : 4), xs = niceStep(len, 6);
+  // x 軸刻度依寬度調整，窄螢幕不擠在一起
+  const ys = niceStep(hi - lo, sec ? 2 : 4), xs = niceStep(len, clamp(Math.floor((W - L - R) / 90), 2, 6));
   let grid = '';
   for (let v = Math.ceil(lo / ys) * ys; v <= hi; v += ys) {
     grid += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${fmtInt(v)}</text>`;
@@ -1172,9 +1241,23 @@ function drawProfile() {
     }
   }
 
+  // 路徑剖面：區段底色（例如目前這一天）與標記線（每日終點、爬坡頂點）
+  let marks = '';
+  if (path?.range) {
+    const [r0, r1] = path.range;
+    marks += `<rect x="${x(r0).toFixed(1)}" y="${T}" width="${Math.max(1, x(r1) - x(r0)).toFixed(1)}" height="${tBot - T}" fill="rgba(233,180,76,.12)"/>`;
+  }
+  for (const m of path?.marks || []) {
+    if (m.d < 0 || m.d > len) continue;
+    const mx = x(m.d).toFixed(1);
+    marks += `<line x1="${mx}" x2="${mx}" y1="${T + 12}" y2="${tBot}" stroke="rgba(255,255,255,.28)" stroke-dasharray="2 3"/>`
+      + `<text class="axis" x="${mx}" y="${T + 9}" text-anchor="middle">${esc(m.label)}</text>`;
+  }
+  const endA = esc(path?.a ?? 'A'), endB = esc(path?.b ?? 'B');
+
   const stops = [[0, '#c9c3bd'], [0.35, '#b98e64'], [0.7, '#94b06e'], [1, '#5c8a5a']];
   const landTop = y(Math.max(hi, 1)), landBot = y0;
-  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${sec ? '地形與震源深度剖面圖' : '地形剖面圖'}">
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${sec ? '地形與震源深度剖面圖' : path ? `${esc(path.title)}高度剖面圖` : '地形剖面圖'}">
     <defs>
       <linearGradient id="pgLand" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${landTop}" y2="${landBot}">${stops.map(([o, c]) => `<stop offset="${o}" stop-color="${c}" stop-opacity="0.9"/>`).join('')}</linearGradient>
       <linearGradient id="pgSea" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${y0}" y2="${base}"><stop offset="0" stop-color="#5ec2e6" stop-opacity=".55"/><stop offset="1" stop-color="#0b2d60" stop-opacity=".85"/></linearGradient>
@@ -1182,12 +1265,13 @@ function drawProfile() {
       <clipPath id="pgBelow"><rect x="0" y="${y0}" width="${W}" height="${H}"/></clipPath>
     </defs>
     ${grid}
+    ${marks}
     <path d="M${x(0)},${y0} L${x(len)},${y0} L${x(len)},${base} L${x(0)},${base}Z" fill="url(#pgSea)" clip-path="url(#pgBelow)"/>
     <path d="M${x(0)},${base} L${top} L${x(len)},${base}Z" fill="url(#pgLand)" clip-path="url(#pgAbove)"/>
     <path d="M${x(0)},${base} L${top} L${x(len)},${base}Z" fill="#1b2a3a" clip-path="url(#pgBelow)"/>
     <line class="sea" x1="${L}" x2="${W - R}" y1="${y0}" y2="${y0}"/>
     <path d="M${top}" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
-    <text class="axis" x="${x(0) + 2}" y="${T + 10}">A</text><text class="axis" x="${x(len) - 2}" y="${T + 10}" text-anchor="end">B</text>
+    <text class="axis" x="${x(0) + 2}" y="${T + 10}">${endA}</text><text class="axis" x="${x(len) - 2}" y="${T + 10}" text-anchor="end">${endB}</text>
     ${deep}
     <g id="pgHover" visibility="hidden">
       <line x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="#e9b44c" stroke-width="1"/>
@@ -1229,14 +1313,41 @@ function drawProfile() {
         return;
       }
     }
-    const d = clamp(((sx - L) / (W - L - R)) * len, 0, len);
-    const s = S[Math.round((d / len) * (S.length - 1))];
-    showTip(x(s.d), y(s.e), T + 2, `${s.d.toFixed(1)} km · ${s.e < 0 ? '水深 ' + fmtInt(-s.e) : fmtInt(s.e)} m`);
-    map.getSource('cursor').setData({ type: 'Feature', geometry: { type: 'Point', coordinates: s.p } });
+    showAt(clamp(((sx - L) / (W - L - R)) * len, 0, len));
   };
+  // 路徑剖面若是整條路線中的一段（offset：從第幾公里開始），另外標出全線里程
+  const showAt = (d) => {
+    const s = S[Math.round((clamp(d, 0, len) / len) * (S.length - 1))];
+    const at = path?.offset ? `${s.d.toFixed(1)} km（全線 ${(s.d + path.offset).toFixed(1)} km）` : `${s.d.toFixed(1)} km`;
+    showTip(x(s.d), y(s.e), T + 2, `${at} · ${s.e < 0 ? '水深 ' + fmtInt(-s.e) : fmtInt(s.e)} m`);
+    map.getSource('cursor').setData({ type: 'Feature', geometry: { type: 'Point', coordinates: s.p } });
+    return s;
+  };
+  profile.showAt = showAt;
   hit.addEventListener('pointermove', move);
   hit.addEventListener('pointerdown', move);
   hit.addEventListener('pointerleave', () => { g.setAttribute('visibility', 'hidden'); map.getSource('cursor').setData(EMPTY); });
+  if (path?.onPick) {
+    hit.style.cursor = 'pointer';
+    hit.addEventListener('click', (ev) => {
+      const r = hit.getBoundingClientRect();
+      path.onPick(clamp(((ev.clientX - r.left) / r.width) * len, 0, len));
+    });
+  }
+}
+
+// 沿路徑的高度剖面（環島分段、步道）：samples 為 [{ p, d, e }]，d 從 0 起算
+function showPathProfile(samples, opts) {
+  stopPicking();
+  clearSection();
+  profile.token++;
+  profile.path = opts;
+  profile.samples = samples;
+  map.getSource('profile').setData(EMPTY);
+  openProfile();
+  $('profileTitle').textContent = opts.title;
+  setProfileNote(opts.note || '');
+  drawProfile();
 }
 
 // ---------------------------------------------------------------- 地震目錄與板塊
@@ -1442,7 +1553,7 @@ function flyToLatestQuake() {
   const q = quake.list?.at(-1);
   if (!q) return;
   if (isMobile()) setSheet(false);
-  stopTour(); stopOrbit();
+  stopTour(); stopOrbit(); stopRide();
   quake.T = Infinity;
   syncTimeRange();
   pushCatalog();
@@ -1450,6 +1561,803 @@ function flyToLatestQuake() {
   // 減少動態時 flyTo 立即完成，moveend 早於監聽
   if (map.isMoving()) map.once('moveend', () => showQuakePopup(q));
   else showQuakePopup(q);
+}
+
+// ---------------------------------------------------------------- 旅遊專項：自行車環島、健行步道、百岳
+// 三份資料都在開啟該專項時才載入。環島取樣自台北起算、順時針排列，逆時針時整條反轉。
+const TRAVEL_URL = { bike: './cycling.json?v=2.2.0', hike: './trails.json?v=2.2.0', peaks: './peaks.json?v=2.2.0' };
+const TRAVEL_LAYERS = {
+  bike: ['bike-route-casing', 'bike-route', 'bike-hl', 'bike-poi', 'bike-poi-label', 'bike-stage', 'bike-stage-label'],
+  hike: ['trail-line', 'trail-hl', 'trail-head', 'trail-label'],
+  peaks: ['peak-dot', 'peak-label'],
+};
+const PEAK_DONE_KEY = 'tw3d-peaks-done-v1';
+// req：每次選取遞增；網址或搜尋觸發的延遲選取若期間已有新選取就放棄
+const travel = { mode: 'bike', data: {}, loading: {}, sel: null, req: 0, dir: 'ccw', days: 9, plan: null, poi: new Set(['station']), hikeDif: 'all', hikeQ: '', hikeList: [], peakFilter: 'all', peakList: [], done: new Set() };
+
+// 字串放進 innerHTML 或 SVG 屬性前跳脫（地名、站名來自外部資料）
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+function loadTravel(kind) {
+  if (travel.loading[kind]) return travel.loading[kind];
+  const p = (async () => {
+    const res = await fetch(TRAVEL_URL[kind], { signal: withTimeout(null, 20000) });
+    if (!res.ok) throw new Error(`${kind} ${res.status}`);
+    const data = await res.json();
+    await mapReady; // 圖源在樣式載入後才存在（例如搜尋在開場時就打開）
+    travel.data[kind] = data;
+    if (kind === 'bike') initBike(); else if (kind === 'hike') initHike(); else initPeaks();
+    return travel.data[kind];
+  })();
+  travel.loading[kind] = p;
+  p.catch(() => { travel.loading[kind] = null; });
+  return p;
+}
+
+// 圖層只在旅遊分頁開著、有選取或虛擬騎乘時顯示，避免和導覽點、地震圖層擠在一起
+function syncTravelLayers() {
+  if (!map.getLayer('bike-route')) return;
+  const tabOn = !$('pane-travel').hidden;
+  for (const [mode, ids] of Object.entries(TRAVEL_LAYERS)) {
+    const on = !!travel.data[mode] && (ride.on ? ride.mode === mode : (tabOn && travel.mode === mode) || travel.sel?.mode === mode);
+    for (const id of ids) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+  }
+}
+
+async function setTravelMode(mode) {
+  travel.mode = mode;
+  document.querySelectorAll('#travelSeg button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.mode === mode)));
+  for (const m of Object.keys(TRAVEL_URL)) $(`travel-${m}`).hidden = m !== mode;
+  syncTravelLayers();
+  try {
+    await loadTravel(mode);
+  } catch (err) {
+    console.warn('[travel]', err);
+    const hint = { bike: 'bikeHint', hike: 'hikeHint', peaks: 'peakHint' }[mode];
+    $(hint).textContent = '資料載入失敗，請稍後再試。';
+    return;
+  }
+  syncTravelLayers();
+}
+
+function openTravel(mode) {
+  travel.mode = mode; // 先改模式，setTab 才不會順便載入上一個專項的資料
+  setTab('travel');
+  return setTravelMode(mode);
+}
+
+// 網址、搜尋：等資料載入後才選取；等待期間若使用者已選了別的就不再接手
+function openTravelThen(mode, pick) {
+  const req = ++travel.req, spot = state.current;
+  return openTravel(mode).then(() => {
+    if (req === travel.req && state.current === spot && !tour.def) pick();
+  });
+}
+
+// 清單項目：k 編號、t 標題、v 右側數值、s 第二行說明、bar 長條（0–1）
+function travelItem({ k, t, v, s, bar, color, data }) {
+  const li = document.createElement('li');
+  const b = document.createElement('button');
+  b.type = 'button';
+  Object.assign(b.dataset, data);
+  if (color) b.style.setProperty('--c', color);
+  for (const [cls, text] of [['k', k], ['t', t], ['v', v], ['s', s]]) {
+    if (text == null) continue;
+    const span = document.createElement('span');
+    span.className = cls;
+    span.textContent = text;
+    b.append(span);
+  }
+  if (bar != null) {
+    const sp = document.createElement('span');
+    sp.className = 'bar';
+    sp.innerHTML = '<i></i>';
+    sp.firstChild.style.setProperty('--w', `${Math.round(clamp(bar, 0, 1) * 100)}%`);
+    b.append(sp);
+  }
+  li.append(b);
+  return li;
+}
+
+function showTravelCard(c) {
+  cardEl.style.setProperty('--c', c.color);
+  $('cardTag').textContent = c.tag;
+  $('cardIndex').textContent = c.index;
+  $('cardTitle').textContent = c.title;
+  $('cardBadge').textContent = c.badge;
+  $('cardElevLabel').textContent = c.f1[0];
+  $('cardElev').textContent = c.f1[1];
+  $('cardCoordLabel').textContent = c.f2[0];
+  $('cardCoord').textContent = c.f2[1];
+  $('cardMetric').textContent = c.metric;
+  $('cardDesc').textContent = c.desc;
+  // 環島與步道用「飛覽」（沿著路線前進）取代「環繞」，按鈕列維持五顆
+  $('cardRide').hidden = !(travel.sel?.mode === 'bike' || travel.sel?.kind === 'trail');
+  $('cardOrbit').hidden = !$('cardRide').hidden;
+  $('cardPrev').setAttribute('aria-label', '上一個');
+  $('cardNext').setAttribute('aria-label', '下一個');
+  const wasHidden = cardEl.hidden;
+  cardEl.hidden = false;
+  document.body.classList.add('card-open');
+  if (wasHidden && !map.isMoving()) relayout();
+}
+
+function setTravelSel(sel) {
+  stopOrbit();
+  stopRide();
+  clearSpot();
+  travel.req++;
+  travel.sel = sel;
+  map.getSource('bike-hl').setData(EMPTY);
+  map.setFilter('trail-hl', ['==', ['get', 'id'], sel.kind === 'trail' ? sel.id : '']);
+  syncTravelLayers();
+  markTravelLists();
+}
+
+function clearTravelSel() {
+  if (!travel.sel) return;
+  travel.sel = null;
+  map.getSource('bike-hl').setData(EMPTY);
+  map.setFilter('trail-hl', ['==', ['get', 'id'], '']);
+  syncTravelLayers();
+  markTravelLists();
+}
+
+function markTravelLists() {
+  const s = travel.sel;
+  const mark = (sel, match) => document.querySelectorAll(sel).forEach((b) => {
+    if (s && match(b.dataset)) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+  });
+  mark('#bikeStages button', (d) => s.kind === 'stage' && +d.k === s.k);
+  mark('#bikeClimbs button', (d) => s.kind === 'climb' && +d.i === s.i);
+  mark('#hikeList button', (d) => s.kind === 'trail' && d.id === s.id);
+  mark('#peakList button', (d) => s.kind === 'peak' && +d.rank === s.rank);
+}
+
+// 讓一組座標落在可視範圍內（扣掉面板、卡片與剖面）。自己算 zoom 再 flyTo：
+// fitBounds 會把地圖目前的 padding 再加一次，面板與卡片的空間被重複扣掉，窄螢幕上甚至算不出鏡頭。
+function fitCoords(coords, { maxZoom = 13.5, pitch = 48 } = {}) {
+  let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+  for (const [x, y] of coords) { if (x < w) w = x; if (x > e) e = x; if (y < s) s = y; if (y > n) n = y; }
+  const my = (lat) => { const t = Math.sin((lat * Math.PI) / 180); return 0.5 - Math.log((1 + t) / (1 - t)) / (4 * Math.PI); };
+  const p = viewPadding();
+  const visW = Math.max(120, innerWidth - p.left - p.right - 80), visH = Math.max(120, innerHeight - p.top - p.bottom - 90);
+  const spanX = Math.max(1e-9, (e - w) / 360) * 512, spanY = Math.max(1e-9, my(s) - my(n)) * 512;
+  const zoom = clamp(Math.log2(Math.min(visW / spanX, visH / spanY)) - 0.15, 3, maxZoom);
+  const cy = (my(s) + my(n)) / 2;
+  const lat = (Math.atan(Math.sinh(Math.PI * (1 - 2 * cy))) * 180) / Math.PI;
+  map.flyTo({ center: [(w + e) / 2, lat], zoom, pitch, bearing: 0, padding: p, speed: 1.2, curve: 1.4, maxDuration: 6000 });
+}
+
+function travelStep(delta) {
+  const s = travel.sel;
+  if (!s) return;
+  const wrap = (i, n) => ((i % n) + n) % n;
+  if (s.kind === 'stage') selectStage(wrap(s.k - 1 + delta, travel.plan.stages.length) + 1);
+  else if (s.kind === 'climb') selectClimb(wrap(s.i + delta, travel.plan.climbs.length));
+  else if (s.kind === 'trail') {
+    const list = travel.hikeList.length ? travel.hikeList : travel.data.hike.trails;
+    const i = list.findIndex((t) => t.id === s.id);
+    selectTrail(list[wrap(i + delta, list.length)]);
+  } else if (s.kind === 'peak') {
+    const list = travel.peakList.length ? travel.peakList : travel.data.peaks.peaks;
+    const i = list.findIndex((p) => p.rank === s.rank);
+    selectPeak(list[wrap(i + delta, list.length)]);
+  }
+}
+
+function travelProfile() {
+  const s = travel.sel;
+  if (!s) return;
+  if (s.kind === 'stage') stageProfile(s.k);
+  else if (s.kind === 'climb') climbProfile(s.i);
+  else if (s.kind === 'trail') trailProfile(travel.data.hike.trails.find((t) => t.id === s.id));
+  else if (s.kind === 'peak') { const p = peakByRank(s.rank); profileForSpot(p); }
+}
+
+function travelHash() {
+  const s = travel.sel;
+  if (!s) return null;
+  if (s.kind === 'trail') return `#trail=${s.id}`;
+  if (s.kind === 'peak') return `#peak=${s.rank}`;
+  return '#bike';
+}
+
+// 一段路徑的距離、累積爬升／下降（高差超過 3 m 才累計）與高度範圍
+function rangeStats(P, a, b) {
+  let up = 0, down = 0, ref = P[a].e, max = -Infinity, min = Infinity;
+  for (let i = a; i <= b; i++) {
+    const v = P[i].e;
+    if (v > max) max = v;
+    if (v < min) min = v;
+    if (v - ref >= 3) { up += v - ref; ref = v; } else if (ref - v >= 3) { down += ref - v; ref = v; }
+  }
+  return { km: P[b].d - P[a].d, up, down, max, min };
+}
+
+function pathIndex(P, d) {
+  let lo = 0, hi = P.length - 1;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (P[mid].d < d) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+
+function pathPoint(P, d) {
+  const i = pathIndex(P, d);
+  if (i === 0) return P[0].p;
+  const a = P[i - 1], b = P[i], t = clamp((d - a.d) / (b.d - a.d || 1), 0, 1);
+  return [a.p[0] + (b.p[0] - a.p[0]) * t, a.p[1] + (b.p[1] - a.p[1]) * t];
+}
+
+// 從整條路徑切出一段，里程改從 0 起算（剖面用）
+function subPath(P, a, b) {
+  const d0 = P[a].d;
+  return P.slice(a, b + 1).map((s) => ({ p: s.p, d: s.d - d0, e: s.e }));
+}
+
+const lineFeature = (coords) => ({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
+
+// ---------- 自行車環島
+function bikeModel(dir = travel.dir) {
+  const c = travel.data.bike;
+  const key = `_${dir}`;
+  if (c[key]) return c[key];
+  const n = c.lon.length, total = c.total;
+  const dcw = (i) => (i === n - 1 ? total : i * c.step);
+  const flip = (d) => (dir === 'cw' ? d : total - d);
+  const path = new Array(n);
+  for (let i = 0; i < n; i++) {
+    const j = dir === 'cw' ? i : n - 1 - i;
+    path[i] = { p: [c.lon[j], c.lat[j]], d: flip(dcw(j)), e: c.elev[j] };
+  }
+  const pois = {};
+  for (const [k, list] of Object.entries(c.pois)) pois[k] = list.map(([d, lon, lat, name]) => ({ d: flip(d), lon, lat, name })).sort((a, b) => a.d - b.d);
+  const places = c.places.map(([d, name, kind]) => ({ d: flip(d), name, kind })).sort((a, b) => a.d - b.d);
+  return (c[key] = { dir, path, pois, places, total });
+}
+
+// 里程附近的地名，鄉鎮優先於村里
+function placeNear(m, d, win = 5) {
+  let best = null, score = Infinity;
+  for (const p of m.places) {
+    const dd = Math.abs(p.d - d);
+    if (dd > win) continue;
+    const sc = dd - (p.kind === 'village' ? 0 : 1.5);
+    if (sc < score) { score = sc; best = p; }
+  }
+  return best?.name || '';
+}
+
+// 爬坡段：先找「自谷底到坡頂、途中回落不到 40 m」的區間，再從坡頂往回取平均坡度至少 2% 的最長一段，
+// 淨爬升 100 m 以上才算。否則會把坡前幾十公里的緩升平路也算進去，平均坡度失真。
+function findClimbs(m) {
+  const P = m.path, raw = [];
+  let lo = 0, hi = 0;
+  const push = () => { if (P[hi].e - P[lo].e >= 100) raw.push({ a: lo, b: hi }); };
+  for (let i = 1; i < P.length; i++) {
+    const e = P[i].e;
+    if (P[hi].e - P[lo].e < 100 && e < P[lo].e) { lo = i; hi = i; continue; }
+    if (e > P[hi].e) hi = i;
+    if (P[hi].e - e >= 40) { push(); lo = i; hi = i; }
+  }
+  push();
+  const out = [];
+  for (let { a, b } of raw) {
+    while (a < b && (P[b].e - P[a].e) / ((P[b].d - P[a].d) * 10) < 2) a++;
+    const gain = P[b].e - P[a].e, km = P[b].d - P[a].d;
+    if (gain < 100) continue;
+    out.push({ a, b, gain, km, d0: P[a].d, d1: P[b].d, top: P[b].e, grade: gain / (km * 10), from: placeNear(m, P[a].d), name: placeNear(m, P[b].d) || placeNear(m, (P[a].d + P[b].d) / 2, 12) || `${Math.round(P[b].d)} km 處` });
+  }
+  // 同名的坡加上起點，例如「南澳→東澳」
+  for (const c of out) {
+    if (out.some((o) => o !== c && o.name === c.name)) c.name = c.from && c.from !== c.name ? `${c.from}→${c.name}` : `${c.name}（${c.d1.toFixed(0)} km）`;
+  }
+  return out.sort((x, y) => y.gain - x.gain);
+}
+
+// 便利商店之間最長的空白路段
+function supplyGaps(m) {
+  const st = m.pois.store.map((s) => s.d);
+  const gaps = [{ a: 0, b: st[0] }, { a: st.at(-1), b: m.total }];
+  for (let i = 1; i < st.length; i++) gaps.push({ a: st[i - 1], b: st[i] });
+  return gaps.map((g) => ({ ...g, km: g.b - g.a })).sort((x, y) => y.km - x.km).slice(0, 4);
+}
+
+// 分日：依距離平均切，每天終點取目標里程 ±30 km 內最近的臺鐵車站（方便住宿與搭車接駁）
+function planStages(m, days) {
+  const P = m.path, total = m.total, st = m.pois.station;
+  const ends = [];
+  let prev = 0;
+  for (let k = 1; k < days; k++) {
+    const target = (total * k) / days;
+    let best = null;
+    for (const s of st) {
+      if (s.d <= prev + 25 || s.d >= total - 25 || Math.abs(s.d - target) > 30) continue;
+      if (!best || Math.abs(s.d - target) < Math.abs(best.d - target)) best = s;
+    }
+    const d = best ? best.d : target;
+    ends.push({ d, name: best ? `${best.name}站` : placeNear(m, d, 8) || `${Math.round(d)} km 處`, p: best ? [best.lon, best.lat] : pathPoint(P, d) });
+    prev = d;
+  }
+  const pts = [{ d: 0, name: '臺北站', p: P[0].p }, ...ends, { d: total, name: '臺北站', p: P.at(-1).p }];
+  return pts.slice(1).map((end, i) => {
+    const from = pts[i], a = pathIndex(P, from.d), b = pathIndex(P, end.d);
+    const stores = m.pois.store.filter((s) => s.d >= from.d && s.d <= end.d).map((s) => s.d);
+    let gap = 0;
+    [from.d, ...stores, end.d].forEach((d, j, arr) => { if (j) gap = Math.max(gap, d - arr[j - 1]); });
+    const stations = m.pois.station.filter((s) => s.d > from.d + 0.5 && s.d < end.d - 0.5).map((s) => s.name);
+    return { k: i + 1, from: from.name, to: end.name, a, b, d0: from.d, d1: end.d, endP: end.p, stores: stores.length, gap, stations, ...rangeStats(P, a, b) };
+  });
+}
+
+const bikeDirLabel = () => (travel.dir === 'ccw' ? '逆時針：自台北沿西部南下' : '順時針：自台北沿東部南下');
+
+function initBike() {
+  const c = travel.data.bike;
+  // 依坡度著色：每 0.5 km 一段，取絕對坡度（方向無關）
+  const feats = [];
+  for (let i = 0; i < c.lon.length - 1; i += 5) {
+    const j = Math.min(i + 5, c.lon.length - 1);
+    const coords = [];
+    for (let k = i; k <= j; k++) coords.push([c.lon[k], c.lat[k]]);
+    const g = (Math.abs(c.elev[j] - c.elev[i]) / ((j - i) * c.step * 1000)) * 100;
+    feats.push({ type: 'Feature', properties: { g: Math.round(g * 10) / 10 }, geometry: { type: 'LineString', coordinates: coords } });
+  }
+  map.getSource('bike-route').setData({ type: 'FeatureCollection', features: feats });
+  const pf = [];
+  for (const [kind, list] of Object.entries(c.pois)) {
+    for (const [d, lon, lat, name] of list) pf.push({ type: 'Feature', properties: { kind: kind === 'repair' ? 'bike' : kind, name, d }, geometry: { type: 'Point', coordinates: [lon, lat] } });
+  }
+  map.getSource('bike-pois').setData({ type: 'FeatureCollection', features: pf });
+  applyBikePoi();
+  renderBike();
+}
+
+function applyBikePoi() {
+  map.setFilter('bike-poi', ['in', ['get', 'kind'], ['literal', [...travel.poi]]]);
+  map.setFilter('bike-poi-label', ['all', ['==', ['get', 'kind'], 'station'], travel.poi.has('station')]);
+}
+
+function renderBike() {
+  // 方向或天數一改，騎乘的分日與舊的當日／爬坡剖面都不再對應
+  if (ride.mode === 'bike') stopRide();
+  if (profile.path?.plan && !profile.path.ride) closeProfile();
+  const m = bikeModel();
+  const P = m.path;
+  const all = rangeStats(P, 0, P.length - 1);
+  const topI = P.reduce((bi, s, i) => (s.e > P[bi].e ? i : bi), 0);
+  const allClimbs = findClimbs(m);
+  travel.plan = { m, all, stages: planStages(m, travel.days), allClimbs, climbs: allClimbs.slice(0, 8), gaps: supplyGaps(m) };
+  const { stages, climbs, gaps } = travel.plan;
+  const stat = (dt, dd, small) => `<dl><dt>${dt}</dt><dd>${dd}<small>${esc(small)}</small></dd></dl>`;
+  $('bikeStats').innerHTML = stat('全長', fmtInt(m.total), 'km') + stat('累積爬升', fmtInt(all.up), 'm')
+    + stat('最高點', fmtInt(P[topI].e), `m · ${placeNear(m, P[topI].d) || '—'}`) + stat('沿線補給', fmtInt(m.pois.store.length), '家便利商店');
+  $('bikeDaysOut').textContent = `${travel.days} 天`;
+
+  const maxKm = Math.max(...stages.map((s) => s.km));
+  $('bikeStages').replaceChildren(...stages.map((s) => travelItem({
+    k: `D${s.k}`, t: `${s.from} → ${s.to}`, v: `${s.km.toFixed(0)} km`,
+    s: `↑ ${fmtInt(s.up)} m · 最高 ${fmtInt(s.max)} m · 便利商店 ${s.stores} 家`, bar: s.km / maxKm, data: { k: s.k },
+  })));
+  $('bikeClimbs').replaceChildren(...climbs.map((c, i) => travelItem({
+    k: `#${i + 1}`, t: c.name, v: `↑ ${fmtInt(c.gain)} m`, color: GRADE_STOPS[GRADE_STOPS.findIndex((v, j) => j % 2 === 0 && v >= c.grade) + 1] || '#ff5d6c',
+    s: `${c.d0.toFixed(0)} km 起 · 長 ${c.km.toFixed(1)} km · 平均坡度 ${c.grade.toFixed(1)}% · 頂點 ${fmtInt(c.top)} m`, data: { i },
+  })));
+  $('bikeGaps').replaceChildren(...gaps.slice(0, 3).map((g) => {
+    const li = travelItem({ k: '!', t: `${placeNear(m, g.a, 8) || `${g.a.toFixed(0)} km`} → ${placeNear(m, g.b, 8) || `${g.b.toFixed(0)} km`}`, v: `${g.km.toFixed(1)} km`, s: `${g.a.toFixed(0)}–${g.b.toFixed(0)} km 沿線 200 m 內沒有便利商店，出發前補足飲水`, data: { a: g.a, b: g.b } });
+    li.className = 'warn';
+    return li;
+  }));
+  $('bikeHint').textContent = `路線依 OpenStreetMap 上的環島 1 號線（${travel.data.bike.retrieved} 擷取），${bikeDirLabel()}。每日終點取最接近平均里程的臺鐵車站；爬升已排除隧道與橋樑造成的地形誤差，仍為估算值。`;
+
+  map.getSource('bike-stages').setData({
+    type: 'FeatureCollection',
+    features: [{ label: '起終點 臺北', p: P[0].p }, ...stages.slice(0, -1).map((s) => ({ label: `D${s.k + 1} ${s.to}`, p: s.endP }))]
+      .map((f) => ({ type: 'Feature', properties: { label: f.label }, geometry: { type: 'Point', coordinates: f.p } })),
+  });
+  // 方向或天數改了，原本選取的那一天已不同，直接收掉
+  if (travel.sel?.mode === 'bike') closeCard();
+  markTravelLists();
+}
+
+function selectStage(k) {
+  const st = travel.plan?.stages[k - 1];
+  if (!st) return;
+  const P = travel.plan.m.path;
+  setTravelSel({ mode: 'bike', kind: 'stage', k });
+  const coords = P.slice(st.a, st.b + 1).map((s) => s.p);
+  map.getSource('bike-hl').setData(lineFeature(coords));
+  const climbs = travel.plan.allClimbs.filter((c) => c.d0 >= st.d0 - 1 && c.d1 <= st.d1 + 1);
+  const stations = st.stations.length > 8 ? `${st.stations.slice(0, 8).join('、')} 等 ${st.stations.length} 站` : st.stations.join('、');
+  showTravelCard({
+    tag: '自行車環島', color: '#e9b44c', index: `第 ${k} / ${travel.plan.stages.length} 天`, title: `${st.from} → ${st.to}`, badge: bikeDirLabel(),
+    f1: ['距離', `${st.km.toFixed(1)} km`], f2: ['累積爬升', `${fmtInt(st.up)} m`],
+    metric: `下降 ${fmtInt(st.down)} m · 最高 ${fmtInt(st.max)} m · 便利商店 ${st.stores} 家 · 最長補給間距 ${st.gap.toFixed(1)} km`,
+    desc: `${climbs.length ? `本日主要爬坡：${climbs.map((c) => `${c.name}（↑${fmtInt(c.gain)} m，平均 ${c.grade.toFixed(1)}%）`).join('、')}。` : '本日沒有淨爬升 100 m 以上的坡段。'}`
+      + `${stations ? `途經臺鐵車站：${stations}，需要時可搭火車接駁。` : ''}按「剖面」看這一天的高度變化。`,
+  });
+  history.replaceState(null, '', '#bike');
+  fitCoords(coords, { maxZoom: 12 });
+}
+
+function selectClimb(i) {
+  const c = travel.plan?.climbs[i];
+  if (!c) return;
+  const P = travel.plan.m.path;
+  setTravelSel({ mode: 'bike', kind: 'climb', i });
+  const coords = P.slice(c.a, c.b + 1).map((s) => s.p);
+  map.getSource('bike-hl').setData(lineFeature(coords));
+  const day = travel.plan.stages.find((s) => c.d1 > s.d0 && c.d0 < s.d1);
+  showTravelCard({
+    tag: '環島爬坡', color: '#ff9b73', index: `第 ${i + 1} / ${travel.plan.climbs.length} 大爬坡`, title: c.name, badge: bikeDirLabel(),
+    f1: ['爬升', `${fmtInt(c.gain)} m`], f2: ['平均坡度', `${c.grade.toFixed(1)}%`],
+    metric: `${c.d0.toFixed(1)}–${c.d1.toFixed(1)} km · 長 ${c.km.toFixed(1)} km · 頂點 ${fmtInt(c.top)} m${day ? ` · 第 ${day.k} 天` : ''}`,
+    desc: `從谷底到坡頂淨爬升 ${fmtInt(c.gain)} m。坡度為地形資料推算的平均值，局部可能更陡；上坡前補水，下坡注意車速。`,
+  });
+  history.replaceState(null, '', '#bike');
+  fitCoords(coords, { maxZoom: 13 });
+}
+
+function bikeOverviewProfile() {
+  if (!travel.plan) return;
+  const { m, all, stages } = travel.plan;
+  const P = m.path;
+  showPathProfile(P, {
+    title: `環島 1 號線 · ${travel.dir === 'ccw' ? '逆時針' : '順時針'}`, a: '臺北', b: '臺北',
+    stats: `全長 <b>${fmtInt(m.total)}</b> km · 累積爬升 <b>${fmtInt(all.up)}</b> m · 最高 <b>${fmtInt(all.max)}</b> m · ${travel.days} 天`,
+    marks: stages.slice(0, -1).map((s) => ({ d: s.d1, label: `D${s.k + 1}` })),
+    onPick: (d) => { if (ride.on && ride.mode === 'bike') rideSeek(d); else { const s = stages.find((x) => d >= x.d0 && d <= x.d1); if (s) selectStage(s.k); } },
+    ride: 'bike', plan: true,
+  });
+}
+
+function stageProfile(k) {
+  const st = travel.plan.stages[k - 1];
+  const P = travel.plan.m.path;
+  const climbs = travel.plan.allClimbs.filter((c) => c.d0 >= st.d0 - 1 && c.d1 <= st.d1 + 1);
+  showPathProfile(subPath(P, st.a, st.b), {
+    title: `第 ${k} 天 · ${st.from} → ${st.to}`, a: st.from, b: st.to, offset: st.d0, plan: true,
+    stats: `長 <b>${st.km.toFixed(1)}</b> km · 爬升 <b>${fmtInt(st.up)}</b> m · 下降 <b>${fmtInt(st.down)}</b> m · 最高 <b>${fmtInt(st.max)}</b> m`,
+    marks: climbs.map((c) => ({ d: c.d1 - st.d0, label: c.name })),
+  });
+}
+
+function climbProfile(i) {
+  const c = travel.plan.climbs[i];
+  const P = travel.plan.m.path;
+  const a = pathIndex(P, Math.max(0, c.d0 - 3)), b = pathIndex(P, Math.min(travel.plan.m.total, c.d1 + 3));
+  showPathProfile(subPath(P, a, b), {
+    title: `爬坡 · ${c.name}`, offset: P[a].d, range: [c.d0 - P[a].d, c.d1 - P[a].d], plan: true,
+    stats: `爬升 <b>${fmtInt(c.gain)}</b> m · 長 <b>${c.km.toFixed(1)}</b> km · 平均 <b>${c.grade.toFixed(1)}</b>% · 頂點 <b>${fmtInt(c.top)}</b> m`,
+  });
+}
+
+function startBikeRide() {
+  if (!travel.plan) return;
+  const { m, stages } = travel.plan;
+  const s = travel.sel?.kind === 'stage' ? stages[travel.sel.k - 1] : travel.sel?.kind === 'climb' ? { d0: travel.plan.climbs[travel.sel.i].d0 } : null;
+  bikeOverviewProfile();
+  startRide({
+    mode: 'bike', path: m.path, from: s ? s.d0 : 0, title: `虛擬騎乘 · 環島 1 號線（${travel.dir === 'ccw' ? '逆時針' : '順時針'}）`,
+    segs: stages.map((x) => ({ d0: x.d0, d1: x.d1, name: `第 ${x.k} 天` })), kmps: 0.5, zoom: 13, look: 1.2,
+  });
+}
+
+// ---------- 健行步道
+const DIF_GROUPS = [['all', '全部', () => true], ['easy', '0–1 級', (d) => d <= 1], ['2', '2 級', (d) => d === 2], ['3', '3 級', (d) => d === 3], ['hard', '4 級以上', (d) => d >= 4]];
+
+function initHike() {
+  const ts = travel.data.hike.trails;
+  for (const t of ts) {
+    t.head = t.entrances[0] ? [t.entrances[0][0], t.entrances[0][1]] : t.segs[0] ? [t.segs[0].lon[0], t.segs[0].lat[0]] : null;
+    t.dif = t.dif ?? 0;
+  }
+  map.getSource('trails').setData({
+    type: 'FeatureCollection',
+    features: ts.filter((t) => t.segs.length).map((t) => ({ type: 'Feature', properties: { id: t.id, dif: t.dif }, geometry: { type: 'MultiLineString', coordinates: t.segs.map((s) => s.lon.map((x, i) => [x, s.lat[i]])) } })),
+  });
+  map.getSource('trail-heads').setData({
+    type: 'FeatureCollection',
+    features: ts.filter((t) => t.head).map((t) => ({ type: 'Feature', properties: { id: t.id, name: t.name, dif: t.dif }, geometry: { type: 'Point', coordinates: t.head } })),
+  });
+  $('hikeChips').replaceChildren(...DIF_GROUPS.map(([key, label, test]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.dataset.dif = key;
+    b.setAttribute('aria-pressed', String(travel.hikeDif === key));
+    b.innerHTML = '<span></span><b></b>';
+    b.firstChild.textContent = label;
+    b.lastChild.textContent = ts.filter((t) => test(t.dif)).length;
+    b.addEventListener('click', () => {
+      travel.hikeDif = key;
+      $('hikeChips').querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.dif === key)));
+      renderHike();
+    });
+    return b;
+  }));
+  $('hikeHint').textContent = `林業及自然保育署自然步道 ${ts.length} 條（${ts.filter((t) => t.segs.length).length} 條有軌跡）。難度為該署 0–6 級分級，數字愈大愈難；爬升與高度由軌跡與地形資料計算。`;
+  renderHike();
+}
+
+function renderHike() {
+  const ts = travel.data.hike?.trails;
+  if (!ts) return;
+  const test = DIF_GROUPS.find(([k]) => k === travel.hikeDif)[2];
+  const q = travel.hikeQ.trim().toLowerCase();
+  travel.hikeList = ts.filter((t) => test(t.dif) && (!q || `${t.name} ${t.pos} ${t.sys} ${t.sub}`.toLowerCase().includes(q)))
+    .sort((a, b) => (b.head?.[1] ?? 0) - (a.head?.[1] ?? 0));
+  const list = $('hikeList');
+  if (!travel.hikeList.length) {
+    const li = document.createElement('li');
+    li.className = 'hint';
+    li.textContent = '沒有符合的步道。';
+    list.replaceChildren(li);
+    return;
+  }
+  list.replaceChildren(...travel.hikeList.map((t) => travelItem({
+    k: `${t.dif} 級`, t: t.name, v: t.lenText || '—', color: DIF_COLORS[t.dif] || '#ccc',
+    s: [t.pos, t.tour && t.tour.length <= 12 ? t.tour : '', t.track ? `↑ ${fmtInt(t.track.main.up)} m` : ''].filter(Boolean).join(' · '), data: { id: t.id },
+  })));
+  markTravelLists();
+}
+
+function selectTrail(t) {
+  if (!t) return;
+  setTravelSel({ mode: 'hike', kind: 'trail', id: t.id });
+  const tr = t.track;
+  const mismatch = tr && t.len && Math.abs(tr.main.km - t.len) / t.len > 0.3 ? `軌跡主線 ${tr.main.km.toFixed(1)} km，與公告長度不同，軌跡檔可能只含部分路段，或公告長度另計支線與往返。` : '';
+  const parts = tr && tr.parts > 1 ? `（另有 ${tr.parts - 1} 段支線或分段，軌跡合計 ${tr.km.toFixed(1)} km）` : '';
+  showTravelCard({
+    tag: '健行步道', color: DIF_COLORS[t.dif] || '#ccc', index: `難度 ${t.dif} 級（0–6）`, title: t.name, badge: [t.sys, t.sub].filter(Boolean).join('・') || t.pos,
+    f1: ['長度', t.lenText || '—'], f2: ['海拔', t.alt ? `約 ${fmtInt(+t.alt)} m` : '—'],
+    metric: tr ? `主線 ${tr.main.km.toFixed(1)} km（自登山口）· 爬升 ${fmtInt(tr.main.up)} m · 下降 ${fmtInt(tr.main.down)} m · 高度 ${fmtInt(tr.main.min)}–${fmtInt(tr.main.max)} m${parts}` : '這條步道沒有公開軌跡，地圖上標示入口位置。',
+    desc: [t.tour && `路程：${t.tour}`, t.season && `最佳季節：${t.season}`, t.pave && `路面：${t.pave}`, t.special && `特色：${t.special}`, `位置：${t.pos}`, `管理：${t.admin}`].filter(Boolean).join('。') + '。' + mismatch,
+  });
+  history.replaceState(null, '', `#trail=${t.id}`);
+  const coords = t.segs.flatMap((s) => s.lon.map((x, i) => [x, s.lat[i]]));
+  if (coords.length > 1) fitCoords(coords, { maxZoom: 14.5, pitch: 55 });
+  else if (t.head) map.flyTo({ center: t.head, zoom: 14, pitch: 55, padding: viewPadding(), speed: 1.1 });
+}
+
+// 步道主線（烘製時已排在第一段，自登山口出發）
+function trailPath(t) {
+  const s = t.segs[0];
+  if (!s) return null;
+  const P = [];
+  let d = 0;
+  for (let i = 0; i < s.lon.length; i++) {
+    const p = [s.lon[i], s.lat[i]];
+    if (i) d += distanceKm(P[i - 1].p, p);
+    P.push({ p, d, e: s.elev[i] });
+  }
+  return P;
+}
+
+function trailProfile(t) {
+  const P = t && trailPath(t);
+  if (!P) { toast('這條步道沒有公開軌跡'); return; }
+  // 統計用烘製時 25 m 取樣算好的主線數字，與卡片、清單一致
+  const st = t.track.main;
+  showPathProfile(P, {
+    title: t.name, floor: true, a: '登山口', b: '終點',
+    stats: `主線 <b>${st.km.toFixed(1)}</b> km · 爬升 <b>${fmtInt(st.up)}</b> m · 下降 <b>${fmtInt(st.down)}</b> m · 高度 <b>${fmtInt(st.min)}–${fmtInt(st.max)}</b> m`,
+    onPick: (d) => { if (ride.on && ride.mode === 'hike') rideSeek(d); },
+    ride: 'hike',
+  });
+  return P;
+}
+
+// ---------- 百岳
+const PEAK_FILTERS = [['all', '全部', () => true], ['中央山脈', '中央山脈', (p) => p.range[0] === '中央山脈'], ['雪山山脈', '雪山山脈', (p) => p.range[0] === '雪山山脈'], ['玉山山脈', '玉山山脈', (p) => p.range[0] === '玉山山脈'], ['todo', '未登頂', (p) => !travel.done.has(p.rank)], ['done', '已登頂', (p) => travel.done.has(p.rank)]];
+const peakByRank = (rank) => travel.data.peaks?.peaks.find((p) => p.rank === rank);
+
+function loadDone() {
+  try {
+    const v = JSON.parse(localStorage.getItem(PEAK_DONE_KEY) || '[]');
+    travel.done = new Set(Array.isArray(v) ? v.filter((x) => Number.isInteger(x) && x >= 1 && x <= 100) : []);
+  } catch { travel.done = new Set(); }
+}
+
+function saveDone() {
+  try { localStorage.setItem(PEAK_DONE_KEY, JSON.stringify([...travel.done].sort((a, b) => a - b))); } catch { /* 私密模式等情況下只保留在這次瀏覽 */ }
+}
+
+function initPeaks() {
+  loadDone();
+  renderPeakChips();
+  updatePeakSource();
+  $('peakHint').textContent = '名單、測高、山脈、路線與分級整理自中文維基百科「台灣百岳」條目；分級為國家公園步道系統 0–6 級，數字愈大愈難。勾選登頂只記在這台裝置的瀏覽器。';
+  renderPeaks();
+}
+
+function renderPeakChips() {
+  const ps = travel.data.peaks.peaks;
+  $('peakChips').replaceChildren(...PEAK_FILTERS.map(([key, label, test]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.dataset.f = key;
+    b.setAttribute('aria-pressed', String(travel.peakFilter === key));
+    b.innerHTML = '<span></span><b></b>';
+    b.firstChild.textContent = label;
+    b.lastChild.textContent = ps.filter(test).length;
+    b.addEventListener('click', () => { travel.peakFilter = key; renderPeakChips(); renderPeaks(); });
+    return b;
+  }));
+}
+
+function updatePeakSource() {
+  map.getSource('peaks').setData({
+    type: 'FeatureCollection',
+    features: travel.data.peaks.peaks.map((p) => ({ type: 'Feature', properties: { rank: p.rank, name: p.name, h: Math.round(p.h), done: travel.done.has(p.rank) }, geometry: { type: 'Point', coordinates: [p.lon, p.lat] } })),
+  });
+}
+
+function renderPeaks() {
+  const ps = travel.data.peaks?.peaks;
+  if (!ps) return;
+  const n = travel.done.size;
+  $('peakDone').textContent = n;
+  $('peakBar').style.width = `${n}%`;
+  const test = PEAK_FILTERS.find(([k]) => k === travel.peakFilter)[2];
+  travel.peakList = ps.filter(test);
+  $('peakList').replaceChildren(...travel.peakList.map((p) => {
+    const li = travelItem({
+      k: `#${p.rank}`, t: p.name, v: `${fmtInt(p.h)} m`, color: travel.done.has(p.rank) ? '#e9b44c' : '#ffffff',
+      s: `${p.range[1] || p.range[0]} · 分級 ${p.grade ?? '—'} · ${p.park ? `${p.park}國家公園` : '國家公園外'}`, data: { rank: p.rank },
+    });
+    li.classList.add('peak');
+    const label = document.createElement('label');
+    label.title = '標記已登頂';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'chk';
+    cb.checked = travel.done.has(p.rank);
+    cb.setAttribute('aria-label', `${p.name} 已登頂`);
+    cb.addEventListener('change', () => togglePeakDone(p.rank, cb.checked));
+    label.append(cb);
+    li.append(label);
+    return li;
+  }));
+  markTravelLists();
+}
+
+function togglePeakDone(rank, on) {
+  if (on) travel.done.add(rank); else travel.done.delete(rank);
+  saveDone();
+  updatePeakSource();
+  renderPeakChips();
+  // 「未登頂／已登頂」篩選時勾選會讓項目移出清單，其餘篩選只更新進度
+  if (travel.peakFilter === 'todo' || travel.peakFilter === 'done') renderPeaks();
+  else { $('peakDone').textContent = travel.done.size; $('peakBar').style.width = `${travel.done.size}%`; }
+  if (travel.sel?.kind === 'peak' && travel.sel.rank === rank) selectPeak(peakByRank(rank), { fly: false });
+}
+
+function selectPeak(p, { fly = true } = {}) {
+  if (!p) return;
+  setTravelSel({ mode: 'peaks', kind: 'peak', rank: p.rank });
+  beacon.setLngLat([p.lon, p.lat]).addTo(map);
+  const near = travel.data.peaks.peaks.filter((q) => q !== p && distanceKm([p.lon, p.lat], [q.lon, q.lat]) <= 5)
+    .sort((a, b) => distanceKm([p.lon, p.lat], [a.lon, a.lat]) - distanceKm([p.lon, p.lat], [b.lon, b.lat]));
+  showTravelCard({
+    tag: `百岳 #${p.rank}`, color: travel.done.has(p.rank) ? '#e9b44c' : '#f2c46d', index: travel.done.has(p.rank) ? '已登頂 ✓' : `${p.rank} / 100`,
+    title: p.name, badge: p.alias.length ? `別名：${p.alias.join('、')}` : p.range.join('・'),
+    f1: ['最新測高', `${fmtInt(p.h)} m`], f2: ['座標', `${p.lat.toFixed(4)}°N ${p.lon.toFixed(4)}°E`],
+    metric: `${p.range.join('・')} · 國家公園步道分級 ${p.grade ?? '—'} 級 · ${p.park ? `${p.park}國家公園` : '不在國家公園內'}`,
+    desc: `常見登山路線：${p.routes.join('、') || '—'}。行政區：${p.admin.join('、')}。舊測高 ${fmtInt(p.hOld)} m。`
+      + `${near.length ? `5 km 內的百岳：${near.slice(0, 6).map((q) => `${q.name}（${distanceKm([p.lon, p.lat], [q.lon, q.lat]).toFixed(1)} km）`).join('、')}。` : ''}`
+      + '在清單勾選即可記錄登頂；入山入園申請與天候請查國家公園與林業保育署公告。',
+  });
+  history.replaceState(null, '', `#peak=${p.rank}`);
+  if (fly) map.flyTo({ center: [p.lon, p.lat], zoom: 13.2 - (isMobile() ? 0.6 : 0), pitch: 64, bearing: (p.rank * 47) % 360 - 180, padding: viewPadding(), speed: 0.9, curve: 1.45, maxDuration: 8000 });
+}
+
+// ---------- 虛擬騎乘／沿線飛覽：鏡頭沿路徑前進，方向看向前方一段距離並平滑轉向
+const RIDE_SPEEDS = [1, 3, 10];
+const ride = { on: false, playing: false, mode: null, path: null, pos: 0, end: 0, speedIdx: 0, kmps: 0.5, zoom: 13, pitch: 62, look: 1, raf: 0, last: 0, upd: 0, bearing: null, segs: [], jump: false };
+
+function startRide({ mode, path, from = 0, title, segs = [], kmps, zoom, look }) {
+  stopTour();
+  stopOrbit();
+  stopQuakes();
+  cancelAnimationFrame(ride.raf);
+  Object.assign(ride, { on: true, playing: true, mode, path, pos: from, end: path.at(-1).d, title, segs, kmps, zoom, look, speedIdx: 0, bearing: null, jump: true, last: performance.now(), upd: 0 });
+  $('player').hidden = false;
+  $('playerTour').textContent = title;
+  $('pSpeed').hidden = false;
+  $('pPrev').setAttribute('aria-label', segs.length ? '上一天' : '回到起點');
+  $('pNext').setAttribute('aria-label', segs.length ? '下一天' : '跳到終點');
+  $('pStop').setAttribute('aria-label', '結束飛覽');
+  setRideSpeed(0);
+  $('playerTrack').replaceChildren(...(segs.length ? segs : [{ d0: 0, d1: ride.end }]).map((s) => {
+    const el = document.createElement('i');
+    el.addEventListener('click', () => rideSeek(s.d0));
+    return el;
+  }));
+  setPlayIcon();
+  syncTravelLayers();
+  ride.raf = requestAnimationFrame(rideTick);
+}
+
+function rideTick(now) {
+  if (!ride.on) return;
+  const dt = Math.min(250, now - ride.last);
+  ride.last = now;
+  if (ride.playing) ride.pos = Math.min(ride.end, ride.pos + (dt * ride.kmps * RIDE_SPEEDS[ride.speedIdx]) / 1000);
+  const here = pathPoint(ride.path, ride.pos);
+  if (ride.playing || ride.jump) {
+    const ahead = pathPoint(ride.path, Math.min(ride.end, ride.pos + ride.look));
+    const target = distanceKm(here, ahead) > 0.005 ? bearingTo(here, ahead) : ride.bearing ?? map.getBearing();
+    if (ride.bearing == null || ride.jump) ride.bearing = target;
+    ride.bearing += ((((target - ride.bearing) % 360) + 540) % 360 - 180) * Math.min(1, dt / 900);
+    map.jumpTo({ center: here, bearing: ride.bearing, zoom: ride.zoom, pitch: ride.pitch, padding: viewPadding() });
+    ride.jump = false;
+  }
+  if (now - ride.upd > 120) { ride.upd = now; updateRideUI(); }
+  if (ride.playing && ride.pos >= ride.end) { ride.playing = false; setPlayIcon(); toast('抵達終點'); }
+  ride.raf = requestAnimationFrame(rideTick);
+}
+
+function updateRideUI() {
+  const segs = ride.segs.length ? ride.segs : [{ d0: 0, d1: ride.end, name: '' }];
+  const k = Math.max(0, segs.findIndex((s) => ride.pos >= s.d0 && ride.pos <= s.d1));
+  const e = ride.path[pathIndex(ride.path, ride.pos)].e;
+  $('playerStop').textContent = `${segs[k].name ? `${segs[k].name} · ` : ''}${ride.pos.toFixed(1)} km · 海拔 ${fmtInt(e)} m`;
+  [...$('playerTrack').children].forEach((el, i) => {
+    el.classList.toggle('done', i < k);
+    el.classList.toggle('cur', i === k);
+    if (i === k) el.style.setProperty('--p', clamp((ride.pos - segs[i].d0) / (segs[i].d1 - segs[i].d0 || 1), 0, 1).toFixed(3));
+  });
+  if (profile.path?.ride === ride.mode && profile.showAt) profile.showAt(ride.pos);
+}
+
+function rideSeek(d) {
+  ride.pos = clamp(d, 0, ride.end);
+  ride.jump = true;
+  ride.bearing = null;
+  updateRideUI();
+}
+
+function rideStep(delta) {
+  const segs = ride.segs;
+  if (!segs.length) { rideSeek(delta < 0 ? 0 : ride.end); return; }
+  const k = Math.max(0, segs.findIndex((s) => ride.pos >= s.d0 && ride.pos <= s.d1));
+  const j = clamp(k + delta, 0, segs.length - 1);
+  rideSeek(delta < 0 && ride.pos - segs[k].d0 > 2 ? segs[k].d0 : segs[j].d0);
+}
+
+function setRideSpeed(i) {
+  ride.speedIdx = i;
+  $('pSpeed').textContent = `${RIDE_SPEEDS[i]}×`;
+  $('pSpeed').setAttribute('aria-label', `播放速度 ${RIDE_SPEEDS[i]} 倍`);
+}
+
+function pauseRide() {
+  if (!ride.on || !ride.playing) return;
+  ride.playing = false;
+  setPlayIcon();
+}
+
+function resumeRide() {
+  if (!ride.on) return;
+  stopOrbit();
+  if (ride.pos >= ride.end) ride.pos = ride.segs[0]?.d0 ?? 0;
+  ride.playing = true;
+  ride.jump = true;
+  setPlayIcon();
+}
+
+function stopRide() {
+  if (!ride.on) return;
+  ride.on = false;
+  ride.playing = false;
+  cancelAnimationFrame(ride.raf);
+  $('player').hidden = true;
+  $('pSpeed').hidden = true;
+  $('pPrev').setAttribute('aria-label', '上一站');
+  $('pNext').setAttribute('aria-label', '下一站');
+  $('pStop').setAttribute('aria-label', '結束路線');
+  syncTravelLayers();
 }
 
 // ---------------------------------------------------------------- HUD
@@ -1491,12 +2399,19 @@ const searchDlg = $('search'), searchInput = $('searchInput'), searchList = $('s
 let searchItems = [], searchSel = 0;
 const SEARCH_PICKS = ['yushan', 'taroko_gorge', 'sunmoonlake', 'alishan_clouds', 'hsinchu_sp', 'suhua_qingshui'];
 
+const BIKE_WORDS = ['環島', '自行車', '單車', '腳踏車', '1號線', '一號線', '騎車', 'bike', 'cycling'];
+
 function openSearch() {
   if (searchDlg.open) return;
   searchDlg.showModal();
   searchInput.value = '';
   runSearch('');
   searchInput.focus();
+  // 百岳與步道名稱也可搜尋：背景載入，到了就重跑一次
+  for (const kind of ['peaks', 'hike']) {
+    if (travel.data[kind]) continue;
+    loadTravel(kind).then(() => { if (searchDlg.open) runSearch(searchInput.value); }).catch(() => {});
+  }
 }
 
 function runSearch(q) {
@@ -1505,7 +2420,8 @@ function runSearch(q) {
   if (!k) {
     items = [
       ...SEARCH_PICKS.map((id) => ({ kind: 'spot', s: byId.get(id) })),
-      ...TOURS.slice(1, 5).map((t) => ({ kind: 'tour', t })),
+      { kind: 'bike' },
+      ...TOURS.slice(1, 4).map((t) => ({ kind: 'tour', t })),
     ];
   } else {
     const scored = [];
@@ -1519,6 +2435,17 @@ function runSearch(q) {
     }
     for (const t of TOURS) {
       if (t.title.toLowerCase().includes(k) || t.blurb.toLowerCase().includes(k)) scored.push({ kind: 'tour', t, sc: 3.5 });
+    }
+    if (BIKE_WORDS.some((w) => w.includes(k) || k.includes(w))) scored.push({ kind: 'bike', sc: 4.5 });
+    for (const p of travel.data.peaks?.peaks || []) {
+      const nm = p.name.toLowerCase();
+      const sc = nm.startsWith(k) ? 4.8 : nm.includes(k) ? 4.2 : p.alias.some((a) => a.includes(k)) ? 3.6 : k === '百岳' || p.routes.some((r) => r.includes(k)) ? 1.2 : 0;
+      if (sc) scored.push({ kind: 'peak', p, sc });
+    }
+    for (const t of travel.data.hike?.trails || []) {
+      const nm = t.name.toLowerCase();
+      const sc = nm.startsWith(k) ? 4.6 : nm.includes(k) ? 4 : `${t.sys} ${t.sub}`.includes(k) ? 2 : t.pos.includes(k) ? 1.5 : 0;
+      if (sc) scored.push({ kind: 'trail', t, sc });
     }
     items = scored.sort((a, b) => b.sc - a.sc).slice(0, 12);
   }
@@ -1537,11 +2464,20 @@ function runSearch(q) {
     li.setAttribute('role', 'option');
     li.id = `sr-${i}`;
     li.innerHTML = '<span class="dot"></span><span class="nm"></span><span class="kind"></span><span class="sub"></span>';
+    const set = (dot, nm, kind, sub) => {
+      li.querySelector('.dot').style.background = dot;
+      li.querySelector('.nm').textContent = nm;
+      li.querySelector('.kind').textContent = kind;
+      li.querySelector('.sub').textContent = sub;
+    };
     if (it.kind === 'spot') {
-      li.querySelector('.dot').style.background = GROUPS[it.s.group].color;
-      li.querySelector('.nm').textContent = it.s.short;
-      li.querySelector('.kind').textContent = GROUPS[it.s.group].label;
-      li.querySelector('.sub').textContent = it.s.name === it.s.short ? it.s.badge : it.s.name;
+      set(GROUPS[it.s.group].color, it.s.short, GROUPS[it.s.group].label, it.s.name === it.s.short ? it.s.badge : it.s.name);
+    } else if (it.kind === 'bike') {
+      set('#e9b44c', '自行車環島 1 號線', '旅遊專項', '全線距離、爬坡、每日行程與補給點');
+    } else if (it.kind === 'peak') {
+      set('#f2c46d', it.p.name, `百岳 #${it.p.rank}`, `${fmtInt(it.p.h)} m · ${it.p.range.join('・')}`);
+    } else if (it.kind === 'trail') {
+      set(DIF_COLORS[it.t.dif] || '#ccc', it.t.name, `步道 · ${it.t.dif} 級`, `${it.t.pos} · ${it.t.lenText || ''}`);
     } else {
       li.querySelector('.dot').style.background = '#e9b44c';
       li.querySelector('.nm').textContent = it.t.title;
@@ -1568,7 +2504,11 @@ function chooseSearch(i) {
   if (!it) return;
   searchDlg.close();
   if (isMobile()) setSheet(false);
-  if (it.kind === 'spot') { stopTour(); selectSpot(it.s); } else startTour(it.t, 0);
+  if (it.kind === 'spot') { stopTour(); selectSpot(it.s); }
+  else if (it.kind === 'tour') startTour(it.t, 0);
+  else if (it.kind === 'bike') { stopTour(); stopRide(); openTravelThen('bike', () => map.flyTo({ ...HOME(), padding: viewPadding(), speed: 1.2 })); }
+  else if (it.kind === 'peak') { stopTour(); openTravelThen('peaks', () => selectPeak(it.p)); }
+  else if (it.kind === 'trail') { stopTour(); openTravelThen('hike', () => selectTrail(it.t)); }
 }
 
 searchInput.addEventListener('input', () => runSearch(searchInput.value));
@@ -1596,13 +2536,14 @@ function shareUrl() {
   if (tour.def) return `${base}#tour=${tour.def.id}`;
   if (profile.section && !profileEl.hidden) return `${base}#section=${profile.section}`;
   if (state.current) return `${base}#spot=${state.current.id}`;
+  if (travel.sel) return `${base}${travelHash()}`;
   const c = map.getCenter();
   return `${base}#cam=${c.lng.toFixed(4)},${c.lat.toFixed(4)},${map.getZoom().toFixed(2)},${map.getBearing().toFixed(0)},${map.getPitch().toFixed(0)}`;
 }
 
 async function share() {
   const url = shareUrl();
-  const title = state.current ? `${state.current.short}｜台灣 3D 地景` : '台灣 3D 地景';
+  const title = state.current ? `${state.current.short}｜台灣 3D 地景` : travel.sel ? `${$('cardTitle').textContent}｜台灣 3D 地景` : '台灣 3D 地景';
   if (navigator.share && isMobile()) {
     try { await navigator.share({ title, url }); return; } catch { /* 使用者取消時改複製 */ }
   }
@@ -1625,7 +2566,7 @@ function exportShot() {
     ctx.fillRect(0, c.height - h * 1.6, c.width, h * 1.6);
     ctx.fillStyle = '#ece8e1';
     ctx.font = `700 ${20 * k}px "Noto Serif TC", serif`;
-    ctx.fillText(state.current ? `${state.current.short} · 台灣 3D 地景` : '台灣 3D 地景', 22 * k, c.height - 30 * k);
+    ctx.fillText(state.current ? `${state.current.short} · 台灣 3D 地景` : travel.sel ? `${$('cardTitle').textContent} · 台灣 3D 地景` : '台灣 3D 地景', 22 * k, c.height - 30 * k);
     ctx.fillStyle = 'rgba(236,232,225,0.65)';
     ctx.font = `${11 * k}px ui-monospace, monospace`;
     ctx.fillText('影像 Esri, Maxar, Earthstar Geographics · 地形 Mapzen Terrarium / AWS · 地名 © OpenStreetMap', 22 * k, c.height - 12 * k);
@@ -1652,6 +2593,8 @@ function setTab(name, focus = false) {
     $(`pane-${t.dataset.tab}`).hidden = !on;
   });
   if (name === 'spots') markListCurrent();
+  if (name === 'travel') setTravelMode(travel.mode);
+  else syncTravelLayers();
 }
 
 function setSheet(open) {
@@ -1679,7 +2622,7 @@ function syncInert() {
 
 // 工具列與快捷鍵的鏡頭操作會中斷飛行，先暫停路線
 function cameraAction(fn) {
-  return () => { pauseTour(); stopOrbit(); fn(); };
+  return () => { pauseTour(); pauseRide(); stopOrbit(); fn(); };
 }
 
 // role="radio" 群組支援方向鍵切換（roving tabindex）
@@ -1701,7 +2644,7 @@ function bindRadioGroup(selector) {
 }
 
 function goHome() {
-  stopTour(); stopOrbit();
+  stopTour(); stopOrbit(); stopRide();
   map.flyTo({ ...HOME(), padding: viewPadding(), speed: 1.1, curve: 1.4 });
 }
 
@@ -1767,10 +2710,10 @@ function bindUI() {
   }));
 
   $('cardClose').addEventListener('click', () => { stopTour(); closeCard(); });
-  $('cardPrev').addEventListener('click', () => stepSpot(-1));
-  $('cardNext').addEventListener('click', () => stepSpot(1));
+  $('cardPrev').addEventListener('click', () => (travel.sel && !tour.def ? travelStep(-1) : stepSpot(-1)));
+  $('cardNext').addEventListener('click', () => (travel.sel && !tour.def ? travelStep(1) : stepSpot(1)));
   $('cardOrbit').addEventListener('click', () => (orbit.on ? stopOrbit() : startOrbit()));
-  $('cardProfile').addEventListener('click', () => state.current && profileForSpot(state.current));
+  $('cardProfile').addEventListener('click', () => (travel.sel ? travelProfile() : state.current && profileForSpot(state.current)));
   $('cardShare').addEventListener('click', share);
 
   $('tHome').addEventListener('click', goHome);
@@ -1788,10 +2731,74 @@ function bindUI() {
   });
   $('profileClose').addEventListener('click', closeProfile);
 
-  $('pPlay').addEventListener('click', () => (tour.playing ? pauseTour() : resumeTour()));
-  $('pPrev').addEventListener('click', () => tourStep(-1));
-  $('pNext').addEventListener('click', () => tourStep(1));
-  $('pStop').addEventListener('click', stopTour);
+  $('pPlay').addEventListener('click', () => (ride.on ? (ride.playing ? pauseRide() : resumeRide()) : tour.playing ? pauseTour() : resumeTour()));
+  $('pPrev').addEventListener('click', () => (ride.on ? rideStep(-1) : tourStep(-1)));
+  $('pNext').addEventListener('click', () => (ride.on ? rideStep(1) : tourStep(1)));
+  $('pStop').addEventListener('click', () => (ride.on ? stopRide() : stopTour()));
+  $('pSpeed').addEventListener('click', () => setRideSpeed((ride.speedIdx + 1) % RIDE_SPEEDS.length));
+
+  // 旅遊專項
+  document.querySelectorAll('#travelSeg button').forEach((b) => b.addEventListener('click', () => setTravelMode(b.dataset.mode)));
+  document.querySelectorAll('#bikeDirSeg button').forEach((b) => b.addEventListener('click', () => {
+    if (travel.dir === b.dataset.dir) return;
+    travel.dir = b.dataset.dir;
+    document.querySelectorAll('#bikeDirSeg button').forEach((x) => x.setAttribute('aria-checked', String(x === b)));
+    if (ride.mode === 'bike') stopRide();
+    if (travel.data.bike) { renderBike(); if (profile.path?.ride === 'bike') bikeOverviewProfile(); }
+  }));
+  let daysFrame = 0;
+  $('bikeDays').addEventListener('input', (e) => {
+    travel.days = +e.target.value;
+    $('bikeDaysOut').textContent = `${travel.days} 天`;
+    if (ride.mode === 'bike') stopRide(); // 分日要重算，騎乘立刻停，不等下一個畫格
+    if (daysFrame || !travel.data.bike) return;
+    daysFrame = requestAnimationFrame(() => { daysFrame = 0; renderBike(); if (profile.path?.ride === 'bike') bikeOverviewProfile(); });
+  });
+  $('bikeProfile').addEventListener('click', bikeOverviewProfile);
+  $('bikeRide').addEventListener('click', () => { if (isMobile()) setSheet(false); startBikeRide(); });
+  $('bikeStages').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { if (isMobile()) setSheet(false); selectStage(+b.dataset.k); } });
+  $('bikeClimbs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { if (isMobile()) setSheet(false); selectClimb(+b.dataset.i); } });
+  $('bikeGaps').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b || !travel.plan) return;
+    if (isMobile()) setSheet(false);
+    const P = travel.plan.m.path;
+    const coords = P.slice(pathIndex(P, +b.dataset.a), pathIndex(P, +b.dataset.b) + 1).map((s) => s.p);
+    clearSpot();
+    map.getSource('bike-hl').setData(lineFeature(coords));
+    fitCoords(coords, { maxZoom: 12.5 });
+  });
+  document.querySelectorAll('#bikePoiToggles input').forEach((inp) => inp.addEventListener('change', () => {
+    if (inp.checked) travel.poi.add(inp.dataset.poi); else travel.poi.delete(inp.dataset.poi);
+    if (travel.data.bike) applyBikePoi();
+  }));
+  let hikeTimer = 0;
+  $('hikeFilter').addEventListener('input', (e) => {
+    travel.hikeQ = e.target.value;
+    clearTimeout(hikeTimer);
+    hikeTimer = setTimeout(renderHike, 120);
+  });
+  $('hikeList').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (isMobile()) setSheet(false);
+    selectTrail(travel.data.hike.trails.find((t) => t.id === b.dataset.id));
+  });
+  $('peakList').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (isMobile()) setSheet(false);
+    selectPeak(peakByRank(+b.dataset.rank));
+  });
+  $('cardRide').addEventListener('click', () => {
+    const s = travel.sel;
+    if (s?.mode === 'bike') startBikeRide();
+    else if (s?.kind === 'trail') {
+      const t = travel.data.hike.trails.find((x) => x.id === s.id);
+      const P = trailProfile(t);
+      if (P) startRide({ mode: 'hike', path: P, title: `沿線飛覽 · ${t.name}`, kmps: 0.06, zoom: 15, look: 0.15 });
+    }
+  });
   $('aboutOpen').addEventListener('click', () => $('about').showModal());
 
   document.addEventListener('keydown', (e) => {
@@ -1801,14 +2808,19 @@ function bindUI() {
     if (typing || searchDlg.open || $('about').open || e.ctrlKey || e.metaKey || e.altKey) return;
     const onMap = e.target.classList?.contains('maplibregl-canvas');
     if (e.key === 'Escape') {
-      if (profile.picking || !profileEl.hidden) closeProfile();
+      if (ride.on) stopRide();
+      else if (profile.picking || !profileEl.hidden) closeProfile();
       else if (tour.def) stopTour();
       else if (!cardEl.hidden) closeCard();
       return;
     }
+    if (e.key === ' ' && ride.on && tag !== 'BUTTON') { e.preventDefault(); ride.playing ? pauseRide() : resumeRide(); return; }
     if (e.key === ' ' && tour.def && tag !== 'BUTTON') { e.preventDefault(); tour.playing ? pauseTour() : resumeTour(); return; }
-    if (!onMap && (e.key === 'ArrowRight' || e.key === 'ArrowLeft') && (tour.def || state.current) && tag !== 'BUTTON' && e.target.getAttribute?.('role') !== 'tab') {
-      e.preventDefault(); stepSpot(e.key === 'ArrowRight' ? 1 : -1); return;
+    if (!onMap && (e.key === 'ArrowRight' || e.key === 'ArrowLeft') && (tour.def || state.current || travel.sel) && tag !== 'BUTTON' && e.target.getAttribute?.('role') !== 'tab') {
+      e.preventDefault();
+      const delta = e.key === 'ArrowRight' ? 1 : -1;
+      if (travel.sel && !tour.def) travelStep(delta); else stepSpot(delta);
+      return;
     }
     const k = e.key.toLowerCase();
     if (k === 'h') goHome();
@@ -1821,6 +2833,8 @@ function bindUI() {
   bindRadioGroup('#basemapSeg [role=radio]');
   bindRadioGroup('#seasonSeg [role=radio]');
   bindRadioGroup('#qMagSeg [role=radio]');
+  bindRadioGroup('#travelSeg [role=radio]');
+  bindRadioGroup('#bikeDirSeg [role=radio]');
   syncInert();
   mobileMQ.addEventListener('change', () => { syncInert(); relayout(0); });
   let resizeTimer = 0;
@@ -1851,6 +2865,28 @@ function bindMap() {
       selectSpot(byId.get(hits[0].properties.id));
       return;
     }
+    // 旅遊專項：百岳、步道、每日終點、沿線設施
+    const box = [[e.point.x - pad, e.point.y - pad], [e.point.x + pad, e.point.y + pad]];
+    const tHit = map.queryRenderedFeatures(box, { layers: ['peak-dot', 'trail-head', 'trail-line', 'bike-stage', 'bike-poi'] })[0];
+    if (tHit) {
+      const pr = tHit.properties;
+      if (tHit.layer.id === 'peak-dot') selectPeak(peakByRank(pr.rank));
+      else if (tHit.layer.id.startsWith('trail')) selectTrail(travel.data.hike?.trails.find((t) => t.id === pr.id));
+      else if (tHit.layer.id === 'bike-stage') {
+        const s = travel.plan?.stages.find((x) => pr.label.startsWith(`D${x.k} `));
+        if (s) selectStage(s.k);
+      } else {
+        const KIND = { station: '臺鐵車站', store: '便利商店', bike: '單車店／打氣站', police: '派出所' };
+        const m = bikeModel();
+        const near = m.pois[pr.kind === 'bike' ? 'bike' : pr.kind]?.find((p) => p.name === pr.name && Math.abs(p.lon - tHit.geometry.coordinates[0]) < 1e-4);
+        const html = document.createElement('div');
+        html.innerHTML = '<b></b><br><span></span>';
+        html.firstChild.textContent = pr.kind === 'station' ? `${pr.name}站` : pr.name || KIND[pr.kind];
+        html.lastChild.textContent = `${KIND[pr.kind]}${near ? ` · 路線 ${near.d.toFixed(1)} km 處` : ''}`;
+        new maplibregl.Popup({ closeButton: false, offset: 8, maxWidth: '240px' }).setLngLat(tHit.geometry.coordinates).setDOMContent(html).addTo(map);
+      }
+      return;
+    }
     // 震源圓點：重疊時取規模最大的那筆
     const qHits = quake.on ? map.queryRenderedFeatures([[e.point.x - pad, e.point.y - pad], [e.point.x + pad, e.point.y + pad]], { layers: ['catalog-dot'] }) : [];
     if (qHits.length) {
@@ -1869,8 +2905,10 @@ function bindMap() {
     }
   });
 
-  map.on('mouseenter', 'catalog-dot', () => { if (!profile.picking) map.getCanvas().style.cursor = 'pointer'; });
-  map.on('mouseleave', 'catalog-dot', () => { if (hoverId === null) map.getCanvas().style.cursor = ''; });
+  for (const layer of ['catalog-dot', 'peak-dot', 'trail-head', 'trail-line', 'bike-stage', 'bike-poi']) {
+    map.on('mouseenter', layer, () => { if (!profile.picking) map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', layer, () => { if (hoverId === null) map.getCanvas().style.cursor = ''; });
+  }
   map.on('mousemove', (e) => updateHudPos(e.lngLat));
   map.on('move', updateHudCam);
 
@@ -1878,13 +2916,14 @@ function bindMap() {
   const userMove = (e) => {
     if (!e.originalEvent) return;
     if (tour.playing) pauseTour('已暫停路線，按空白鍵或播放鍵繼續');
+    if (ride.playing) { pauseRide(); toast('已暫停，按播放鍵回到路線上繼續'); }
     stopOrbit();
   };
   map.on('dragstart', userMove);
   map.on('rotatestart', userMove);
   map.on('pitchstart', userMove);
   map.on('zoomstart', userMove); // 雙擊、雙指縮放、地圖焦點下的 +/- 鍵
-  map.on('wheel', (e) => { if (tour.playing) pauseTour('已暫停路線，按空白鍵或播放鍵繼續'); stopOrbit(); });
+  map.on('wheel', (e) => { if (tour.playing) pauseTour('已暫停路線，按空白鍵或播放鍵繼續'); pauseRide(); stopOrbit(); });
 }
 
 // ---------------------------------------------------------------- 網址狀態
@@ -1893,6 +2932,20 @@ function applyHash() {
   if (h.has('spot') && byId.has(h.get('spot'))) { selectSpot(byId.get(h.get('spot'))); return true; }
   if (h.has('section') && SECTIONS[h.get('section')]) {
     if (profile.section !== h.get('section')) openSection(h.get('section'));
+    return true;
+  }
+  if (h.has('bike')) {
+    openTravelThen('bike', () => { if (!travel.sel) map.flyTo({ ...HOME(), padding: viewPadding(), speed: 1.2 }); });
+    return true;
+  }
+  if (h.has('trail')) {
+    const id = h.get('trail');
+    openTravelThen('hike', () => selectTrail(travel.data.hike?.trails.find((t) => t.id === id)));
+    return true;
+  }
+  if (h.has('peak')) {
+    const rank = +h.get('peak');
+    openTravelThen('peaks', () => selectPeak(peakByRank(rank)));
     return true;
   }
   if (h.has('tour')) {
@@ -1943,4 +2996,4 @@ map.on('load', () => {
 addEventListener('hashchange', () => applyHash());
 
 // 方便除錯：在 console 存取 map
-window.__tw3d = { map, state, tour, quake, profile, SPOTS, TOURS, elevationAt, sunPosition };
+window.__tw3d = { map, state, tour, quake, profile, travel, ride, SPOTS, TOURS, elevationAt, sunPosition };
