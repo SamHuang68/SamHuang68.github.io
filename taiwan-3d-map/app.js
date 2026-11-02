@@ -1,0 +1,1507 @@
+// 台灣 3D 地景 2.0
+// MapLibre GL JS 6 globe + 3D terrain。影像與地形都即時串流公開圖磚：
+//   衛星 Esri World Imagery、地形 AWS Terrarium（含海底水深）、地名與建築 OpenFreeMap。
+// 游標高程、地形剖面與「海面壓平」地形都直接解碼同一份 Terrarium 圖磚，不另備資料。
+import * as maplibregl from 'https://cdn.jsdelivr.net/npm/maplibre-gl@6.14.0/dist/maplibre-gl.mjs';
+import { SPOTS, TOURS } from './data.js?v=2.0.0';
+
+// ---------------------------------------------------------------- 常數
+const TERRARIUM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const NIGHT = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png';
+const OMT = 'https://tiles.openfreemap.org/planet';
+const GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
+const CJK_FONT = '"PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif';
+const ISLAND_CENTER = [120.98, 23.75];
+const SUN_SITE = { lat: 23.7, lon: 121 };
+
+const GROUPS = {
+  mountain: { label: '山岳', color: '#f2c46d', rank: 0 },
+  landscape: { label: '地景', color: '#7fd1ae', rank: 1 },
+  ecology: { label: '生態', color: '#5ec2e6', rank: 2 },
+  tech: { label: '科技', color: '#b59cff', rank: 3 },
+  infra: { label: '建設', color: '#ff9b73', rank: 4 },
+  heritage: { label: '人文', color: '#e98fb6', rank: 5 },
+};
+
+const QUAKES = [
+  { name: '921 集集大地震', lon: 120.82, lat: 23.85, mag: 7.3, year: 1999 },
+  { name: '美濃地震', lon: 120.54, lat: 22.92, mag: 6.6, year: 2016 },
+  { name: '花蓮地震', lon: 121.69, lat: 24.14, mag: 6.2, year: 2018 },
+  { name: '0403 花蓮強震', lon: 121.67, lat: 23.77, mag: 7.2, year: 2024 },
+];
+
+const RELIEF_RAMP = ['interpolate', ['linear'], ['elevation'],
+  -12000, '#081528', -8000, '#0a1a33', -5000, '#0f2b52', -3000, '#163f73', -1500, '#1f5a92', -500, '#2f78ad',
+  -100, '#5b9cc6', -10, '#8fc2db', 0, '#5c8a5a', 60, '#6f9a62', 250, '#94b06e', 600, '#c3c486',
+  1100, '#d7b47c', 1800, '#b98e64', 2600, '#9b7a62', 3200, '#a4998f', 3650, '#dcd7d0', 3952, '#ffffff', 9000, '#ffffff'];
+const OCEAN_RAMP = ['interpolate', ['linear'], ['elevation'],
+  -12000, '#030816', -7000, '#040b1f', -5500, '#071a3d', -4000, '#0b2d60', -2500, '#114a86', -1200, '#1a6aa6',
+  -400, '#2a8bc0', -120, '#4fb0d6', -30, '#8fd3e6', -0.5, '#c4ecf2', 0, '#39433b', 1500, '#6d786e', 4000, '#d9dcd2', 9000, '#ffffff'];
+
+// 衛星模式的海面：Esri 低縮放海域是不同年代的拼接影像，色塊明顯；以半透明水深色調統一，淺灘仍透出影像。
+const SAT_SEA_RAMP = ['interpolate', ['linear'], ['elevation'],
+  -12000, 'rgba(4,16,36,0.95)', -6000, 'rgba(5,20,42,0.94)', -3000, 'rgba(8,32,64,0.92)', -1000, 'rgba(12,50,88,0.88)', -200, 'rgba(17,66,104,0.8)',
+  -40, 'rgba(26,86,120,0.62)', -8, 'rgba(36,104,132,0.35)', -1, 'rgba(40,110,140,0)', 9000, 'rgba(40,110,140,0)'];
+
+const BASEMAP_HINT = {
+  satellite: 'Esri 全球衛星影像，拉近可到街廓尺度。',
+  relief: '依海拔分層設色：綠色平原、黃褐丘陵到白色高山，海域以深淺藍表示水深。',
+  ocean: '保留真實水深的 3D 地形：東部外海數千公尺的海盆、海溝與澎湖淺灘一覽無遺。',
+};
+
+const SEASONS = { spring: [2, 20], summer: [5, 21], autumn: [8, 23], winter: [11, 22] };
+
+const mobileMQ = matchMedia('(max-width: 760px)');
+const reduceMQ = matchMedia('(prefers-reduced-motion: reduce)');
+const isMobile = () => mobileMQ.matches;
+
+const HOME = () => isMobile()
+  ? { center: [120.9, 23.66], zoom: 6.45, pitch: 46, bearing: 16 }
+  : { center: [120.88, 23.72], zoom: 7.4, pitch: 52, bearing: 16 };
+
+// 全島尺度只標這些代表點，其餘拉近（zoom ≥ 9.2）才出現，避免標籤擠成一團。
+const FEATURED = new Set(['yushan', 'xueshan', 'taroko_gorge', 'sunmoonlake', 'alishan_clouds', 'taipei', 'hsinchu_sp',
+  'kaohsiung_port', 'eluanbi_light', 'guishan_milky', 'suhua_qingshui', 'penghu_basalt', 'lanyu_green', 'luye_valley',
+  'qigu_oyster', 'changhua_wind', 'hehuanshan_snow', 'matsu_blue_tears', 'tianliao_badlands', 'nanhu_cirque', 'jiaming_lake']);
+
+// 地名標籤只取台澎與金門、馬祖範圍，避免全島視角被對岸城市名稱搶走注意力。
+const TAIWAN_AREA = {
+  type: 'MultiPolygon',
+  coordinates: [
+    [[[119.25, 21.7], [122.2, 21.7], [122.2, 25.5], [121.0, 25.5], [119.25, 23.9], [119.25, 21.7]]],
+    [[[118.22, 24.38], [118.5, 24.38], [118.5, 24.52], [118.22, 24.52], [118.22, 24.38]]],
+    [[[119.9, 25.92], [120.55, 25.92], [120.55, 26.42], [119.9, 26.42], [119.9, 25.92]]],
+  ],
+};
+
+const $ = (id) => document.getElementById(id);
+const byId = new Map(SPOTS.map((s, i) => [s.id, Object.assign(s, { index: i })]));
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const fmtInt = (n) => (Math.round(n) || 0).toLocaleString('zh-TW');
+
+// ---------------------------------------------------------------- 狀態
+const state = {
+  base: 'satellite',
+  exaggeration: 1.6,
+  sea: 0,
+  sunMinutes: 630,
+  season: 'today',
+  group: 'all',
+  current: null,
+  overlays: {},
+};
+
+// ---------------------------------------------------------------- 地形圖磚解碼（游標高程、剖面、海面壓平）
+const demCache = new Map();
+const DEM_CACHE_MAX = 96;
+
+function decodeCanvas(w, h) {
+  if (typeof OffscreenCanvas !== 'undefined') return new OffscreenCanvas(w, h);
+  return Object.assign(document.createElement('canvas'), { width: w, height: h });
+}
+
+// 每個圖磚請求最多等 12 秒，避免 HUD 與剖面卡在讀取中
+function withTimeout(signal, ms = 12000) {
+  const t = AbortSignal.timeout?.(ms);
+  if (!t) return signal;
+  if (!signal) return t;
+  return AbortSignal.any ? AbortSignal.any([signal, t]) : signal;
+}
+
+async function fetchTerrarium(z, x, y, signal) {
+  const url = TERRARIUM.replace('{z}', z).replace('{x}', x).replace('{y}', y);
+  const res = await fetch(url, { signal: withTimeout(signal), mode: 'cors' });
+  if (!res.ok) throw new Error(`DEM ${res.status} ${z}/${x}/${y}`);
+  const bmp = await createImageBitmap(await res.blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+  const canvas = decodeCanvas(bmp.width, bmp.height);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(bmp, 0, 0);
+  bmp.close?.();
+  return { canvas, ctx, img: ctx.getImageData(0, 0, canvas.width, canvas.height) };
+}
+
+function demTile(z, x, y) {
+  const key = `${z}/${x}/${y}`;
+  let p = demCache.get(key);
+  if (p) { demCache.delete(key); demCache.set(key, p); return p; }
+  p = fetchTerrarium(z, x, y).then(({ img }) => {
+    const d = img.data, n = img.width * img.height, h = new Float32Array(n);
+    for (let i = 0; i < n; i++) h[i] = d[i * 4] * 256 + d[i * 4 + 1] + d[i * 4 + 2] / 256 - 32768;
+    return { size: img.width, h };
+  });
+  // 只刪自己：被淘汰後同 key 重抓的新請求不受舊請求失敗影響
+  p.catch(() => { if (demCache.get(key) === p) demCache.delete(key); });
+  demCache.set(key, p);
+  if (demCache.size > DEM_CACHE_MAX) demCache.delete(demCache.keys().next().value);
+  return p;
+}
+
+// Terrarium 的水深只到 zoom 10；zoom 11 起海域一律是 0 m（實測東部外海 122.80°E 23.81°N：z10 −3,351 m、z11 起 0 m）。
+// 高縮放時，恰好 0 m 的像素改用 zoom 10 父圖磚補回水深。
+const BATHY_MAX_Z = 10;
+
+// 以圖磚內的像素座標（可為小數）做雙線性取樣，超出邊界時貼齊邊緣
+function sampleTile(t, px, py) {
+  const S = t.size, H = t.h;
+  px = clamp(px, 0, S - 1); py = clamp(py, 0, S - 1);
+  const x0 = Math.floor(px), y0 = Math.floor(py), x1 = Math.min(S - 1, x0 + 1), y1 = Math.min(S - 1, y0 + 1);
+  const dx = px - x0, dy = py - y0;
+  const top = H[y0 * S + x0] * (1 - dx) + H[y0 * S + x1] * dx;
+  const bot = H[y1 * S + x0] * (1 - dx) + H[y1 * S + x1] * dx;
+  return top * (1 - dy) + bot * dy;
+}
+
+async function elevationAt(lng, lat, z = 12) {
+  const n = 2 ** z;
+  const s = Math.sin((lat * Math.PI) / 180);
+  const fx = ((lng + 180) / 360) * n;
+  const fy = (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * n;
+  const tx = Math.floor(fx), ty = Math.floor(fy);
+  const t = await demTile(z, tx, ty);
+  const v = sampleTile(t, (fx - tx) * t.size - 0.5, (fy - ty) * t.size - 0.5);
+  if (z > BATHY_MAX_Z && Math.abs(v) < 0.5) {
+    const b = await elevationAt(lng, lat, BATHY_MAX_Z);
+    if (b < 0) return b;
+  }
+  return v;
+}
+
+function encodeTerrarium(d, i, e) {
+  const v = e + 32768;
+  d[i] = Math.floor(v / 256);
+  d[i + 1] = Math.floor(v) % 256;
+  d[i + 2] = Math.min(255, Math.round((v - Math.floor(v)) * 256));
+}
+
+// twdem://z/x/y?mode=flat：海面以下壓平到 0 m。衛星與地勢模式的 3D 地形用，避免海面影像被拉進數千公尺的海溝。
+// twdem://z/x/y?mode=bathy：保留水深，zoom 11 以上補回 zoom 10 的水深。海底地形模式的地形與所有色階、暈渲用。
+maplibregl.addProtocol('twdem', async (params, abort) => {
+  const [path, query] = params.url.replace('twdem://', '').split('?');
+  const [z, x, y] = path.split('/').map(Number);
+  const mode = new URLSearchParams(query).get('mode') || 'flat';
+  if (mode === 'bathy' && z <= BATHY_MAX_Z) {
+    const url = TERRARIUM.replace('{z}', z).replace('{x}', x).replace('{y}', y);
+    const res = await fetch(url, { signal: withTimeout(abort.signal), mode: 'cors' });
+    if (!res.ok) throw new Error(`DEM ${res.status} ${z}/${x}/${y}`);
+    return { data: await res.arrayBuffer() };
+  }
+  const { canvas, ctx, img } = await fetchTerrarium(z, x, y, abort.signal);
+  const d = img.data, S = img.width;
+  if (mode === 'flat') {
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i] < 128) { d[i] = 128; d[i + 1] = 0; d[i + 2] = 0; }
+    }
+  } else {
+    let hasVoid = false;
+    for (let i = 0; i < d.length && !hasVoid; i += 4) hasVoid = d[i] === 128 && d[i + 1] === 0 && d[i + 2] === 0;
+    if (hasVoid) {
+      const dz = z - BATHY_MAX_Z, k = 2 ** dz;
+      const parent = await demTile(BATHY_MAX_Z, x >> dz, y >> dz);
+      const ox = (x - (x >> dz) * k) / k, oy = (y - (y >> dz) * k) / k;
+      const P = parent.size;
+      for (let py = 0; py < S; py++) {
+        for (let px = 0; px < S; px++) {
+          const i = (py * S + px) * 4;
+          if (d[i] !== 128 || d[i + 1] !== 0 || d[i + 2] !== 0) continue;
+          const e = sampleTile(parent, (ox + (px + 0.5) / (S * k)) * P - 0.5, (oy + (py + 0.5) / (S * k)) * P - 0.5);
+          if (e < 0) encodeTerrarium(d, i, e);
+        }
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return { data: await createImageBitmap(canvas) };
+});
+
+// ---------------------------------------------------------------- 太陽位置（NOAA 近似公式）
+function sunPosition(date, lat = SUN_SITE.lat, lon = SUN_SITE.lon) {
+  const rad = Math.PI / 180;
+  const n = date.getTime() / 86400000 + 2440587.5 - 2451545.0;
+  const L = (280.46 + 0.9856474 * n) % 360;
+  const g = ((357.528 + 0.9856003 * n) % 360) * rad;
+  const lambda = (L + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * rad;
+  const eps = (23.439 - 0.0000004 * n) * rad;
+  const ra = Math.atan2(Math.cos(eps) * Math.sin(lambda), Math.cos(lambda));
+  const dec = Math.asin(Math.sin(eps) * Math.sin(lambda));
+  const gmst = (18.697374558 + 24.06570982441908 * n) % 24;
+  const H = (gmst * 15 + lon) * rad - ra;
+  const phi = lat * rad;
+  const alt = Math.asin(Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H));
+  const az = Math.atan2(-Math.sin(H), Math.tan(dec) * Math.cos(phi) - Math.sin(phi) * Math.cos(H));
+  return { azimuth: ((az / rad) + 360) % 360, altitude: alt / rad };
+}
+
+function sunDate() {
+  const now = new Date();
+  const tw = new Date(now.getTime() + 8 * 3600e3);
+  let y = tw.getUTCFullYear(), m = tw.getUTCMonth(), d = tw.getUTCDate();
+  if (state.season !== 'today') [m, d] = SEASONS[state.season];
+  return new Date(Date.UTC(y, m, d, 0, state.sunMinutes) - 8 * 3600e3);
+}
+
+function mixHex(a, b, t) {
+  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  const ch = (p, s) => (p >> s) & 255;
+  const c = [16, 8, 0].map((s) => Math.round(ch(pa, s) + (ch(pb, s) - ch(pa, s)) * t));
+  return '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+
+const SKY = {
+  night: { sky: '#03050b', horizon: '#141c32', fog: '#0b1020' },
+  golden: { sky: '#3f5690', horizon: '#f0a978', fog: '#d99a7a' },
+  day: { sky: '#4f86cf', horizon: '#cfe1f3', fog: '#d6e2ee' },
+};
+
+function skyFor(alt) {
+  const a = smooth(-9, 2, alt), b = smooth(5, 26, alt);
+  const pick = (k) => mixHex(mixHex(SKY.night[k], SKY.golden[k], a), SKY.day[k], b);
+  return {
+    'sky-color': pick('sky'),
+    'horizon-color': pick('horizon'),
+    'fog-color': pick('fog'),
+    'sky-horizon-blend': 0.55,
+    'horizon-fog-blend': 0.6,
+    'fog-ground-blend': 0.82,
+    'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 4, 0.9, 7, 0],
+  };
+}
+
+// ---------------------------------------------------------------- 地圖樣式
+const NAME = ['coalesce', ['get', 'name:zh-Hant'], ['get', 'name:zh-TW'], ['get', 'name']];
+const TEXT_PAINT = { 'text-color': '#f6f2ea', 'text-halo-color': 'rgba(8,10,14,0.82)', 'text-halo-width': 1.4, 'text-halo-blur': 0.4 };
+
+function spotsGeoJSON() {
+  return {
+    type: 'FeatureCollection',
+    features: SPOTS.map((s) => ({
+      type: 'Feature',
+      id: s.index,
+      geometry: { type: 'Point', coordinates: [s.lon, s.lat] },
+      properties: { id: s.id, short: s.short, group: s.group, color: GROUPS[s.group].color, rank: GROUPS[s.group].rank, featured: FEATURED.has(s.id) },
+    })),
+  };
+}
+
+// 建築依高度由暖灰漸亮，夜間轉成帶燈光的暗色
+const BUILDING_HEIGHT = ['coalesce', ['get', 'render_height'], 6];
+const BUILDING_DAY = ['interpolate', ['linear'], BUILDING_HEIGHT, 0, '#cbc4b7', 40, '#e2dbcd', 150, '#f4ecdc', 400, '#fff6e6'];
+const BUILDING_NIGHT = ['interpolate', ['linear'], BUILDING_HEIGHT, 0, '#2b2f3a', 40, '#3d3a3a', 150, '#6b5a3e', 400, '#b48a4a'];
+
+function quakesGeoJSON() {
+  return {
+    type: 'FeatureCollection',
+    features: QUAKES.map((q) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [q.lon, q.lat] },
+      properties: { label: `${q.year} ${q.name}\nM${q.mag}`, mag: q.mag },
+    })),
+  };
+}
+
+const EMPTY = { type: 'FeatureCollection', features: [] };
+const SPOT_LABEL_LAYOUT = { 'text-field': ['get', 'short'], 'text-font': ['Noto Sans Bold'], 'text-size': ['interpolate', ['linear'], ['zoom'], 6, 12, 11, 13.5], 'text-variable-anchor': ['left', 'right', 'top', 'bottom'], 'text-radial-offset': 0.85, 'text-justify': 'auto', 'text-padding': 3, 'symbol-sort-key': ['get', 'rank'] };
+const SPOT_LABEL_PAINT = { 'text-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#ffd88a', '#ffffff'], 'text-halo-color': 'rgba(8,10,14,0.88)', 'text-halo-width': 1.6 };
+const spotRadius = (r) => ['case', ['boolean', ['feature-state', 'selected'], false], r + 3, ['boolean', ['feature-state', 'hover'], false], r + 1.8, r];
+
+function buildStyle() {
+  return {
+    version: 8,
+    projection: { type: 'globe' },
+    glyphs: GLYPHS,
+    sky: skyFor(40),
+    sources: {
+      sat: { type: 'raster', tiles: [ESRI], tileSize: 256, maxzoom: 19, attribution: '影像 © Esri, Maxar, Earthstar Geographics' },
+      night: { type: 'raster', tiles: [NIGHT], tileSize: 256, maxzoom: 8, attribution: '夜光 NASA Black Marble' },
+      'dem-flat': { type: 'raster-dem', tiles: ['twdem://{z}/{x}/{y}?mode=flat'], encoding: 'terrarium', tileSize: 256, maxzoom: 14, attribution: '地形 Mapzen Terrarium / AWS Open Data' },
+      'dem-raw': { type: 'raster-dem', tiles: ['twdem://{z}/{x}/{y}?mode=bathy'], encoding: 'terrarium', tileSize: 256, maxzoom: 14 },
+      'dem-shade': { type: 'raster-dem', tiles: ['twdem://{z}/{x}/{y}?mode=bathy'], encoding: 'terrarium', tileSize: 256, maxzoom: 13 },
+      omt: { type: 'vector', url: OMT },
+      spots: { type: 'geojson', data: spotsGeoJSON() },
+      quakes: { type: 'geojson', data: quakesGeoJSON() },
+      profile: { type: 'geojson', data: EMPTY },
+      cursor: { type: 'geojson', data: EMPTY },
+    },
+    terrain: { source: 'dem-flat', exaggeration: state.exaggeration },
+    layers: [
+      { id: 'bg', type: 'background', paint: { 'background-color': '#0d1117' } },
+      { id: 'sat', type: 'raster', source: 'sat', paint: { 'raster-fade-duration': 250 } },
+      { id: 'seatint', type: 'color-relief', source: 'dem-shade', paint: { 'color-relief-color': SAT_SEA_RAMP } },
+      { id: 'tint', type: 'color-relief', source: 'dem-shade', layout: { visibility: 'none' }, paint: { 'color-relief-color': RELIEF_RAMP } },
+      { id: 'night', type: 'raster', source: 'night', paint: { 'raster-opacity': 0, 'raster-fade-duration': 0 } },
+      { id: 'sea', type: 'color-relief', source: 'dem-shade', layout: { visibility: 'none' }, paint: { 'color-relief-color': seaRamp(1) } },
+      {
+        id: 'shade', type: 'hillshade', source: 'dem-shade',
+        paint: { 'hillshade-method': 'combined', 'hillshade-illumination-anchor': 'map', 'hillshade-exaggeration': 0.3, 'hillshade-shadow-color': 'rgba(6,10,22,0.6)', 'hillshade-highlight-color': 'rgba(255,248,232,0.16)', 'hillshade-accent-color': 'rgba(0,0,0,0)' },
+      },
+      { id: 'parks', type: 'line', source: 'omt', 'source-layer': 'park', filter: ['==', ['get', 'class'], 'national_park'], layout: { visibility: 'none' }, paint: { 'line-color': '#a6e38a', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 1, 12, 2.4], 'line-dasharray': [3, 2], 'line-opacity': 0.9 } },
+      { id: 'rivers', type: 'line', source: 'omt', 'source-layer': 'waterway', minzoom: 6, filter: ['==', ['get', 'class'], 'river'], layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#7ad6ff', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.7, 10, 1.6, 14, 3.5], 'line-opacity': 0.9 } },
+      { id: 'roads', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 6, filter: ['match', ['get', 'class'], ['motorway', 'trunk'], true, false], layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ffd38a', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.6, 10, 1.4, 14, 3], 'line-opacity': 0.85 } },
+      { id: 'rail', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 7, filter: ['==', ['get', 'class'], 'rail'], layout: { visibility: 'none' }, paint: { 'line-color': '#ff9b73', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.8, 14, 2.6], 'line-dasharray': [2, 1.2], 'line-opacity': 0.9 } },
+      { id: 'buildings', type: 'fill-extrusion', source: 'omt', 'source-layer': 'building', minzoom: 13, paint: { 'fill-extrusion-color': BUILDING_DAY, 'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 6], 'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0], 'fill-extrusion-opacity': ['interpolate', ['linear'], ['zoom'], 13, 0, 14, 0.88] } },
+      { id: 'profile-line-casing', type: 'line', source: 'profile', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round' }, paint: { 'line-color': 'rgba(0,0,0,0.45)', 'line-width': 5 } },
+      { id: 'profile-line', type: 'line', source: 'profile', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 2.2, 'line-dasharray': [2, 1.4] } },
+      { id: 'profile-ends', type: 'circle', source: 'profile', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 5, 'circle-color': '#e9b44c', 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 2 } },
+      { id: 'quakes-ring', type: 'circle', source: 'quakes', layout: { visibility: 'none' }, paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, ['*', ['-', ['get', 'mag'], 5], 9], 10, ['*', ['-', ['get', 'mag'], 5], 30]], 'circle-color': 'rgba(255,122,89,0.16)', 'circle-stroke-color': '#ff7a59', 'circle-stroke-width': 1.6, 'circle-pitch-alignment': 'map' } },
+      { id: 'parks-label', type: 'symbol', source: 'omt', 'source-layer': 'park', minzoom: 8, filter: ['==', ['get', 'class'], 'national_park'], layout: { visibility: 'none', 'text-field': NAME, 'text-font': ['Noto Sans Italic'], 'text-size': 12, 'text-max-width': 7 }, paint: { ...TEXT_PAINT, 'text-color': '#c7f0b2' } },
+      { id: 'rivers-label', type: 'symbol', source: 'omt', 'source-layer': 'waterway', minzoom: 9, filter: ['==', ['get', 'class'], 'river'], layout: { visibility: 'none', 'symbol-placement': 'line', 'text-field': NAME, 'text-font': ['Noto Sans Italic'], 'text-size': 11.5, 'text-letter-spacing': 0.1 }, paint: { ...TEXT_PAINT, 'text-color': '#a9e6ff' } },
+      { id: 'places-village', type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: 11.5, filter: ['all', ['==', ['get', 'class'], 'village'], ['within', TAIWAN_AREA]], layout: { 'text-field': NAME, 'text-font': ['Noto Sans Regular'], 'text-size': 11, 'text-padding': 6 }, paint: { ...TEXT_PAINT, 'text-color': '#d9d4cb' } },
+      { id: 'places-town', type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: 9, filter: ['all', ['==', ['get', 'class'], 'town'], ['within', TAIWAN_AREA]], layout: { 'text-field': NAME, 'text-font': ['Noto Sans Regular'], 'text-size': 12, 'text-padding': 6, 'symbol-sort-key': ['coalesce', ['get', 'rank'], 99] }, paint: TEXT_PAINT },
+      { id: 'places-city', type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: 8.2, filter: ['all', ['==', ['get', 'class'], 'city'], ['within', TAIWAN_AREA]], layout: { 'text-field': NAME, 'text-font': ['Noto Sans Bold'], 'text-size': ['interpolate', ['linear'], ['zoom'], 7, 12.5, 11, 15], 'text-padding': 8, 'symbol-sort-key': ['coalesce', ['get', 'rank'], 99] }, paint: TEXT_PAINT },
+      { id: 'peaks-dot', type: 'circle', source: 'omt', 'source-layer': 'mountain_peak', minzoom: 9.5, filter: ['has', 'ele'], paint: { 'circle-radius': 2.4, 'circle-color': '#f2c46d', 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 1 } },
+      { id: 'peaks-label', type: 'symbol', source: 'omt', 'source-layer': 'mountain_peak', minzoom: 9.5, filter: ['has', 'ele'], layout: { 'text-field': ['format', NAME, {}, '\n', {}, ['concat', ['to-string', ['get', 'ele']], ' m'], { 'font-scale': 0.82, 'text-color': '#f2c46d' }], 'text-font': ['Noto Sans Regular'], 'text-size': 11.5, 'text-anchor': 'top', 'text-offset': [0, 0.45], 'text-padding': 4, 'symbol-sort-key': ['*', -1, ['to-number', ['get', 'ele'], 0]] }, paint: TEXT_PAINT },
+      { id: 'quakes-label', type: 'symbol', source: 'quakes', layout: { visibility: 'none', 'text-field': ['get', 'label'], 'text-font': ['Noto Sans Bold'], 'text-size': 11.5, 'text-allow-overlap': true }, paint: { ...TEXT_PAINT, 'text-color': '#ffb39e' } },
+      { id: 'spots-halo', type: 'circle', source: 'spots', paint: { 'circle-radius': ['case', ['boolean', ['feature-state', 'selected'], false], 16, 0], 'circle-color': 'rgba(233,180,76,0.22)', 'circle-stroke-color': 'rgba(233,180,76,0.85)', 'circle-stroke-width': ['case', ['boolean', ['feature-state', 'selected'], false], 1.2, 0], 'circle-pitch-alignment': 'viewport' } },
+      { id: 'spots-dot', type: 'circle', source: 'spots', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, spotRadius(3.4), 9, spotRadius(5), 13, spotRadius(6)], 'circle-color': ['get', 'color'], 'circle-stroke-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#ffffff', 'rgba(8,10,14,0.9)'], 'circle-stroke-width': ['case', ['boolean', ['feature-state', 'selected'], false], 2.4, 1.4], 'circle-pitch-alignment': 'viewport' } },
+      { id: 'spots-label-major', type: 'symbol', source: 'spots', minzoom: 5.6, maxzoom: 9.2, filter: ['get', 'featured'], layout: SPOT_LABEL_LAYOUT, paint: SPOT_LABEL_PAINT },
+      { id: 'spots-label', type: 'symbol', source: 'spots', minzoom: 9.2, layout: SPOT_LABEL_LAYOUT, paint: SPOT_LABEL_PAINT },
+      { id: 'cursor', type: 'circle', source: 'cursor', paint: { 'circle-radius': 6, 'circle-color': '#ffffff', 'circle-stroke-color': '#e9b44c', 'circle-stroke-width': 3, 'circle-pitch-alignment': 'viewport' } },
+    ],
+  };
+}
+
+const OVERLAY_LAYERS = {
+  places: ['places-city', 'places-town', 'places-village'],
+  peaks: ['peaks-dot', 'peaks-label'],
+  rivers: ['rivers', 'rivers-label'],
+  roads: ['roads', 'rail'],
+  buildings: ['buildings'],
+  parks: ['parks', 'parks-label'],
+  quakes: ['quakes-ring', 'quakes-label'],
+  spots: ['spots-halo', 'spots-dot', 'spots-label-major', 'spots-label'],
+};
+
+// ---------------------------------------------------------------- 建立地圖
+let map;
+try {
+  map = new maplibregl.Map({
+    container: 'map',
+    style: buildStyle(),
+    center: [121, 23.7],
+    zoom: 1.6,
+    pitch: 0,
+    bearing: 0,
+    minZoom: 1,
+    maxZoom: 18.5,
+    maxPitch: 80,
+    attributionControl: false,
+    localIdeographFontFamily: CJK_FONT,
+    pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+  });
+} catch (err) {
+  console.error(err);
+  $('veil').querySelector('.veil-sub').innerHTML = '這個瀏覽器無法啟用 WebGL。<a href="classic.html" style="color:var(--accent)">改看舊版介面</a>';
+  throw err;
+}
+
+const attribution = new maplibregl.AttributionControl({ compact: true, customAttribution: 'MapLibre GL JS' });
+map.addControl(attribution, 'bottom-right');
+// 寬螢幕上 compact 仍預設展開；收成「i」按鈕，點開才顯示完整來源。
+map.once('idle', () => attribution._container?.classList.remove('maplibregl-compact-show'));
+map.addControl(new maplibregl.ScaleControl({ unit: 'metric', maxWidth: 110 }), 'bottom-left');
+map.on('error', (e) => console.warn('[map]', e.error?.message || e));
+
+const beaconEl = document.createElement('div');
+beaconEl.className = 'beacon';
+const beacon = new maplibregl.Marker({ element: beaconEl, pitchAlignment: 'viewport' });
+const style = document.createElement('style');
+style.textContent = `.beacon{width:14px;height:14px;pointer-events:none}.beacon::before,.beacon::after{content:"";position:absolute;inset:-12px;border:1.5px solid #e9b44c;border-radius:50%;animation:beacon 2.4s cubic-bezier(.2,.6,.3,1) infinite;opacity:0}.beacon::after{animation-delay:1.2s}@keyframes beacon{0%{transform:scale(.35);opacity:.9}100%{transform:scale(1.9);opacity:0}}@media (prefers-reduced-motion:reduce){.beacon::before,.beacon::after{animation:none;opacity:.7;transform:scale(1)}}`;
+document.head.append(style);
+
+// ---------------------------------------------------------------- 版面 padding（讓飛行目標落在面板以外的可視中心）
+const panelEl = $('panel'), cardEl = $('card'), profileEl = $('profile');
+
+function viewPadding() {
+  const p = { top: 0, bottom: 0, left: 0, right: 0 };
+  if (isMobile()) {
+    p.top = 56; p.right = 52; p.bottom = 58;
+    if (!profileEl.hidden) p.bottom += 200;
+    else if (!cardEl.hidden) p.bottom += Math.min(cardEl.offsetHeight, innerHeight * 0.5) + 8;
+    return p;
+  }
+  const cs = getComputedStyle(document.documentElement);
+  const gap = parseFloat(cs.getPropertyValue('--gap')) || 20;
+  if (!document.body.classList.contains('panel-collapsed')) p.left = gap + (parseFloat(cs.getPropertyValue('--panel-w')) || 344);
+  p.right = cardEl.hidden ? 64 : innerWidth - cardEl.getBoundingClientRect().left;
+  if (!profileEl.hidden) p.bottom = 236;
+  return p;
+}
+
+function relayout(duration = 450) {
+  // 飛行中不能 setPadding（等於 jumpTo，會中斷飛行）；進行中的 flyTo／easeTo 本來就帶 padding
+  if (map.isMoving()) return;
+  if (tour.playing || orbit.on) { map.setPadding(viewPadding()); return; }
+  map.easeTo({ padding: viewPadding(), duration: reduceMQ.matches ? 0 : duration });
+}
+
+// ---------------------------------------------------------------- 日照
+function applySun() {
+  const date = sunDate();
+  const { azimuth, altitude } = sunPosition(date);
+  const day = smooth(-7, 7, altitude);
+  const low = 1 - smooth(6, 40, altitude);
+  const golden = altitude > -4 ? 1 - smooth(3, 20, altitude) : 0;
+  const isSat = state.base === 'satellite';
+
+  map.setSky(skyFor(altitude));
+  map.setPaintProperty('shade', 'hillshade-illumination-direction', Math.round(azimuth));
+  map.setPaintProperty('shade', 'hillshade-illumination-altitude', clamp(altitude, 2, 88));
+  // 遠景時 3D 起伏不明顯，暈渲加重；拉近後交給真實地形。
+  const ex = isSat ? 0.22 + 0.3 * low * day : 0.5 + 0.25 * low;
+  map.setPaintProperty('shade', 'hillshade-exaggeration', ['interpolate', ['linear'], ['zoom'], 5, Math.min(1, ex * 2.2), 9, Math.min(1, ex * 1.3), 12, ex]);
+  map.setPaintProperty('shade', 'hillshade-shadow-color', `rgba(6,10,24,${(0.38 + 0.22 * low).toFixed(2)})`);
+  map.setPaintProperty('shade', 'hillshade-highlight-color', golden > 0.2
+    ? `rgba(255,180,110,${(0.12 + 0.2 * golden).toFixed(2)})`
+    : `rgba(255,248,232,${(0.16 * day).toFixed(2)})`);
+
+  map.setPaintProperty('sat', 'raster-brightness-max', 0.16 + 0.84 * day);
+  map.setPaintProperty('sat', 'raster-saturation', -0.45 * (1 - day) + 0.08 * golden);
+  map.setPaintProperty('tint', 'color-relief-opacity', 0.25 + 0.75 * day);
+
+  // 夜光圖層常駐 visible（白天透明度 0），圖磚先載好，拖到黃昏時不會一格格冒出來。
+  const lights = 1 - smooth(-8, 1, altitude);
+  map.setPaintProperty('night', 'raster-opacity', ['interpolate', ['linear'], ['zoom'], 5, 0.95 * lights, 9, 0.7 * lights, 12, 0.3 * lights]);
+
+  map.setLight({ anchor: 'map', position: [1.2, azimuth, 90 - clamp(altitude, 8, 80)], color: golden > 0.3 ? '#ffd2a1' : '#ffffff', intensity: 0.2 + 0.35 * day });
+  map.setPaintProperty('buildings', 'fill-extrusion-color', day < 0.3 ? BUILDING_NIGHT : BUILDING_DAY);
+
+  const hh = String(Math.floor(state.sunMinutes / 60)).padStart(2, '0');
+  const mm = String(state.sunMinutes % 60).padStart(2, '0');
+  $('sunOut').textContent = `${hh}:${mm}`;
+  $('sunHint').textContent = altitude < -0.8
+    ? `太陽在地平線下 ${Math.abs(altitude).toFixed(0)}°，城市燈火浮現。`
+    : `太陽方位 ${azimuth.toFixed(0)}°（${compassWord(azimuth)}）· 仰角 ${altitude.toFixed(0)}°`;
+}
+
+function compassWord(deg) {
+  return ['北', '東北', '東', '東南', '南', '西南', '西', '西北'][Math.round(deg / 45) % 8];
+}
+
+// ---------------------------------------------------------------- 海平面
+// color-relief 在色階範圍外不會穩定維持透明（實測陸地被塗黑），兩端一律補上 −12000／9000 m 的透明色階。
+function seaRamp(L) {
+  const clear = 'rgba(0,0,0,0)';
+  if (L > 0) {
+    return ['interpolate', ['linear'], ['elevation'],
+      -12000, clear, -1, clear, 0, 'rgba(28,88,148,0.9)', L - 0.5, 'rgba(72,150,200,0.82)', L, clear, 9000, clear];
+  }
+  return ['interpolate', ['linear'], ['elevation'],
+    -12000, clear, L - 0.5, clear, L, 'rgba(92,110,68,0.95)', -0.5, 'rgba(152,154,106,0.95)', 0, clear, 9000, clear];
+}
+
+function seaCaption(L) {
+  if (L <= -100) return '末次冰期（約兩萬年前）海平面低約 120 m：台灣海峽大多露出，台灣與澎湖、大陸相連成陸橋。';
+  if (L < -40) return '海峽中央的淺灘先露出，澎湖與台灣西岸之間逐漸連成陸地。';
+  if (L < 0) return '近岸大陸棚露出，西部海岸線向外推進。';
+  if (L === 0) return '現今海平面。';
+  if (L <= 10) return '西南沿海低地、潟湖與河口最先被淹沒；格陵蘭冰蓋全融約可使海平面上升 7 m。';
+  if (L <= 40) return '蘭陽、嘉南與屏東平原大面積淹沒，臺北盆地成為內灣。';
+  return '全球冰層全融約使海平面上升 70 m：西部平原幾乎全沒入海中，只剩丘陵與山地。';
+}
+
+function applySea() {
+  const L = state.sea;
+  $('seaOut').textContent = `${L > 0 ? '+' : L < 0 ? '−' : ''}${Math.abs(L)} m`;
+  $('seaHint').textContent = seaCaption(L);
+  if (L === 0) { map.setLayoutProperty('sea', 'visibility', 'none'); return; }
+  map.setPaintProperty('sea', 'color-relief-color', seaRamp(L));
+  map.setLayoutProperty('sea', 'visibility', 'visible');
+}
+
+// ---------------------------------------------------------------- 底圖與圖層
+function applyBase() {
+  const b = state.base;
+  map.setLayoutProperty('sat', 'visibility', b === 'satellite' ? 'visible' : 'none');
+  map.setLayoutProperty('seatint', 'visibility', b === 'satellite' ? 'visible' : 'none');
+  map.setLayoutProperty('tint', 'visibility', b === 'satellite' ? 'none' : 'visible');
+  map.setPaintProperty('tint', 'color-relief-color', b === 'ocean' ? OCEAN_RAMP : RELIEF_RAMP);
+  map.setTerrain({ source: b === 'ocean' ? 'dem-raw' : 'dem-flat', exaggeration: state.exaggeration });
+  $('basemapHint').textContent = BASEMAP_HINT[b];
+  document.querySelectorAll('#basemapSeg button').forEach((x) => x.setAttribute('aria-checked', String(x.dataset.base === b)));
+  applySun();
+}
+
+function applyOverlay(key, on) {
+  state.overlays[key] = on;
+  for (const id of OVERLAY_LAYERS[key]) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+  if (key === 'spots') beaconEl.style.display = on ? '' : 'none';
+}
+
+function applyGroupFilter() {
+  const f = state.group === 'all' ? null : ['==', ['get', 'group'], state.group];
+  for (const id of OVERLAY_LAYERS.spots) {
+    map.setFilter(id, id === 'spots-label-major' ? (f ? ['all', ['get', 'featured'], f] : ['get', 'featured']) : f);
+  }
+}
+
+// ---------------------------------------------------------------- 面板：導覽點、路線
+function renderChips() {
+  const wrap = $('groupChips');
+  const counts = {};
+  SPOTS.forEach((s) => (counts[s.group] = (counts[s.group] || 0) + 1));
+  const make = (key, label, color, n) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.dataset.group = key;
+    b.setAttribute('aria-pressed', String(state.group === key));
+    if (color) b.style.setProperty('--c', color);
+    b.innerHTML = `${color ? '<i></i>' : ''}<span></span><b>${n}</b>`;
+    b.querySelector('span').textContent = label;
+    b.addEventListener('click', () => {
+      state.group = key;
+      wrap.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.group === key)));
+      renderSpotList();
+      applyGroupFilter();
+    });
+    return b;
+  };
+  wrap.append(make('all', '全部', null, SPOTS.length));
+  for (const [k, g] of Object.entries(GROUPS)) wrap.append(make(k, g.label, g.color, counts[k] || 0));
+}
+
+function renderSpotList() {
+  const ol = $('spotList');
+  ol.replaceChildren();
+  for (const s of SPOTS) {
+    if (state.group !== 'all' && s.group !== state.group) continue;
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.id = s.id;
+    b.style.setProperty('--c', GROUPS[s.group].color);
+    b.innerHTML = '<span class="n"></span><span class="t"><i></i><span></span></span><span class="e"></span><span class="b"></span>';
+    b.querySelector('.n').textContent = String(s.index + 1).padStart(2, '0');
+    b.querySelector('.t span').textContent = s.short;
+    b.querySelector('.e').textContent = s.elev < 0 ? `−${fmtInt(-s.elev)} m` : `${fmtInt(s.elev)} m`;
+    b.querySelector('.b').textContent = s.badge;
+    if (state.current?.id === s.id) b.setAttribute('aria-current', 'true');
+    // 手機先收抽屜：卡片才會顯示，飛行 padding 才算得到卡片高度
+    b.addEventListener('click', () => { if (isMobile()) setSheet(false); stopTour(); selectSpot(s); });
+    li.append(b);
+    ol.append(li);
+  }
+}
+
+function renderTours() {
+  const ul = $('tourList');
+  for (const t of TOURS) {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.tour = t.id;
+    b.innerHTML = '<span class="tt"></span><span class="tc"></span><span class="tb"></span><span class="td"></span>';
+    b.querySelector('.tt').textContent = t.title;
+    b.querySelector('.tc').textContent = `${t.stops.length} 站`;
+    b.querySelector('.tb').textContent = t.blurb;
+    const dots = b.querySelector('.td');
+    for (const id of t.stops.slice(0, 40)) {
+      const i = document.createElement('i');
+      i.style.setProperty('--c', GROUPS[byId.get(id).group].color);
+      dots.append(i);
+    }
+    b.addEventListener('click', () => { if (isMobile()) setSheet(false); startTour(t, 0); });
+    li.append(b);
+    ul.append(li);
+  }
+}
+
+function markListCurrent() {
+  $('spotList').querySelectorAll('button[data-id]').forEach((b) => {
+    const on = b.dataset.id === state.current?.id;
+    if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+    if (on && !$('pane-spots').hidden) b.scrollIntoView({ block: 'nearest', behavior: reduceMQ.matches ? 'auto' : 'smooth' });
+  });
+}
+
+// ---------------------------------------------------------------- 選取與飛行
+function bearingTo([lon1, lat1], [lon2, lat2]) {
+  const r = Math.PI / 180;
+  const y = Math.sin((lon2 - lon1) * r) * Math.cos(lat2 * r);
+  const x = Math.cos(lat1 * r) * Math.sin(lat2 * r) - Math.sin(lat1 * r) * Math.cos(lat2 * r) * Math.cos((lon2 - lon1) * r);
+  return Math.atan2(y, x) / r;
+}
+
+function distanceKm([lon1, lat1], [lon2, lat2]) {
+  const r = Math.PI / 180;
+  const a = Math.sin(((lat2 - lat1) * r) / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(((lon2 - lon1) * r) / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(a));
+}
+
+// 鏡頭朝島中央看：沿海點會以山脈當背景，山區點則順著稜線。
+function cameraFor(s) {
+  const here = [s.lon, s.lat];
+  const far = distanceKm(here, ISLAND_CENTER) > 12;
+  const bearing = far ? bearingTo(here, ISLAND_CENTER) : (s.index * 47) % 360 - 180;
+  const pitch = s.elev < -500 ? 52 : s.group === 'mountain' ? 66 : s.group === 'tech' ? 58 : 63;
+  return { center: here, zoom: s.zoom - (isMobile() ? 0.7 : 0), pitch, bearing };
+}
+
+function flyToSpot(s, extra = {}) {
+  const cam = cameraFor(s);
+  map.flyTo({ ...cam, ...extra, padding: viewPadding(), speed: 0.85, curve: 1.45, maxDuration: 9000 });
+  return cam;
+}
+
+let selectedFid = null;
+function selectSpot(s, { fly = true } = {}) {
+  stopOrbit();
+  state.current = s;
+  if (selectedFid !== null) map.setFeatureState({ source: 'spots', id: selectedFid }, { selected: false });
+  selectedFid = s.index;
+  map.setFeatureState({ source: 'spots', id: s.index }, { selected: true });
+  beacon.setLngLat([s.lon, s.lat]).addTo(map);
+  renderCard(s);
+  markListCurrent();
+  history.replaceState(null, '', `#spot=${s.id}`);
+  if (fly) flyToSpot(s);
+}
+
+function renderCard(s) {
+  const g = GROUPS[s.group];
+  cardEl.style.setProperty('--c', g.color);
+  $('cardTag').textContent = g.label;
+  $('cardIndex').textContent = tour.def
+    ? `${tour.def.title} · 第 ${tour.i + 1} / ${tour.def.stops.length} 站`
+    : `${String(s.index + 1).padStart(2, '0')} / ${SPOTS.length}`;
+  $('cardTitle').textContent = s.name;
+  $('cardBadge').textContent = s.badge;
+  $('cardElev').textContent = s.elev < 0 ? `水深 ${fmtInt(-s.elev)} m` : `${fmtInt(s.elev)} m`;
+  $('cardCoord').textContent = `${s.lat.toFixed(3)}°N ${s.lon.toFixed(3)}°E`;
+  $('cardMetric').textContent = s.metric;
+  $('cardDesc').textContent = s.desc;
+  const wasHidden = cardEl.hidden;
+  cardEl.hidden = false;
+  document.body.classList.add('card-open');
+  if (wasHidden && !map.isMoving()) relayout();
+}
+
+function closeCard() {
+  cardEl.hidden = true;
+  document.body.classList.remove('card-open');
+  if (selectedFid !== null) map.setFeatureState({ source: 'spots', id: selectedFid }, { selected: false });
+  selectedFid = null;
+  state.current = null;
+  beacon.remove();
+  markListCurrent();
+  history.replaceState(null, '', location.pathname + location.search);
+  if (!tour.playing) relayout();
+}
+
+function stepSpot(delta) {
+  if (tour.def) return tourStep(delta);
+  const list = state.group === 'all' ? SPOTS : SPOTS.filter((s) => s.group === state.group);
+  if (!list.length) return;
+  const i = state.current ? list.indexOf(state.current) : -1;
+  selectSpot(list[(i + delta + list.length) % list.length]);
+}
+
+// ---------------------------------------------------------------- 路線播放
+const DWELL = 8500;
+const tour = { def: null, i: 0, playing: false, token: 0, dwellDone: 0, raf: 0, timer: 0, cam: null, arrived: false };
+
+function startTour(def, i = 0) {
+  stopOrbit();
+  tour.def = def;
+  tour.i = i;
+  tour.playing = true;
+  $('player').hidden = false;
+  $('playerTour').textContent = def.title;
+  const track = $('playerTrack');
+  track.replaceChildren(...def.stops.map((_, k) => {
+    const el = document.createElement('i');
+    el.addEventListener('click', () => { tour.i = k; tour.playing = true; goStop(); });
+    return el;
+  }));
+  document.querySelectorAll('#tourList button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.tour === def.id)));
+  history.replaceState(null, '', `#tour=${def.id}`);
+  goStop();
+}
+
+function clearTourTimers() {
+  cancelAnimationFrame(tour.raf);
+  clearTimeout(tour.timer);
+}
+
+function paintTrack(progress = 0) {
+  const items = $('playerTrack').children;
+  for (let k = 0; k < items.length; k++) {
+    items[k].className = k < tour.i ? 'done' : k === tour.i ? 'cur' : '';
+    if (k === tour.i) items[k].style.setProperty('--p', progress.toFixed(3));
+  }
+}
+
+function setPlayIcon() {
+  const btn = $('pPlay');
+  btn.querySelector('use').setAttribute('href', tour.playing ? '#i-pause' : '#i-play');
+  btn.setAttribute('aria-label', tour.playing ? '暫停' : '播放');
+}
+
+function goStop() {
+  clearTourTimers();
+  const token = ++tour.token;
+  const s = byId.get(tour.def.stops[tour.i]);
+  selectSpot(s, { fly: false });
+  history.replaceState(null, '', `#tour=${tour.def.id}`);
+  $('playerStop').textContent = `${tour.i + 1}. ${s.short}`;
+  tour.dwellDone = 0;
+  tour.arrived = false;
+  paintTrack(0);
+  setPlayIcon();
+  const cam = cameraFor(s);
+  tour.cam = cam;
+  // flyTo 會先停掉上一段飛行並送出那段的 moveend，所以監聽要在呼叫之後才掛；
+  // 減少動態模式或飛行過長時 flyTo 直接同步跳轉、不會再有 moveend，就立即進入停留。
+  map.flyTo({ ...cam, bearing: cam.bearing - 18, padding: viewPadding(), speed: 0.75, curve: 1.5, maxDuration: 8000 });
+  if (!map.isMoving()) { arrive(token); return; }
+  map.once('moveend', () => arrive(token));
+}
+
+// 只有鏡頭真的到站才開始停留；被其他操作打斷（停在半空）就暫停，不在錯的位置環繞
+function arrive(token) {
+  if (token !== tour.token || !tour.playing) return;
+  const c = map.getCenter();
+  const off = distanceKm([c.lng, c.lat], tour.cam.center);
+  if (off > 1.5 || Math.abs(map.getZoom() - tour.cam.zoom) > 0.35) { pauseTour('已暫停路線，按播放鍵繼續'); return; }
+  tour.arrived = true;
+  // 到站後常有幾秒在載高縮放圖磚；等畫面 idle 再開始停留，最多等 3 秒
+  let started = false;
+  const start = () => {
+    if (started) return;
+    started = true;
+    clearTimeout(tour.timer);
+    if (token === tour.token && tour.playing) dwell(token);
+  };
+  map.once('idle', start);
+  tour.timer = setTimeout(start, 3000);
+}
+
+function dwell(token) {
+  const left = DWELL - tour.dwellDone;
+  map.easeTo({ bearing: map.getBearing() + 36 * (left / DWELL), duration: left, easing: (t) => t, padding: viewPadding() });
+  let last = performance.now();
+  const tick = (now) => {
+    if (token !== tour.token || !tour.playing) return;
+    // 停留以畫格累計、每格最多 250 ms：數秒的畫面卡頓不算進停留，每秒 4 格以上仍是實際時間
+    tour.dwellDone += clamp(now - last, 0, 250);
+    last = now;
+    paintTrack(clamp(tour.dwellDone / DWELL, 0, 1));
+    if (tour.dwellDone >= DWELL) return tourStep(1);
+    tour.raf = requestAnimationFrame(tick);
+  };
+  tour.raf = requestAnimationFrame(tick);
+}
+
+function pauseTour(reason) {
+  if (!tour.def || !tour.playing) return;
+  tour.playing = false;
+  tour.token++;
+  clearTourTimers();
+  // stop(true)：保留進行中的手勢，使用者第一次拖曳就能直接移動地圖
+  map.stop(true);
+  setPlayIcon();
+  if (reason) toast(reason);
+}
+
+function resumeTour() {
+  if (!tour.def) return;
+  stopOrbit();
+  tour.playing = true;
+  setPlayIcon();
+  const c = map.getCenter();
+  const far = distanceKm([c.lng, c.lat], tour.cam.center) > 1.5 || Math.abs(map.getZoom() - tour.cam.zoom) > 0.35;
+  // 尚未到站或使用者已移開鏡頭：重新飛回本站，停留時間從頭算
+  if (!tour.arrived || far) return goStop();
+  dwell(++tour.token);
+}
+
+function tourStep(delta) {
+  if (!tour.def) return;
+  const n = tour.def.stops.length;
+  const next = tour.i + delta;
+  if (next >= n) { stopTour(); toast('路線結束'); return; }
+  tour.i = (next + n) % n;
+  tour.playing = true;
+  goStop();
+}
+
+function stopTour() {
+  if (!tour.def) return;
+  tour.token++;
+  clearTourTimers();
+  map.stop(true);
+  tour.def = null;
+  tour.playing = false;
+  $('player').hidden = true;
+  document.querySelectorAll('#tourList button').forEach((b) => b.setAttribute('aria-current', 'false'));
+  if (state.current) { renderCard(state.current); history.replaceState(null, '', `#spot=${state.current.id}`); }
+}
+
+// ---------------------------------------------------------------- 環繞
+const orbit = { on: false, raf: 0, last: 0 };
+function startOrbit() {
+  if (orbit.on) return;
+  pauseTour();
+  orbit.on = true;
+  $('tOrbit').setAttribute('aria-pressed', 'true');
+  $('cardOrbit').setAttribute('aria-pressed', 'true');
+  if (map.getPitch() < 35) map.easeTo({ pitch: 60, duration: 900 });
+  orbit.last = performance.now();
+  const step = (now) => {
+    if (!orbit.on) return;
+    // 低幀率裝置也維持每秒約 4.5°；上限只用來避免切回分頁時一次轉太多
+    const dt = Math.min(250, now - orbit.last);
+    orbit.last = now;
+    // 開始環繞時可能還在 easeTo 俯角；等它結束再轉，避免 setBearing 打斷
+    if (!map.isMoving()) map.setBearing(map.getBearing() + dt * 0.0045);
+    orbit.raf = requestAnimationFrame(step);
+  };
+  orbit.raf = requestAnimationFrame(step);
+}
+function stopOrbit() {
+  if (!orbit.on) return;
+  orbit.on = false;
+  cancelAnimationFrame(orbit.raf);
+  $('tOrbit').setAttribute('aria-pressed', 'false');
+  $('cardOrbit').setAttribute('aria-pressed', 'false');
+}
+
+// ---------------------------------------------------------------- 地形剖面
+const profile = { picking: false, pts: [], samples: null, token: 0 };
+
+function openProfile() {
+  stopOrbit();
+  pauseTour();
+  profileEl.hidden = false;
+  document.body.classList.add('profile-open');
+  $('tProfile').setAttribute('aria-pressed', 'true');
+  relayout();
+}
+
+function closeProfile() {
+  profileEl.hidden = true;
+  profile.picking = false;
+  profile.pts = [];
+  profile.samples = null;
+  profile.token++;
+  document.body.classList.remove('profile-open', 'map-cursor-pick');
+  $('tProfile').setAttribute('aria-pressed', 'false');
+  map.getSource('profile').setData(EMPTY);
+  map.getSource('cursor').setData(EMPTY);
+  relayout();
+}
+
+function startPicking() {
+  openProfile();
+  profile.picking = true;
+  profile.pts = [];
+  profile.samples = null;
+  profile.token++;
+  document.body.classList.add('map-cursor-pick');
+  map.getSource('profile').setData(EMPTY);
+  $('profileStats').textContent = '在地圖上點選起點';
+  $('profileChart').innerHTML = '<div class="busy">點地圖兩下：起點、終點。也可在導覽點介紹卡按「剖面」看東西向橫切。</div>';
+}
+
+function pickPoint(lngLat) {
+  profile.pts.push([lngLat.lng, lngLat.lat]);
+  const feats = profile.pts.map((c) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: c } }));
+  map.getSource('profile').setData({ type: 'FeatureCollection', features: feats });
+  if (profile.pts.length === 1) { $('profileStats').textContent = '再點選終點'; return; }
+  profile.picking = false;
+  document.body.classList.remove('map-cursor-pick');
+  runProfile(profile.pts[0], profile.pts[1], { frame: false });
+}
+
+function profileForSpot(s) {
+  const a = [Math.min(s.lon - 0.3, 120.0), s.lat];
+  const b = [Math.max(s.lon + 0.3, 121.95), s.lat];
+  openProfile();
+  runProfile(a, b, { frame: true });
+}
+
+async function runProfile(a, b, { frame }) {
+  const token = ++profile.token;
+  profile.samples = null;
+  const len = distanceKm(a, b);
+  const N = 240;
+  const z = len > 140 ? 10 : len > 45 ? 11 : 12;
+  const line = { type: 'Feature', geometry: { type: 'LineString', coordinates: [a, b] } };
+  const ends = [a, b].map((c) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: c } }));
+  map.getSource('profile').setData({ type: 'FeatureCollection', features: [line, ...ends] });
+  $('profileStats').textContent = '讀取地形中…';
+  $('profileChart').innerHTML = '<div class="busy">解碼地形圖磚中…</div>';
+
+  if (frame) {
+    const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    const lineBearing = bearingTo(a, b);
+    const pad = viewPadding();
+    const visible = Math.max(200, innerWidth - pad.left - pad.right);
+    // 線段水平橫過畫面：以可視寬度換算 zoom，再留 30% 邊界給透視
+    const zoom = clamp(Math.log2((40075 * Math.cos((mid[1] * Math.PI) / 180) * visible) / (512 * len * 1.3)), 5, 14);
+    map.flyTo({ center: mid, zoom, pitch: 58, bearing: lineBearing - 90, padding: pad, speed: 1.1 });
+  }
+
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const t = i / (N - 1);
+    pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+  }
+  let elev;
+  try {
+    elev = await Promise.all(pts.map(([x, y]) => elevationAt(x, y, z)));
+  } catch (err) {
+    if (token !== profile.token) return;
+    console.warn(err);
+    $('profileStats').textContent = '地形資料讀取失敗，請稍後再試。';
+    $('profileChart').innerHTML = '';
+    return;
+  }
+  if (token !== profile.token) return;
+  profile.samples = pts.map((p, i) => ({ p, d: (len * i) / (N - 1), e: elev[i] }));
+  drawProfile();
+}
+
+function niceStep(range, target) {
+  const raw = range / target, mag = 10 ** Math.floor(Math.log10(raw)), r = raw / mag;
+  return (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag;
+}
+
+function drawProfile() {
+  const S = profile.samples;
+  if (!S) return;
+  const box = $('profileChart');
+  const W = box.clientWidth - 24, H = box.clientHeight - 12;
+  if (W < 50 || H < 40) return;
+  const L = 46, R = 8, T = 8, B = 18;
+  const len = S[S.length - 1].d;
+  let lo = Math.min(0, ...S.map((s) => s.e)), hi = Math.max(10, ...S.map((s) => s.e));
+  const padY = (hi - lo) * 0.08;
+  hi += padY; lo -= lo < 0 ? padY : 0;
+  const x = (d) => L + ((W - L - R) * d) / len;
+  const y = (e) => T + ((H - T - B) * (hi - e)) / (hi - lo);
+
+  let gain = 0;
+  for (let i = 1; i < S.length; i++) gain += Math.max(0, S[i].e - S[i - 1].e);
+  const maxS = S.reduce((m, s) => (s.e > m.e ? s : m), S[0]);
+  const minS = S.reduce((m, s) => (s.e < m.e ? s : m), S[0]);
+  $('profileStats').innerHTML = `長 <b>${len.toFixed(1)}</b> km · 最高 <b>${fmtInt(maxS.e)}</b> m · 最低 <b>${fmtInt(minS.e)}</b> m · 累積爬升 <b>${fmtInt(gain)}</b> m`;
+
+  const top = S.map((s) => `${x(s.d).toFixed(1)},${y(s.e).toFixed(1)}`).join(' L');
+  const base = y(lo);
+  const y0 = y(0);
+  const ys = niceStep(hi - lo, 4), xs = niceStep(len, 6);
+  let grid = '';
+  for (let v = Math.ceil(lo / ys) * ys; v <= hi; v += ys) {
+    grid += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${fmtInt(v)}</text>`;
+  }
+  for (let v = 0; v <= len + 1e-6; v += xs) {
+    grid += `<text class="axis" x="${x(v)}" y="${H - 4}" text-anchor="middle">${+v.toFixed(1)} km</text>`;
+  }
+  const stops = [[0, '#c9c3bd'], [0.35, '#b98e64'], [0.7, '#94b06e'], [1, '#5c8a5a']];
+  const landTop = y(Math.max(hi, 1)), landBot = y0;
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="地形剖面圖">
+    <defs>
+      <linearGradient id="pgLand" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${landTop}" y2="${landBot}">${stops.map(([o, c]) => `<stop offset="${o}" stop-color="${c}" stop-opacity="0.9"/>`).join('')}</linearGradient>
+      <linearGradient id="pgSea" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${y0}" y2="${base}"><stop offset="0" stop-color="#5ec2e6" stop-opacity=".55"/><stop offset="1" stop-color="#0b2d60" stop-opacity=".85"/></linearGradient>
+      <clipPath id="pgAbove"><rect x="0" y="0" width="${W}" height="${y0}"/></clipPath>
+      <clipPath id="pgBelow"><rect x="0" y="${y0}" width="${W}" height="${H}"/></clipPath>
+    </defs>
+    ${grid}
+    <path d="M${x(0)},${y0} L${x(len)},${y0} L${x(len)},${base} L${x(0)},${base}Z" fill="url(#pgSea)" clip-path="url(#pgBelow)"/>
+    <path d="M${x(0)},${base} L${top} L${x(len)},${base}Z" fill="url(#pgLand)" clip-path="url(#pgAbove)"/>
+    <path d="M${x(0)},${base} L${top} L${x(len)},${base}Z" fill="#1b2a3a" clip-path="url(#pgBelow)"/>
+    <line class="sea" x1="${L}" x2="${W - R}" y1="${y0}" y2="${y0}"/>
+    <path d="M${top}" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+    <text class="axis" x="${x(0) + 2}" y="${T + 10}">A</text><text class="axis" x="${x(len) - 2}" y="${T + 10}" text-anchor="end">B</text>
+    <g id="pgHover" visibility="hidden">
+      <line x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="#e9b44c" stroke-width="1"/>
+      <circle r="4" fill="#e9b44c" stroke="#0b0d10" stroke-width="1.5"/>
+      <rect class="tip-bg" rx="5" height="20" width="128"/>
+      <text class="tip"></text>
+    </g>
+    <rect id="pgHit" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>
+  </svg>`;
+
+  const g = box.querySelector('#pgHover');
+  const hit = box.querySelector('#pgHit');
+  const move = (ev) => {
+    const r = hit.getBoundingClientRect();
+    const d = clamp(((ev.clientX - r.left) / r.width) * len, 0, len);
+    const s = S[Math.round((d / len) * (S.length - 1))];
+    const px = x(s.d), py = y(s.e);
+    g.setAttribute('visibility', 'visible');
+    g.querySelector('line').setAttribute('x1', px); g.querySelector('line').setAttribute('x2', px);
+    g.querySelector('circle').setAttribute('cx', px); g.querySelector('circle').setAttribute('cy', py);
+    const label = `${s.d.toFixed(1)} km · ${s.e < 0 ? '水深 ' + fmtInt(-s.e) : fmtInt(s.e)} m`;
+    const tx = px + 140 > W ? px - 136 : px + 8;
+    g.querySelector('rect').setAttribute('x', tx - 4); g.querySelector('rect').setAttribute('y', T + 2);
+    const t = g.querySelector('text'); t.setAttribute('x', tx + 2); t.setAttribute('y', T + 16); t.textContent = label;
+    map.getSource('cursor').setData({ type: 'Feature', geometry: { type: 'Point', coordinates: s.p } });
+  };
+  hit.addEventListener('pointermove', move);
+  hit.addEventListener('pointerdown', move);
+  hit.addEventListener('pointerleave', () => { g.setAttribute('visibility', 'hidden'); map.getSource('cursor').setData(EMPTY); });
+}
+
+// ---------------------------------------------------------------- HUD
+let hudPending = null, hudBusy = false;
+function updateHudPos(lngLat) {
+  hudPending = lngLat;
+  if (hudBusy) return;
+  hudBusy = true;
+  requestAnimationFrame(async () => {
+    const ll = hudPending;
+    hudPending = null;
+    const z = clamp(Math.floor(map.getZoom()) + 1, 6, 12);
+    let txt = `${ll.lat.toFixed(4)}°N ${ll.lng.toFixed(4)}°E`;
+    try {
+      const e = await elevationAt(ll.lng, ll.lat, z);
+      txt += e < 0 ? ` · 水深 <b>${fmtInt(-e)}</b> m` : ` · 海拔 <b>${fmtInt(e)}</b> m`;
+    } catch { /* 圖磚未取得時只顯示座標 */ }
+    $('hudPos').innerHTML = txt;
+    hudBusy = false;
+    if (hudPending) updateHudPos(hudPending);
+  });
+}
+
+function updateHudCam() {
+  const b = (map.getBearing() + 360) % 360;
+  $('tCompass').querySelector('.ic').style.transform = `rotate(${-map.getBearing()}deg)`;
+  // globe 投影取不到自由相機位置，以 zoom、俯角與預設視角 36.87° 換算鏡頭離中心點的高度（近似值）
+  const c = map.getCenter();
+  const mpp = (40075016.686 * Math.cos((c.lat * Math.PI) / 180)) / (512 * 2 ** map.getZoom());
+  const dist = (0.5 * map.getCanvas().clientHeight) / Math.tan((36.87 / 2) * (Math.PI / 180));
+  const m = mpp * dist * Math.cos((map.getPitch() * Math.PI) / 180);
+  const alt = m > 9500 ? `${(m / 1000).toFixed(0)} km` : `${(m / 1000).toFixed(1)} km`;
+  $('hudCam').textContent = `視高約 ${alt} · 俯角 ${map.getPitch().toFixed(0)}° · 朝${compassWord(b)}`;
+  $('tPitch').setAttribute('aria-pressed', String(map.getPitch() > 8));
+}
+
+// ---------------------------------------------------------------- 搜尋
+const searchDlg = $('search'), searchInput = $('searchInput'), searchList = $('searchResults');
+let searchItems = [], searchSel = 0;
+const SEARCH_PICKS = ['yushan', 'taroko_gorge', 'sunmoonlake', 'alishan_clouds', 'hsinchu_sp', 'suhua_qingshui'];
+
+function openSearch() {
+  if (searchDlg.open) return;
+  searchDlg.showModal();
+  searchInput.value = '';
+  runSearch('');
+  searchInput.focus();
+}
+
+function runSearch(q) {
+  const k = q.trim().toLowerCase();
+  let items;
+  if (!k) {
+    items = [
+      ...SEARCH_PICKS.map((id) => ({ kind: 'spot', s: byId.get(id) })),
+      ...TOURS.slice(1, 5).map((t) => ({ kind: 'tour', t })),
+    ];
+  } else {
+    const scored = [];
+    for (const s of SPOTS) {
+      let sc = 0;
+      const sh = s.short.toLowerCase(), nm = s.name.toLowerCase();
+      if (sh.startsWith(k)) sc = 5; else if (sh.includes(k)) sc = 4; else if (nm.includes(k)) sc = 3;
+      else if (s.badge.toLowerCase().includes(k) || s.metric.toLowerCase().includes(k)) sc = 2;
+      else if (s.desc.toLowerCase().includes(k) || GROUPS[s.group].label === k) sc = 1;
+      if (sc) scored.push({ kind: 'spot', s, sc });
+    }
+    for (const t of TOURS) {
+      if (t.title.toLowerCase().includes(k) || t.blurb.toLowerCase().includes(k)) scored.push({ kind: 'tour', t, sc: 3.5 });
+    }
+    items = scored.sort((a, b) => b.sc - a.sc).slice(0, 12);
+  }
+  searchItems = items;
+  searchSel = 0;
+  searchList.replaceChildren();
+  if (!items.length) {
+    const li = document.createElement('li');
+    li.className = 'empty';
+    li.textContent = `找不到「${q}」。試試「玉山」、「濕地」或「科學園區」。`;
+    searchList.append(li);
+    return;
+  }
+  items.forEach((it, i) => {
+    const li = document.createElement('li');
+    li.setAttribute('role', 'option');
+    li.id = `sr-${i}`;
+    li.innerHTML = '<span class="dot"></span><span class="nm"></span><span class="kind"></span><span class="sub"></span>';
+    if (it.kind === 'spot') {
+      li.querySelector('.dot').style.background = GROUPS[it.s.group].color;
+      li.querySelector('.nm').textContent = it.s.short;
+      li.querySelector('.kind').textContent = GROUPS[it.s.group].label;
+      li.querySelector('.sub').textContent = it.s.name === it.s.short ? it.s.badge : it.s.name;
+    } else {
+      li.querySelector('.dot').style.background = '#e9b44c';
+      li.querySelector('.nm').textContent = it.t.title;
+      li.querySelector('.kind').textContent = `路線 · ${it.t.stops.length} 站`;
+      li.querySelector('.sub').textContent = it.t.blurb;
+    }
+    li.addEventListener('mousemove', () => { if (searchSel !== i) markSearch(i, false); });
+    li.addEventListener('click', () => chooseSearch(i));
+    searchList.append(li);
+  });
+  markSearch(0);
+}
+
+// 只有鍵盤移動才捲動清單；滑鼠停在邊緣項目時不自動捲動
+function markSearch(i, scroll = true) {
+  searchSel = i;
+  [...searchList.children].forEach((li, k) => li.setAttribute('aria-selected', String(k === i)));
+  searchInput.setAttribute('aria-activedescendant', `sr-${i}`);
+  if (scroll) searchList.children[i]?.scrollIntoView({ block: 'nearest' });
+}
+
+function chooseSearch(i) {
+  const it = searchItems[i];
+  if (!it) return;
+  searchDlg.close();
+  if (isMobile()) setSheet(false);
+  if (it.kind === 'spot') { stopTour(); selectSpot(it.s); } else startTour(it.t, 0);
+}
+
+searchInput.addEventListener('input', () => runSearch(searchInput.value));
+searchInput.addEventListener('keydown', (e) => {
+  if (e.isComposing || e.keyCode === 229) return; // 注音等輸入法選字中
+  if (e.key === 'ArrowDown') { e.preventDefault(); markSearch(Math.min(searchItems.length - 1, searchSel + 1)); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); markSearch(Math.max(0, searchSel - 1)); }
+  else if (e.key === 'Enter') { e.preventDefault(); chooseSearch(searchSel); }
+});
+searchDlg.addEventListener('click', (e) => { if (e.target === searchDlg) searchDlg.close(); });
+$('searchOpen').addEventListener('click', openSearch);
+
+// ---------------------------------------------------------------- 匯出、分享、提示
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 2400);
+}
+
+function shareUrl() {
+  const base = location.origin + location.pathname;
+  if (tour.def) return `${base}#tour=${tour.def.id}`;
+  if (state.current) return `${base}#spot=${state.current.id}`;
+  const c = map.getCenter();
+  return `${base}#cam=${c.lng.toFixed(4)},${c.lat.toFixed(4)},${map.getZoom().toFixed(2)},${map.getBearing().toFixed(0)},${map.getPitch().toFixed(0)}`;
+}
+
+async function share() {
+  const url = shareUrl();
+  const title = state.current ? `${state.current.short}｜台灣 3D 地景` : '台灣 3D 地景';
+  if (navigator.share && isMobile()) {
+    try { await navigator.share({ title, url }); return; } catch { /* 使用者取消時改複製 */ }
+  }
+  try { await navigator.clipboard.writeText(url); toast('已複製分享連結'); } catch { prompt('複製這個連結：', url); }
+}
+
+function exportShot() {
+  map.once('render', () => {
+    const src = map.getCanvas();
+    const c = document.createElement('canvas');
+    c.width = src.width; c.height = src.height;
+    const ctx = c.getContext('2d');
+    try { ctx.drawImage(src, 0, 0); } catch (err) { console.warn(err); toast('目前畫面無法匯出'); return; }
+    const k = c.width / src.clientWidth;
+    const h = 64 * k;
+    const grad = ctx.createLinearGradient(0, c.height - h * 1.6, 0, c.height);
+    grad.addColorStop(0, 'rgba(8,10,14,0)');
+    grad.addColorStop(1, 'rgba(8,10,14,0.85)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, c.height - h * 1.6, c.width, h * 1.6);
+    ctx.fillStyle = '#ece8e1';
+    ctx.font = `700 ${20 * k}px "Noto Serif TC", serif`;
+    ctx.fillText(state.current ? `${state.current.short} · 台灣 3D 地景` : '台灣 3D 地景', 22 * k, c.height - 30 * k);
+    ctx.fillStyle = 'rgba(236,232,225,0.65)';
+    ctx.font = `${11 * k}px ui-monospace, monospace`;
+    ctx.fillText('影像 Esri, Maxar, Earthstar Geographics · 地形 Mapzen Terrarium / AWS · 地名 © OpenStreetMap', 22 * k, c.height - 12 * k);
+    c.toBlob((blob) => {
+      if (!blob) { toast('目前畫面無法匯出'); return; }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `taiwan-3d-${state.current?.id || 'view'}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      toast('已匯出 PNG');
+    }, 'image/png');
+  });
+  map.triggerRepaint();
+}
+
+// ---------------------------------------------------------------- 面板、抽屜
+function setTab(name, focus = false) {
+  document.querySelectorAll('.tabs [role=tab]').forEach((t) => {
+    const on = t.dataset.tab === name;
+    t.setAttribute('aria-selected', String(on));
+    t.tabIndex = on ? 0 : -1;
+    if (on && focus) t.focus();
+    $(`pane-${t.dataset.tab}`).hidden = !on;
+  });
+  if (name === 'spots') markListCurrent();
+}
+
+function setSheet(open) {
+  document.body.classList.toggle('sheet-open', open);
+  $('sheetHandle').setAttribute('aria-expanded', String(open));
+  syncInert();
+}
+
+function togglePanel() {
+  const collapsed = document.body.classList.toggle('panel-collapsed');
+  $('panelToggle').setAttribute('aria-expanded', String(!collapsed));
+  $('panelToggle').title = collapsed ? '展開面板' : '收合面板';
+  syncInert();
+  setTimeout(() => relayout(), 60);
+}
+
+// 看不見的面板內容不能被 Tab 或輔助技術進入：桌面收合時整個面板 inert；
+// 手機抽屜收合時只露出把手與分頁，其餘內容 inert。
+function syncInert() {
+  const body = document.body.classList;
+  const hiddenContent = isMobile() ? !body.contains('sheet-open') : body.contains('panel-collapsed');
+  panelEl.inert = !isMobile() && hiddenContent;
+  for (const el of panelEl.querySelectorAll('.pane, .panel-foot')) el.inert = isMobile() && hiddenContent;
+}
+
+// 工具列與快捷鍵的鏡頭操作會中斷飛行，先暫停路線
+function cameraAction(fn) {
+  return () => { pauseTour(); stopOrbit(); fn(); };
+}
+
+// role="radio" 群組支援方向鍵切換（roving tabindex）
+function bindRadioGroup(selector) {
+  const items = [...document.querySelectorAll(selector)];
+  const sync = () => items.forEach((b) => (b.tabIndex = b.getAttribute('aria-checked') === 'true' ? 0 : -1));
+  items.forEach((b, i) => {
+    b.addEventListener('click', () => setTimeout(sync));
+    b.addEventListener('keydown', (e) => {
+      const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+      if (!d) return;
+      e.preventDefault();
+      const n = items[(i + d + items.length) % items.length];
+      n.click();
+      n.focus();
+    });
+  });
+  sync();
+}
+
+function goHome() {
+  stopTour(); stopOrbit();
+  map.flyTo({ ...HOME(), padding: viewPadding(), speed: 1.1, curve: 1.4 });
+}
+
+// ---------------------------------------------------------------- 綁定 UI
+function bindUI() {
+  document.querySelectorAll('.tabs [role=tab]').forEach((t, i, all) => {
+    t.addEventListener('click', () => { setTab(t.dataset.tab); if (isMobile()) setSheet(true); });
+    t.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      e.preventDefault();
+      const n = all[(i + (e.key === 'ArrowRight' ? 1 : all.length - 1)) % all.length];
+      setTab(n.dataset.tab, true);
+    });
+  });
+  $('sheetHandle').addEventListener('click', () => setSheet(!document.body.classList.contains('sheet-open')));
+  $('panelToggle').addEventListener('click', togglePanel);
+  $('brandHome').addEventListener('click', goHome);
+
+  document.querySelectorAll('#basemapSeg button').forEach((b) => b.addEventListener('click', () => { state.base = b.dataset.base; applyBase(); }));
+  document.querySelectorAll('#overlayToggles input').forEach((inp) => {
+    inp.addEventListener('change', () => applyOverlay(inp.dataset.overlay, inp.checked));
+  });
+  // setTerrain 會重建地形與 render-to-texture 資源，拖動時每個畫格最多套用一次
+  let exagFrame = 0;
+  $('exag').addEventListener('input', (e) => {
+    state.exaggeration = +e.target.value;
+    $('exagOut').textContent = `${state.exaggeration.toFixed(1)}×`;
+    if (exagFrame) return;
+    exagFrame = requestAnimationFrame(() => {
+      exagFrame = 0;
+      map.setTerrain({ source: state.base === 'ocean' ? 'dem-raw' : 'dem-flat', exaggeration: state.exaggeration });
+    });
+  });
+  $('sun').addEventListener('input', (e) => { state.sunMinutes = +e.target.value; applySun(); });
+  document.querySelectorAll('#seasonSeg button').forEach((b) => b.addEventListener('click', () => {
+    state.season = b.dataset.season;
+    document.querySelectorAll('#seasonSeg button').forEach((x) => x.setAttribute('aria-checked', String(x === b)));
+    applySun();
+  }));
+  $('sea').addEventListener('input', (e) => { state.sea = +e.target.value; applySea(); });
+  document.querySelectorAll('#seaPresets button').forEach((b) => b.addEventListener('click', () => {
+    state.sea = +b.dataset.sea;
+    $('sea').value = state.sea;
+    applySea();
+    if (state.sea !== 0 && map.getZoom() > 9) map.flyTo({ ...HOME(), padding: viewPadding() });
+  }));
+
+  $('cardClose').addEventListener('click', () => { stopTour(); closeCard(); });
+  $('cardPrev').addEventListener('click', () => stepSpot(-1));
+  $('cardNext').addEventListener('click', () => stepSpot(1));
+  $('cardOrbit').addEventListener('click', () => (orbit.on ? stopOrbit() : startOrbit()));
+  $('cardProfile').addEventListener('click', () => state.current && profileForSpot(state.current));
+  $('cardShare').addEventListener('click', share);
+
+  $('tHome').addEventListener('click', goHome);
+  $('tCompass').addEventListener('click', cameraAction(() => map.easeTo({ bearing: 0, duration: 700 })));
+  $('tZoomIn').addEventListener('click', cameraAction(() => map.zoomIn()));
+  $('tZoomOut').addEventListener('click', cameraAction(() => map.zoomOut()));
+  $('tPitch').addEventListener('click', cameraAction(() => map.easeTo({ pitch: map.getPitch() > 8 ? 0 : 60, duration: 900 })));
+  $('tOrbit').addEventListener('click', () => (orbit.on ? stopOrbit() : startOrbit()));
+  $('tProfile').addEventListener('click', () => (profileEl.hidden ? startPicking() : closeProfile()));
+  $('tShot').addEventListener('click', exportShot);
+  $('tShare').addEventListener('click', share);
+  $('tFull').addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen?.().catch(() => toast('瀏覽器不允許全螢幕'));
+  });
+  $('profileClose').addEventListener('click', closeProfile);
+
+  $('pPlay').addEventListener('click', () => (tour.playing ? pauseTour() : resumeTour()));
+  $('pPrev').addEventListener('click', () => tourStep(-1));
+  $('pNext').addEventListener('click', () => tourStep(1));
+  $('pStop').addEventListener('click', stopTour);
+  $('aboutOpen').addEventListener('click', () => $('about').showModal());
+
+  document.addEventListener('keydown', (e) => {
+    const tag = e.target.tagName;
+    const typing = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
+    if ((e.key === 'k' && (e.ctrlKey || e.metaKey)) || (e.key === '/' && !typing)) { e.preventDefault(); openSearch(); return; }
+    if (typing || searchDlg.open || $('about').open || e.ctrlKey || e.metaKey || e.altKey) return;
+    const onMap = e.target.classList?.contains('maplibregl-canvas');
+    if (e.key === 'Escape') {
+      if (profile.picking || !profileEl.hidden) closeProfile();
+      else if (tour.def) stopTour();
+      else if (!cardEl.hidden) closeCard();
+      return;
+    }
+    if (e.key === ' ' && tour.def && tag !== 'BUTTON') { e.preventDefault(); tour.playing ? pauseTour() : resumeTour(); return; }
+    if (!onMap && (e.key === 'ArrowRight' || e.key === 'ArrowLeft') && (tour.def || state.current) && tag !== 'BUTTON' && e.target.getAttribute?.('role') !== 'tab') {
+      e.preventDefault(); stepSpot(e.key === 'ArrowRight' ? 1 : -1); return;
+    }
+    const k = e.key.toLowerCase();
+    if (k === 'h') goHome();
+    else if (k === 'n') $('tCompass').click();
+    else if (k === 'p') $('tPitch').click();
+    else if (k === 'o') $('tOrbit').click();
+    else if (k === 'f') $('tFull').click();
+  });
+
+  bindRadioGroup('#basemapSeg [role=radio]');
+  bindRadioGroup('#seasonSeg [role=radio]');
+  syncInert();
+  mobileMQ.addEventListener('change', () => { syncInert(); relayout(0); });
+  let resizeTimer = 0;
+  addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { drawProfile(); }, 150); });
+}
+
+// ---------------------------------------------------------------- 地圖互動
+function bindMap() {
+  let hoverId = null;
+  const setHover = (id) => {
+    if (hoverId === id) return;
+    if (hoverId !== null) map.setFeatureState({ source: 'spots', id: hoverId }, { hover: false });
+    hoverId = id;
+    if (id !== null) map.setFeatureState({ source: 'spots', id }, { hover: true });
+    map.getCanvas().style.cursor = id !== null ? 'pointer' : '';
+  };
+  for (const layer of ['spots-dot', 'spots-label-major', 'spots-label']) {
+    map.on('mousemove', layer, (e) => { if (!profile.picking) setHover(e.features[0].id); });
+    map.on('mouseleave', layer, () => setHover(null));
+  }
+
+  map.on('click', (e) => {
+    if (profile.picking) { pickPoint(e.lngLat); return; }
+    const pad = isMobile() ? 14 : 6;
+    const hits = map.queryRenderedFeatures([[e.point.x - pad, e.point.y - pad], [e.point.x + pad, e.point.y + pad]], { layers: ['spots-dot', 'spots-label-major', 'spots-label'] });
+    if (hits.length) {
+      stopTour();
+      selectSpot(byId.get(hits[0].properties.id));
+      return;
+    }
+    if (isMobile()) {
+      setSheet(false);
+      elevationAt(e.lngLat.lng, e.lngLat.lat, clamp(Math.floor(map.getZoom()) + 1, 6, 12)).then((v) => {
+        new maplibregl.Popup({ closeButton: false, offset: 8, maxWidth: '240px' })
+          .setLngLat(e.lngLat)
+          .setHTML(`${e.lngLat.lat.toFixed(4)}°N ${e.lngLat.lng.toFixed(4)}°E<br>${v < 0 ? '水深' : '海拔'} <b>${fmtInt(Math.abs(v))}</b> m`)
+          .addTo(map);
+      }).catch(() => {});
+    }
+  });
+
+  map.on('mousemove', (e) => updateHudPos(e.lngLat));
+  map.on('move', updateHudCam);
+
+  // 使用者動手操作就暫停路線、停止環繞
+  const userMove = (e) => {
+    if (!e.originalEvent) return;
+    if (tour.playing) pauseTour('已暫停路線，按空白鍵或播放鍵繼續');
+    stopOrbit();
+  };
+  map.on('dragstart', userMove);
+  map.on('rotatestart', userMove);
+  map.on('pitchstart', userMove);
+  map.on('zoomstart', userMove); // 雙擊、雙指縮放、地圖焦點下的 +/- 鍵
+  map.on('wheel', (e) => { if (tour.playing) pauseTour('已暫停路線，按空白鍵或播放鍵繼續'); stopOrbit(); });
+}
+
+// ---------------------------------------------------------------- 網址狀態
+function applyHash() {
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (h.has('spot') && byId.has(h.get('spot'))) { selectSpot(byId.get(h.get('spot'))); return true; }
+  if (h.has('tour')) {
+    const t = TOURS.find((x) => x.id === h.get('tour'));
+    if (t) { startTour(t, 0); return true; }
+  }
+  if (h.has('cam')) {
+    const [lng, lat, zoom, bearing, pitch] = h.get('cam').split(',').map(Number);
+    if ([lng, lat, zoom].every(Number.isFinite)) {
+      map.flyTo({ center: [lng, lat], zoom, bearing: bearing || 0, pitch: pitch || 0, padding: viewPadding(), speed: 1.2 });
+      return true;
+    }
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------- 啟動
+// 瀏覽器重新整理會還原表單值；以畫面上的滑桿為準，避免顯示與地圖狀態不一致。
+state.exaggeration = +$('exag').value;
+state.sunMinutes = +$('sun').value;
+state.sea = +$('sea').value;
+$('exagOut').textContent = `${state.exaggeration.toFixed(1)}×`;
+renderChips();
+renderSpotList();
+renderTours();
+bindUI();
+
+map.on('load', () => {
+  bindMap();
+  applyBase();
+  applySea();
+  for (const inp of document.querySelectorAll('#overlayToggles input')) applyOverlay(inp.dataset.overlay, inp.checked);
+  updateHudCam();
+
+  const veil = $('veil');
+  const reveal = () => veil.classList.add('out');
+  map.once('idle', reveal);
+  setTimeout(reveal, 3500);
+
+  const go = () => {
+    if (applyHash()) return;
+    if (reduceMQ.matches) map.jumpTo({ ...HOME(), padding: viewPadding() });
+    else map.flyTo({ ...HOME(), padding: viewPadding(), duration: 7000, curve: 1.6, essential: false });
+  };
+  setTimeout(go, reduceMQ.matches ? 0 : 900);
+});
+
+addEventListener('hashchange', () => applyHash());
+
+// 方便除錯：在 console 存取 map
+window.__tw3d = { map, state, tour, SPOTS, TOURS, elevationAt, sunPosition };
