@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>台灣 3D 地景</title>
-  <meta name="description" content="在 3D 地球上飛覽台灣：即時串流衛星影像與實測地形，80 處導覽點、14 條主題路線、日照與海平面模擬、地形剖面。">
-  <meta name="app-version" content="2.0.0">
+  <meta name="description" content="在 3D 地球上飛覽台灣：即時串流衛星影像與實測地形，80 處導覽點、14 條主題路線、日照與海平面模擬、地形剖面，以及半世紀地震目錄與隱沒帶震源剖面。">
+  <meta name="app-version" content="2.1.0">
   <meta name="theme-color" content="#0b0d10">
   <meta property="og:type" content="website">
   <meta property="og:title" content="台灣 3D 地景">
@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.14.0/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="app.css?v=2.0.0">
+  <link rel="stylesheet" href="app.css?v=2.1.0">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -111,6 +111,41 @@
           <label class="toggle"><input type="checkbox" data-overlay="parks"><span class="sw"></span>國家公園</label>
           <label class="toggle"><input type="checkbox" data-overlay="quakes"><span class="sw"></span>重大地震</label>
           <label class="toggle"><input type="checkbox" data-overlay="spots" checked><span class="sw"></span>導覽點</label>
+        </div>
+      </div>
+
+      <div class="group" id="quakeGroup">
+        <div class="group-head">
+          <h2 class="group-title">地震與板塊</h2>
+          <output class="readout" id="qOut" for="qTime" aria-live="off"></output>
+        </div>
+        <div class="toggles toggles-1">
+          <label class="toggle"><input type="checkbox" id="qCatalog"><span class="sw"></span>地震目錄（規模 4 以上，1973 年起）</label>
+          <label class="toggle"><input type="checkbox" id="qPlates"><span class="sw"></span>板塊邊界與運動方向</label>
+        </div>
+        <div class="quake-body" id="quakeBody" hidden>
+          <div class="q-legend" aria-hidden="true">
+            <div class="q-bar"></div>
+            <div class="q-ticks"><span style="left:0">0</span><span style="left:11.7%">35</span><span style="left:23.3%">70</span><span style="left:50%">150</span><span style="left:100%">300 km 深</span></div>
+            <div class="q-mags"><span><i style="--s:4px"></i>M4</span><span><i style="--s:7px"></i>M5</span><span><i style="--s:13px"></i>M6</span><span><i style="--s:24px"></i>M7</span></div>
+          </div>
+          <div class="q-time">
+            <button class="icon-btn q-play" id="qPlay" type="button" aria-label="播放：逐年看地震出現"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></button>
+            <input class="range" type="range" id="qTime" min="1973" max="2027" step="0.01" value="2027" aria-label="顯示到哪個時間">
+          </div>
+          <div class="segmented" id="qMagSeg" role="radiogroup" aria-label="最小規模">
+            <button role="radio" aria-checked="true" data-mag="4">M4 以上</button>
+            <button role="radio" aria-checked="false" data-mag="5">M5 以上</button>
+            <button role="radio" aria-checked="false" data-mag="6">M6 以上</button>
+          </div>
+          <p class="hint" id="qHint">載入地震目錄中…</p>
+          <button class="linklike q-latest" id="qLatest" type="button" hidden></button>
+        </div>
+        <h3 class="sub-title">看地底下：震源剖面</h3>
+        <div class="presets presets-wrap" id="qSections">
+          <button type="button" data-section="ryukyu">琉球隱沒帶</button>
+          <button type="button" data-section="manila">馬尼拉隱沒帶</button>
+          <button type="button" data-section="collision">花東碰撞帶</button>
         </div>
       </div>
 
@@ -223,6 +258,7 @@
       <p class="profile-stats" id="profileStats">在地圖上點選起點與終點</p>
       <button class="icon-btn" id="profileClose" type="button" aria-label="關閉剖面"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
     </header>
+    <p class="profile-note" id="profileNote" hidden></p>
     <div class="profile-chart" id="profileChart"></div>
   </section>
 
@@ -248,6 +284,8 @@
       <li><b>地名、河川、道路、建築</b>：OpenFreeMap 向量圖磚，© OpenMapTiles、© OpenStreetMap 貢獻者。</li>
       <li><b>日照</b>：以 NOAA 太陽位置近似公式計算台灣中部（23.7°N, 121°E）的方位與仰角。</li>
       <li><b>海平面</b>：只依高程門檻著色，不模擬潮汐、地層下陷與堤防，僅供示意。</li>
+      <li><b>地震目錄</b>：美國地質調查所 USGS ANSS ComCat，1973 年起、北緯 20.5–26.5°、東經 118.5–124.5°、規模 4 以上，2026-11-02 快照，開啟時再向 USGS 即時補抓之後的地震。早年觀測網較疏，小地震紀錄偏少；震源深度以 USGS 定位為準，其中約三成是定位時固定的 10、33 或 35 km（剖面上畫成空心）。規模為 USGS 發布值（大地震多為地震矩規模 Mw），可能與中央氣象署的芮氏規模不同，例如 921 集集地震 USGS 為 7.7、氣象署為 7.3，2024 年花蓮地震分別為 7.4 與 7.2。</li>
+      <li><b>板塊邊界</b>：Bird (2003) PB2002 全球板塊模型（Ahlenius 整理，ODC-BY 1.0），只畫琉球海溝、馬尼拉海溝與沖繩海槽，為簡化示意線。收斂速率約每年 8 公分、朝西北，取自 GPS 研究（Yu 等，1997）。</li>
       <li><b>導覽點文字</b>：2026-11 依政府機關、營運單位與學術資料逐點查證修訂；少數細節僅有百科或新聞來源，查無來源的說法已刪除。</li>
       <li><b>繪圖引擎</b>：MapLibre GL JS 6.14（BSD-3-Clause）。</li>
     </ul>
@@ -258,6 +296,6 @@
 
   <noscript><p class="noscript">這個頁面需要 JavaScript 與 WebGL。也可改看<a href="classic.html">舊版介面</a>。</p></noscript>
 
-  <script type="module" src="app.js?v=2.0.0"></script>
+  <script type="module" src="app.js?v=2.1.0"></script>
 </body>
 </html>

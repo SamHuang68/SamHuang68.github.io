@@ -1,6 +1,8 @@
 # 原作分類微調首頁
 
-版本 **3.5.1**，子站 `taiwan-3d-map/` 改版為 2.0.0「台灣 3D 地景」（MapLibre 全螢幕 3D 地球、即時衛星與實測地形）；舊版保留於 `taiwan-3d-map/classic.html`，首頁卡片縮圖同步更新。詳見[修訂紀錄](修訂紀錄.md)。
+版本 **3.5.2**，子站 `taiwan-3d-map/` 2.1.0 新增「地震與板塊」：USGS 地震目錄（1973 年起規模 4 以上，`taiwan-3d-map/quakes.json` 快照＋即時補抓）、逐年播放、PB2002 板塊邊界，以及琉球／馬尼拉隱沒帶與花東碰撞帶的震源剖面（`#section=ryukyu|manila|collision`）。詳見[修訂紀錄](修訂紀錄.md)。
+
+以下保留 **3.5.1** 說明：版本 **3.5.1**，子站 `taiwan-3d-map/` 改版為 2.0.0「台灣 3D 地景」（MapLibre 全螢幕 3D 地球、即時衛星與實測地形）；舊版保留於 `taiwan-3d-map/classic.html`，首頁卡片縮圖同步更新。
 
 以下保留 **3.5.0** 說明：版本 **3.5.0**，新增公開子站「3D 台灣數位孿生導覽」（Taiwan 3D Digital Twin，`taiwan-3d-map/index.html`，對應 `https://samhuang68.github.io/taiwan-3d-map/`）與首頁專案卡片 `data-node="11"`。
 
