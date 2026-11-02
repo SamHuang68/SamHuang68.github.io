@@ -1,7 +1,8 @@
-// 台灣 3D 地景 2.0
+// 台灣 3D 地景 2.1
 // MapLibre GL JS 6 globe + 3D terrain。影像與地形都即時串流公開圖磚：
 //   衛星 Esri World Imagery、地形 AWS Terrarium（含海底水深）、地名與建築 OpenFreeMap。
 // 游標高程、地形剖面與「海面壓平」地形都直接解碼同一份 Terrarium 圖磚，不另備資料。
+// 地震目錄（USGS ComCat 快照＋即時補抓）與 PB2002 板塊邊界放在 quakes.json，開啟圖層時才載入。
 import * as maplibregl from 'https://cdn.jsdelivr.net/npm/maplibre-gl@6.14.0/dist/maplibre-gl.mjs';
 import { SPOTS, TOURS } from './data.js?v=2.0.0';
 
@@ -30,6 +31,20 @@ const QUAKES = [
   { name: '花蓮地震', lon: 121.69, lat: 24.14, mag: 6.2, year: 2018 },
   { name: '0403 花蓮強震', lon: 121.67, lat: 23.77, mag: 7.2, year: 2024 },
 ];
+
+// 地震目錄：快照的查詢範圍與即時補抓相同，補抓只取快照最後一筆之後的地震
+const CATALOG_URL = './quakes.json?v=2.1.0';
+const USGS_QUERY = 'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=20.5&maxlatitude=26.5&minlongitude=118.5&maxlongitude=124.5&minmagnitude=4&orderby=time-asc&eventtype=earthquake';
+const CATALOG_Y0 = 1973;
+// 震源深度色階（km）：地圖圓點、剖面與圖例共用
+const DEPTH_STOPS = [0, '#ff3b30', 15, '#ff7a35', 35, '#ffc53d', 70, '#9be15d', 150, '#3cc4e6', 300, '#7c6cff'];
+// 震源剖面：沿板塊隱沒方向橫切，線兩側的震源投影到剖面上
+// half：線兩側取多寬（km）；馬尼拉一帶 M4 以上的深源地震較少，取寬一點
+const SECTIONS = {
+  ryukyu: { a: [122.9, 22.9], b: [122.1, 25.6], half: 30, note: '菲律賓海板塊向北隱沒到琉球島弧下方：震源由南往北愈來愈深，排成一條斜帶，最深約 300 km。' },
+  manila: { a: [119.8, 20.75], b: [122.2, 20.75], half: 35, note: '南海所在的歐亞板塊向東隱沒到呂宋島弧下方：較深的震源集中在東側，愈往東愈深。' },
+  collision: { a: [120.1, 23.75], b: [122.4, 23.75], half: 25, note: '台灣本島是弧陸碰撞帶：地震密集，但大多在 50 km 以內，看不到隱沒帶那種往深處延伸的斜帶。' },
+};
 
 const RELIEF_RAMP = ['interpolate', ['linear'], ['elevation'],
   -12000, '#081528', -8000, '#0a1a33', -5000, '#0f2b52', -3000, '#163f73', -1500, '#1f5a92', -500, '#2f78ad',
@@ -300,6 +315,37 @@ function quakesGeoJSON() {
   };
 }
 
+// 由起點、方位角與距離推算終點（小範圍平面近似）
+function offsetKm([lon, lat], bearing, km) {
+  const r = Math.PI / 180;
+  return [lon + (km * Math.sin(bearing * r)) / (111.32 * Math.cos(lat * r)), lat + (km * Math.cos(bearing * r)) / 110.57];
+}
+
+// 板塊名稱與菲律賓海板塊相對歐亞板塊的運動方向（約 8 cm／年，方位約 306°）
+function plateNotes() {
+  const from = [123.7, 22.2], dir = 306, len = 105;
+  const tip = offsetKm(from, dir, len);
+  const pt = (c, label, kind) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: c }, properties: { label, kind } });
+  return {
+    type: 'FeatureCollection',
+    features: [
+      { type: 'Feature', geometry: { type: 'LineString', coordinates: [from, tip] }, properties: {} },
+      { type: 'Feature', geometry: { type: 'LineString', coordinates: [offsetKm(tip, dir + 150, 24), tip, offsetKm(tip, dir - 150, 24)] }, properties: {} },
+      pt([123.45, 21.55], '菲律賓海板塊', 'plate'),
+      pt([119.4, 24.45], '歐亞板塊', 'plate'),
+      pt(offsetKm(offsetKm(from, dir, len * 0.45), dir + 90, 26), '約 8 cm／年', 'rate'),
+      // 海溝名稱放在 PB2002 線旁固定位置（沿線標籤在全島視角常被擠掉）
+      pt([123.6, 23.2], '琉球海溝', 'trench'),
+      pt([119.7, 21.05], '馬尼拉海溝', 'trench'),
+      pt([123.0, 25.2], '沖繩海槽', 'rift'),
+    ],
+  };
+}
+
+// 震源圓點：半徑隨規模指數放大（每級約 1.85 倍），顏色是震源深度
+const magScale = (k) => ['*', k, ['^', 1.85, ['-', ['get', 'm'], 4]]];
+const DEPTH_COLOR = ['interpolate', ['linear'], ['get', 'd'], ...DEPTH_STOPS];
+
 const EMPTY = { type: 'FeatureCollection', features: [] };
 const SPOT_LABEL_LAYOUT = { 'text-field': ['get', 'short'], 'text-font': ['Noto Sans Bold'], 'text-size': ['interpolate', ['linear'], ['zoom'], 6, 12, 11, 13.5], 'text-variable-anchor': ['left', 'right', 'top', 'bottom'], 'text-radial-offset': 0.85, 'text-justify': 'auto', 'text-padding': 3, 'symbol-sort-key': ['get', 'rank'] };
 const SPOT_LABEL_PAINT = { 'text-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#ffd88a', '#ffffff'], 'text-halo-color': 'rgba(8,10,14,0.88)', 'text-halo-width': 1.6 };
@@ -320,6 +366,9 @@ function buildStyle() {
       omt: { type: 'vector', url: OMT },
       spots: { type: 'geojson', data: spotsGeoJSON() },
       quakes: { type: 'geojson', data: quakesGeoJSON() },
+      catalog: { type: 'geojson', data: EMPTY, attribution: '地震目錄 USGS ComCat' },
+      plates: { type: 'geojson', data: EMPTY, attribution: '板塊邊界 Bird (2003) PB2002' },
+      'plate-notes': { type: 'geojson', data: plateNotes() },
       profile: { type: 'geojson', data: EMPTY },
       cursor: { type: 'geojson', data: EMPTY },
     },
@@ -340,6 +389,12 @@ function buildStyle() {
       { id: 'roads', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 6, filter: ['match', ['get', 'class'], ['motorway', 'trunk'], true, false], layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ffd38a', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.6, 10, 1.4, 14, 3], 'line-opacity': 0.85 } },
       { id: 'rail', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 7, filter: ['==', ['get', 'class'], 'rail'], layout: { visibility: 'none' }, paint: { 'line-color': '#ff9b73', 'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.8, 14, 2.6], 'line-dasharray': [2, 1.2], 'line-opacity': 0.9 } },
       { id: 'buildings', type: 'fill-extrusion', source: 'omt', 'source-layer': 'building', minzoom: 13, paint: { 'fill-extrusion-color': BUILDING_DAY, 'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 6], 'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0], 'fill-extrusion-opacity': ['interpolate', ['linear'], ['zoom'], 13, 0, 14, 0.88] } },
+      { id: 'plates-rift', type: 'line', source: 'plates', filter: ['==', ['get', 'kind'], 'okinawa'], layout: { visibility: 'none', 'line-join': 'round' }, paint: { 'line-color': '#ffb36b', 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 1.4, 9, 2.6], 'line-dasharray': [2.2, 1.6], 'line-opacity': 0.85 } },
+      { id: 'plates-line', type: 'line', source: 'plates', filter: ['!=', ['get', 'kind'], 'okinawa'], layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ff6b8b', 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 1.8, 9, 3.4], 'line-opacity': 0.9 } },
+      { id: 'plates-arrow', type: 'line', source: 'plate-notes', filter: ['==', ['geometry-type'], 'LineString'], layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 2, 9, 3.2], 'line-opacity': 0.85 } },
+      // 播放時新出現的地震擴散一圈，約半年內淡出
+      { id: 'catalog-flash', type: 'circle', source: 'catalog', filter: ['<', ['get', 'age'], 0.6], layout: { visibility: 'none' }, paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, ['*', magScale(1.4), ['+', 1.4, ['*', 9, ['get', 'age']]]], 11, ['*', magScale(2.8), ['+', 1.4, ['*', 9, ['get', 'age']]]]], 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': DEPTH_COLOR, 'circle-stroke-width': 1.6, 'circle-stroke-opacity': ['interpolate', ['linear'], ['get', 'age'], 0, 0.95, 0.6, 0], 'circle-pitch-alignment': 'map' } },
+      { id: 'catalog-dot', type: 'circle', source: 'catalog', layout: { visibility: 'none', 'circle-sort-key': ['get', 'm'] }, paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, magScale(1.4), 8, magScale(1.9), 11, magScale(2.6), 14, magScale(3.4)], 'circle-color': DEPTH_COLOR, 'circle-opacity': ['interpolate', ['linear'], ['get', 'age'], 0, 0.95, 3, 0.85, 20, 0.66], 'circle-stroke-color': ['case', ['<', ['get', 'age'], 0.08], '#ffffff', 'rgba(8,10,14,0.75)'], 'circle-stroke-width': ['case', ['<', ['get', 'age'], 0.08], 1.4, 0.6] } },
       { id: 'profile-line-casing', type: 'line', source: 'profile', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round' }, paint: { 'line-color': 'rgba(0,0,0,0.45)', 'line-width': 5 } },
       { id: 'profile-line', type: 'line', source: 'profile', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 2.2, 'line-dasharray': [2, 1.4] } },
       { id: 'profile-ends', type: 'circle', source: 'profile', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 5, 'circle-color': '#e9b44c', 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 2 } },
@@ -352,6 +407,7 @@ function buildStyle() {
       { id: 'peaks-dot', type: 'circle', source: 'omt', 'source-layer': 'mountain_peak', minzoom: 9.5, filter: ['has', 'ele'], paint: { 'circle-radius': 2.4, 'circle-color': '#f2c46d', 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 1 } },
       { id: 'peaks-label', type: 'symbol', source: 'omt', 'source-layer': 'mountain_peak', minzoom: 9.5, filter: ['has', 'ele'], layout: { 'text-field': ['format', NAME, {}, '\n', {}, ['concat', ['to-string', ['get', 'ele']], ' m'], { 'font-scale': 0.82, 'text-color': '#f2c46d' }], 'text-font': ['Noto Sans Regular'], 'text-size': 11.5, 'text-anchor': 'top', 'text-offset': [0, 0.45], 'text-padding': 4, 'symbol-sort-key': ['*', -1, ['to-number', ['get', 'ele'], 0]] }, paint: TEXT_PAINT },
       { id: 'quakes-label', type: 'symbol', source: 'quakes', layout: { visibility: 'none', 'text-field': ['get', 'label'], 'text-font': ['Noto Sans Bold'], 'text-size': 11.5, 'text-allow-overlap': true }, paint: { ...TEXT_PAINT, 'text-color': '#ffb39e' } },
+      { id: 'plates-name', type: 'symbol', source: 'plate-notes', filter: ['==', ['geometry-type'], 'Point'], layout: { visibility: 'none', 'text-field': ['get', 'label'], 'text-font': ['Noto Sans Bold'], 'text-size': ['match', ['get', 'kind'], 'plate', 16, 12.5], 'text-letter-spacing': ['match', ['get', 'kind'], 'plate', 0.35, 'rate', 0.04, 0.18], 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { ...TEXT_PAINT, 'text-color': ['match', ['get', 'kind'], 'trench', '#ffb8c6', 'rift', '#ffd2a8', 'rgba(255,255,255,0.94)'], 'text-halo-width': 2 } },
       { id: 'spots-halo', type: 'circle', source: 'spots', paint: { 'circle-radius': ['case', ['boolean', ['feature-state', 'selected'], false], 16, 0], 'circle-color': 'rgba(233,180,76,0.22)', 'circle-stroke-color': 'rgba(233,180,76,0.85)', 'circle-stroke-width': ['case', ['boolean', ['feature-state', 'selected'], false], 1.2, 0], 'circle-pitch-alignment': 'viewport' } },
       { id: 'spots-dot', type: 'circle', source: 'spots', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, spotRadius(3.4), 9, spotRadius(5), 13, spotRadius(6)], 'circle-color': ['get', 'color'], 'circle-stroke-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#ffffff', 'rgba(8,10,14,0.9)'], 'circle-stroke-width': ['case', ['boolean', ['feature-state', 'selected'], false], 2.4, 1.4], 'circle-pitch-alignment': 'viewport' } },
       { id: 'spots-label-major', type: 'symbol', source: 'spots', minzoom: 5.6, maxzoom: 9.2, filter: ['get', 'featured'], layout: SPOT_LABEL_LAYOUT, paint: SPOT_LABEL_PAINT },
@@ -412,11 +468,14 @@ document.head.append(style);
 // ---------------------------------------------------------------- 版面 padding（讓飛行目標落在面板以外的可視中心）
 const panelEl = $('panel'), cardEl = $('card'), profileEl = $('profile');
 
+// 剖面高度依是否附帶震源層與視窗高度而不同（CSS 變數 --profile-h）；手機抽屜開著時剖面不顯示，用原本的高度
+const profileHeight = () => profileEl.offsetHeight || (isMobile() ? 190 : 212);
+
 function viewPadding() {
   const p = { top: 0, bottom: 0, left: 0, right: 0 };
   if (isMobile()) {
     p.top = 56; p.right = 52; p.bottom = 58;
-    if (!profileEl.hidden) p.bottom += 200;
+    if (!profileEl.hidden) p.bottom += profileHeight() + 10;
     else if (!cardEl.hidden) p.bottom += Math.min(cardEl.offsetHeight, innerHeight * 0.5) + 8;
     return p;
   }
@@ -424,7 +483,7 @@ function viewPadding() {
   const gap = parseFloat(cs.getPropertyValue('--gap')) || 20;
   if (!document.body.classList.contains('panel-collapsed')) p.left = gap + (parseFloat(cs.getPropertyValue('--panel-w')) || 344);
   p.right = cardEl.hidden ? 64 : innerWidth - cardEl.getBoundingClientRect().left;
-  if (!profileEl.hidden) p.bottom = 236;
+  if (!profileEl.hidden) p.bottom = profileHeight() + 24;
   return p;
 }
 
@@ -868,7 +927,33 @@ function stopOrbit() {
 }
 
 // ---------------------------------------------------------------- 地形剖面
-const profile = { picking: false, pts: [], samples: null, token: 0 };
+const profile = { picking: false, pts: [], samples: null, token: 0, section: null };
+
+// 地震目錄開著時，剖面加高並多畫一層震源深度
+function syncProfileDepth() {
+  const deep = quake.on && !!quake.list && !profileEl.hidden;
+  if (document.body.classList.contains('profile-deep') === deep) return;
+  document.body.classList.toggle('profile-deep', deep);
+  relayout();
+}
+
+function setProfileNote(text) {
+  $('profileNote').textContent = text || '';
+  $('profileNote').hidden = !text;
+}
+
+// 離開震源剖面預設：清掉說明與 #section 網址
+function clearSection() {
+  profile.section = null;
+  setProfileNote('');
+  if (location.hash.startsWith('#section=')) history.replaceState(null, '', location.pathname + location.search);
+}
+
+function stopPicking() {
+  profile.picking = false;
+  profile.pts = [];
+  document.body.classList.remove('map-cursor-pick');
+}
 
 function openProfile() {
   stopOrbit();
@@ -876,6 +961,7 @@ function openProfile() {
   profileEl.hidden = false;
   document.body.classList.add('profile-open');
   $('tProfile').setAttribute('aria-pressed', 'true');
+  syncProfileDepth();
   relayout();
 }
 
@@ -885,7 +971,8 @@ function closeProfile() {
   profile.pts = [];
   profile.samples = null;
   profile.token++;
-  document.body.classList.remove('profile-open', 'map-cursor-pick');
+  clearSection();
+  document.body.classList.remove('profile-open', 'map-cursor-pick', 'profile-deep');
   $('tProfile').setAttribute('aria-pressed', 'false');
   map.getSource('profile').setData(EMPTY);
   map.getSource('cursor').setData(EMPTY);
@@ -898,6 +985,7 @@ function startPicking() {
   profile.pts = [];
   profile.samples = null;
   profile.token++;
+  clearSection();
   document.body.classList.add('map-cursor-pick');
   map.getSource('profile').setData(EMPTY);
   $('profileStats').textContent = '在地圖上點選起點';
@@ -917,8 +1005,34 @@ function pickPoint(lngLat) {
 function profileForSpot(s) {
   const a = [Math.min(s.lon - 0.3, 120.0), s.lat];
   const b = [Math.max(s.lon + 0.3, 121.95), s.lat];
+  stopPicking();
+  clearSection();
   openProfile();
   runProfile(a, b, { frame: true });
+}
+
+// 震源剖面預設：自動打開地震目錄，再沿隱沒方向切剖面
+let sectionReq = 0;
+async function openSection(key) {
+  const s = SECTIONS[key];
+  if (!s) return;
+  if (isMobile()) setSheet(false);
+  stopTour();
+  stopQuakes();
+  stopPicking();
+  quake.T = Infinity;
+  $('qTime').value = $('qTime').max;
+  const req = ++sectionReq, token = profile.token, spot = state.current;
+  if (!quake.on) await setCatalog(true);
+  else if (!quake.list) await loadCatalog().catch(() => {});
+  else pushCatalog();
+  // 載入期間關掉目錄、又按了別的剖面、自己點了剖面、選了導覽點或開了路線，就不再接手
+  if (req !== sectionReq || !quake.on || !quake.list || profile.token !== token || state.current !== spot || tour.def) return;
+  openProfile();
+  profile.section = key;
+  setProfileNote(s.note);
+  history.replaceState(null, '', `#section=${key}`);
+  runProfile(s.a, s.b, { frame: true });
 }
 
 async function runProfile(a, b, { frame }) {
@@ -968,19 +1082,57 @@ function niceStep(range, target) {
   return (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag;
 }
 
+// 線兩側的震源投影到剖面：局部平面 km 座標，沿線距離再換回與地形同一把尺
+function quakeSection(S) {
+  if (!quake.on || !quake.list) return null;
+  const a = S[0].p, b = S[S.length - 1].p, len = S[S.length - 1].d;
+  const half = SECTIONS[profile.section]?.half ?? Math.round(clamp(len * 0.1, 12, 30));
+  const kx = 111.32 * Math.cos((((a[1] + b[1]) / 2) * Math.PI) / 180), ky = 110.57;
+  const bx = (b[0] - a[0]) * kx, by = (b[1] - a[1]) * ky, flat = Math.hypot(bx, by) || 1;
+  const ux = bx / flat, uy = by / flat, scale = len / flat;
+  const pts = [];
+  let deepest = 0;
+  for (const q of visibleQuakes().out) {
+    const px = (q.lon - a[0]) * kx, py = (q.lat - a[1]) * ky;
+    const along = px * ux + py * uy;
+    if (along < 0 || along > flat || Math.abs(py * ux - px * uy) > half) continue;
+    pts.push({ q, d: along * scale });
+    deepest = Math.max(deepest, q.d);
+  }
+  pts.sort((u, v) => u.q.m - v.q.m);
+  const dmax = [50, 100, 150, 200, 250, 350, 500, 700].find((v) => v >= deepest * 1.06) || 700;
+  return { pts, half, dmax };
+}
+
+function hexMix(c1, c2, t) {
+  const p = (c, i) => parseInt(c.slice(1 + 2 * i, 3 + 2 * i), 16);
+  return `rgb(${[0, 1, 2].map((i) => Math.round(p(c1, i) + (p(c2, i) - p(c1, i)) * t)).join(',')})`;
+}
+
+function depthColor(d) {
+  const s = DEPTH_STOPS;
+  for (let i = 2; i < s.length; i += 2) {
+    if (d <= s[i] || i === s.length - 2) return hexMix(s[i - 1], s[i + 1], clamp((d - s[i - 2]) / (s[i] - s[i - 2]), 0, 1));
+  }
+}
+
 function drawProfile() {
   const S = profile.samples;
   if (!S) return;
   const box = $('profileChart');
   const W = box.clientWidth - 24, H = box.clientHeight - 12;
   if (W < 50 || H < 40) return;
+  const sec = quakeSection(S);
   const L = 46, R = 8, T = 8, B = 18;
+  // 有震源層時，上方約三分之一畫地形，下方畫地底震源
+  const tBot = sec ? T + Math.round((H - T - B) * 0.34) : H - B;
+  const dTop = tBot + 16, dBot = H - B;
   const len = S[S.length - 1].d;
   let lo = Math.min(0, ...S.map((s) => s.e)), hi = Math.max(10, ...S.map((s) => s.e));
   const padY = (hi - lo) * 0.08;
   hi += padY; lo -= lo < 0 ? padY : 0;
   const x = (d) => L + ((W - L - R) * d) / len;
-  const y = (e) => T + ((H - T - B) * (hi - e)) / (hi - lo);
+  const y = (e) => T + ((tBot - T) * (hi - e)) / (hi - lo);
 
   let gain = 0;
   for (let i = 1; i < S.length; i++) gain += Math.max(0, S[i].e - S[i - 1].e);
@@ -991,7 +1143,7 @@ function drawProfile() {
   const top = S.map((s) => `${x(s.d).toFixed(1)},${y(s.e).toFixed(1)}`).join(' L');
   const base = y(lo);
   const y0 = y(0);
-  const ys = niceStep(hi - lo, 4), xs = niceStep(len, 6);
+  const ys = niceStep(hi - lo, sec ? 2 : 4), xs = niceStep(len, 6);
   let grid = '';
   for (let v = Math.ceil(lo / ys) * ys; v <= hi; v += ys) {
     grid += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${fmtInt(v)}</text>`;
@@ -999,9 +1151,30 @@ function drawProfile() {
   for (let v = 0; v <= len + 1e-6; v += xs) {
     grid += `<text class="axis" x="${x(v)}" y="${H - 4}" text-anchor="middle">${+v.toFixed(1)} km</text>`;
   }
+
+  let deep = '';
+  const dy = sec ? (d) => dTop + ((dBot - dTop) * d) / sec.dmax : null;
+  if (sec) {
+    deep += `<rect class="crust" x="${L}" y="${dTop}" width="${W - L - R}" height="${dBot - dTop}" rx="3"/>`;
+    const ds = niceStep(sec.dmax, 3);
+    for (let v = 0; v <= sec.dmax; v += ds) {
+      deep += `<line class="grid" x1="${L}" x2="${W - R}" y1="${dy(v)}" y2="${dy(v)}"/><text class="axis" x="${L - 6}" y="${dy(v) + 3}" text-anchor="end">${v}</text>`;
+    }
+    // 標題放左下：三條預設剖面的左下角都沒有震源。筆數也放這裡，手機上統計列會被截斷
+    const label = W > 560 ? `地底震源 ${fmtInt(sec.pts.length)} 筆（線兩側 ${sec.half} km）· 空心圈＝定值深度` : `震源 ${fmtInt(sec.pts.length)} 筆 · 空心＝定值深度`;
+    deep += `<text class="panel-label" x="${L + 8}" y="${dBot - 7}">${label}</text>`;
+    // 定值深度（定位時固定在 10／33／35 km）畫成空心，避免被讀成真的地層
+    for (const { q, d } of sec.pts) {
+      const r = clamp(1.3 * 1.75 ** (q.m - 4), 1.3, 11), c = depthColor(q.d);
+      deep += q.fx
+        ? `<circle class="hypo-fixed" cx="${x(d).toFixed(1)}" cy="${dy(q.d).toFixed(1)}" r="${r.toFixed(1)}" stroke="${c}"/>`
+        : `<circle class="hypo" cx="${x(d).toFixed(1)}" cy="${dy(q.d).toFixed(1)}" r="${r.toFixed(1)}" fill="${c}" fill-opacity=".85"/>`;
+    }
+  }
+
   const stops = [[0, '#c9c3bd'], [0.35, '#b98e64'], [0.7, '#94b06e'], [1, '#5c8a5a']];
   const landTop = y(Math.max(hi, 1)), landBot = y0;
-  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="地形剖面圖">
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${sec ? '地形與震源深度剖面圖' : '地形剖面圖'}">
     <defs>
       <linearGradient id="pgLand" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${landTop}" y2="${landBot}">${stops.map(([o, c]) => `<stop offset="${o}" stop-color="${c}" stop-opacity="0.9"/>`).join('')}</linearGradient>
       <linearGradient id="pgSea" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${y0}" y2="${base}"><stop offset="0" stop-color="#5ec2e6" stop-opacity=".55"/><stop offset="1" stop-color="#0b2d60" stop-opacity=".85"/></linearGradient>
@@ -1015,6 +1188,7 @@ function drawProfile() {
     <line class="sea" x1="${L}" x2="${W - R}" y1="${y0}" y2="${y0}"/>
     <path d="M${top}" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
     <text class="axis" x="${x(0) + 2}" y="${T + 10}">A</text><text class="axis" x="${x(len) - 2}" y="${T + 10}" text-anchor="end">B</text>
+    ${deep}
     <g id="pgHover" visibility="hidden">
       <line x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="#e9b44c" stroke-width="1"/>
       <circle r="4" fill="#e9b44c" stroke="#0b0d10" stroke-width="1.5"/>
@@ -1026,23 +1200,256 @@ function drawProfile() {
 
   const g = box.querySelector('#pgHover');
   const hit = box.querySelector('#pgHit');
-  const move = (ev) => {
-    const r = hit.getBoundingClientRect();
-    const d = clamp(((ev.clientX - r.left) / r.width) * len, 0, len);
-    const s = S[Math.round((d / len) * (S.length - 1))];
-    const px = x(s.d), py = y(s.e);
+  const dot = g.querySelector('circle'), tipBg = g.querySelector('rect'), tip = g.querySelector('text');
+  const showTip = (px, py, ty, label) => {
     g.setAttribute('visibility', 'visible');
     g.querySelector('line').setAttribute('x1', px); g.querySelector('line').setAttribute('x2', px);
-    g.querySelector('circle').setAttribute('cx', px); g.querySelector('circle').setAttribute('cy', py);
-    const label = `${s.d.toFixed(1)} km · ${s.e < 0 ? '水深 ' + fmtInt(-s.e) : fmtInt(s.e)} m`;
-    const tx = px + 140 > W ? px - 136 : px + 8;
-    g.querySelector('rect').setAttribute('x', tx - 4); g.querySelector('rect').setAttribute('y', T + 2);
-    const t = g.querySelector('text'); t.setAttribute('x', tx + 2); t.setAttribute('y', T + 16); t.textContent = label;
+    dot.setAttribute('cx', px); dot.setAttribute('cy', py);
+    tip.textContent = label;
+    const tw = Math.ceil(tip.getComputedTextLength?.() || label.length * 7) + 12;
+    const tx = px + tw + 12 > W ? px - tw - 4 : px + 8;
+    tipBg.setAttribute('x', tx - 4); tipBg.setAttribute('y', ty); tipBg.setAttribute('width', tw);
+    tip.setAttribute('x', tx + 2); tip.setAttribute('y', ty + 14);
+  };
+  const move = (ev) => {
+    const r = hit.getBoundingClientRect();
+    const sx = L + ((ev.clientX - r.left) / r.width) * (W - L - R);
+    const sy = T + ((ev.clientY - r.top) / r.height) * (H - T - B);
+    // 地底區：找游標附近最近的震源，地圖上同步標出震央
+    if (sec && sy > tBot + 6) {
+      let best = null, bd = 196;
+      for (const p of sec.pts) {
+        const dd = (x(p.d) - sx) ** 2 + (dy(p.q.d) - sy) ** 2;
+        if (dd < bd) { bd = dd; best = p; }
+      }
+      if (best) {
+        const q = best.q;
+        showTip(x(best.d), dy(q.d), clamp(dy(q.d) - 26, dTop + 2, dBot - 22), `${quakeTime(q.t).slice(0, 10)} · M${q.m.toFixed(1)} · 深 ${fmtInt(q.d)} km${q.fx ? '（定值）' : ''}`);
+        map.getSource('cursor').setData({ type: 'Feature', geometry: { type: 'Point', coordinates: [q.lon, q.lat] } });
+        return;
+      }
+    }
+    const d = clamp(((sx - L) / (W - L - R)) * len, 0, len);
+    const s = S[Math.round((d / len) * (S.length - 1))];
+    showTip(x(s.d), y(s.e), T + 2, `${s.d.toFixed(1)} km · ${s.e < 0 ? '水深 ' + fmtInt(-s.e) : fmtInt(s.e)} m`);
     map.getSource('cursor').setData({ type: 'Feature', geometry: { type: 'Point', coordinates: s.p } });
   };
   hit.addEventListener('pointermove', move);
   hit.addEventListener('pointerdown', move);
   hit.addEventListener('pointerleave', () => { g.setAttribute('visibility', 'hidden'); map.getSource('cursor').setData(EMPTY); });
+}
+
+// ---------------------------------------------------------------- 地震目錄與板塊
+// T：顯示到哪個時間（小數年）；Infinity 代表「到現在」。播放時逐格推進，約 80 ms 更新一次圖資。
+const quake = { on: false, plates: false, list: null, loading: null, snapshot: '', live: 'pending', T: Infinity, minMag: 4, playing: false, raf: 0, pushAt: 0, drawAt: 0 };
+// 即時補抓的 GeoJSON 摘要沒有深度誤差，只能以 ComCat 慣用的定值深度判斷
+const FIXED_DEPTHS = [10, 33, 35];
+const yearOf = (ms) => 1970 + ms / 31556952000;
+const PLATE_LAYERS = ['plates-rift', 'plates-line', 'plates-arrow', 'plates-name'];
+const taipeiFmt = new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+
+function quakeTime(ms) {
+  const p = Object.fromEntries(taipeiFmt.formatToParts(ms).map((x) => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
+}
+
+function loadCatalog() {
+  if (quake.loading) return quake.loading;
+  quake.loading = (async () => {
+    const res = await fetch(CATALOG_URL, { signal: withTimeout(null, 20000) });
+    if (!res.ok) throw new Error(`catalog ${res.status}`);
+    const j = await res.json();
+    const fixed = new Set(j.fixed);
+    quake.list = j.time.map((t, i) => ({ i, lon: j.lon[i], lat: j.lat[i], d: j.depth[i], fx: fixed.has(i), m: j.mag[i], t: t * 60000, y: yearOf(t * 60000), id: j.id[i] }));
+    quake.snapshot = j.retrieved;
+    map.getSource('plates').setData({ type: 'FeatureCollection', features: j.plates.features });
+    fetchLiveQuakes();
+    return quake.list;
+  })();
+  quake.loading.catch(() => { quake.loading = null; });
+  return quake.loading;
+}
+
+// 快照之後的地震向 USGS 即時補抓；失敗就沿用快照，不阻擋圖層
+async function fetchLiveQuakes() {
+  const since = quake.list.at(-1).t + 1000;
+  try {
+    const res = await fetch(`${USGS_QUERY}&starttime=${new Date(since).toISOString().slice(0, 19)}`, { signal: withTimeout(null, 10000) });
+    if (!res.ok) throw new Error(`USGS ${res.status}`);
+    const gj = await res.json();
+    const seen = new Set(quake.list.map((q) => q.id));
+    const add = gj.features
+      .filter((f) => !seen.has(f.id) && f.properties.type === 'earthquake' && Number.isFinite(f.properties.mag) && f.properties.time >= since)
+      .map((f) => ({ lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], d: Math.round(f.geometry.coordinates[2] * 10) / 10, m: Math.round(f.properties.mag * 10) / 10, t: f.properties.time, id: f.id }))
+      .sort((a, b) => a.t - b.t);
+    for (const q of add) quake.list.push({ ...q, i: quake.list.length, y: yearOf(q.t), fx: FIXED_DEPTHS.includes(q.d) });
+    quake.live = add.length;
+  } catch (err) {
+    console.warn('[quakes] 即時補抓失敗', err);
+    quake.live = 'failed';
+  }
+  syncTimeRange();
+  if (quake.on) pushCatalog();
+  updateQuakeHint();
+}
+
+function syncTimeRange() {
+  const max = Math.ceil(yearOf(Date.now()) * 100) / 100;
+  $('qTime').max = max;
+  if (!Number.isFinite(quake.T)) $('qTime').value = max;
+}
+
+// 依時間與規模篩選：list 依時間排序，超過 T 就停
+function visibleQuakes() {
+  const ty = Number.isFinite(quake.T) ? quake.T : yearOf(Date.now());
+  const out = [];
+  for (const q of quake.list || []) {
+    if (q.y > ty) break;
+    if (q.m >= quake.minMag) out.push(q);
+  }
+  return { out, ty };
+}
+
+function pushCatalog() {
+  if (!quake.list) return;
+  const { out, ty } = visibleQuakes();
+  map.getSource('catalog').setData({
+    type: 'FeatureCollection',
+    features: out.map((q) => ({ type: 'Feature', id: q.i, geometry: { type: 'Point', coordinates: [q.lon, q.lat] }, properties: { i: q.i, d: q.d, m: q.m, age: ty - q.y } })),
+  });
+  const y = Math.floor(ty), mo = Math.min(12, Math.floor((ty - y) * 12) + 1);
+  $('qOut').textContent = Number.isFinite(quake.T) ? `${y} 年 ${mo} 月 · ${fmtInt(out.length)} 筆` : `${fmtInt(out.length)} 筆`;
+  $('qTime').setAttribute('aria-valuetext', Number.isFinite(quake.T) ? `${y} 年 ${mo} 月` : '到現在');
+  // 播放中剖面每 250 ms 才重畫一次（上千個 SVG 圓點），停下時補畫
+  const now = performance.now();
+  if (profile.samples && !profileEl.hidden && (!quake.playing || now - quake.drawAt > 250)) {
+    quake.drawAt = now;
+    drawProfile();
+  }
+}
+
+function updateQuakeHint(msg) {
+  if (msg) { $('qHint').textContent = msg; return; }
+  if (!quake.list) return;
+  const live = quake.live === 'pending' ? '，正在向 USGS 檢查最新地震'
+    : quake.live === 'failed' ? '，目前連不上 USGS，未補上之後的地震'
+    : quake.live > 0 ? `，另即時補上 ${quake.live} 筆` : '，已是最新';
+  $('qHint').textContent = `USGS 地震目錄 ${fmtInt(quake.list.length)} 筆（${quake.snapshot} 快照${live}）。顏色是震源深度，圓的大小是規模。早年測站較少，小地震紀錄偏少；約三成地震的深度是定位時固定的 10、33 或 35 km，並非實測。`;
+  const last = quake.list.at(-1);
+  const btn = $('qLatest');
+  btn.hidden = false;
+  btn.textContent = `最新一筆：${quakeTime(last.t)}　M${last.m.toFixed(1)}　深 ${fmtInt(last.d)} km →`;
+}
+
+async function setCatalog(on) {
+  quake.on = on;
+  $('qCatalog').checked = on;
+  $('quakeBody').hidden = !on;
+  if (!on) {
+    stopQuakes();
+    map.setLayoutProperty('catalog-dot', 'visibility', 'none');
+    quakePopup?.remove();
+    $('qOut').textContent = '';
+    // 剖面留著當地形剖面，但震源說明與 #section 已不適用
+    if (profile.section) clearSection();
+    syncProfileDepth();
+    drawProfile();
+    return;
+  }
+  if (!quake.list) updateQuakeHint('載入地震目錄中…');
+  try {
+    await loadCatalog();
+  } catch (err) {
+    console.warn('[quakes]', err);
+    if (quake.on) { toast('地震目錄載入失敗，請稍後再試'); setCatalog(false); }
+    return;
+  }
+  if (!quake.on) return; // 載入期間已關掉
+  syncTimeRange();
+  map.setLayoutProperty('catalog-dot', 'visibility', 'visible');
+  pushCatalog();
+  updateQuakeHint();
+  syncProfileDepth();
+  drawProfile();
+}
+
+async function setPlates(on) {
+  quake.plates = on;
+  $('qPlates').checked = on;
+  if (on) {
+    try { await loadCatalog(); } catch (err) {
+      console.warn('[plates]', err);
+      if (quake.plates) { toast('板塊資料載入失敗，請稍後再試'); setPlates(false); }
+      return;
+    }
+    if (!quake.plates) return;
+  }
+  for (const id of PLATE_LAYERS) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+}
+
+function setQuakePlayIcon() {
+  $('qPlay').querySelector('use').setAttribute('href', quake.playing ? '#i-pause' : '#i-play');
+  $('qPlay').setAttribute('aria-label', quake.playing ? '暫停播放' : '播放：逐年看地震出現');
+}
+
+// 約 40 秒播完 1973 年至今；新地震閃一圈（減少動態時不閃）
+function playQuakes() {
+  if (!quake.list) return;
+  const end = yearOf(Date.now());
+  if (!Number.isFinite(quake.T) || quake.T >= end - 0.05) quake.T = CATALOG_Y0;
+  quake.playing = true;
+  setQuakePlayIcon();
+  map.setLayoutProperty('catalog-flash', 'visibility', reduceMQ.matches ? 'none' : 'visible');
+  const rate = (end - CATALOG_Y0) / 40000;
+  let last = performance.now();
+  const tick = (now) => {
+    if (!quake.playing) return;
+    quake.T += clamp(now - last, 0, 100) * rate;
+    last = now;
+    if (quake.T >= end) {
+      quake.T = Infinity;
+      stopQuakes();
+      syncTimeRange();
+      pushCatalog();
+      return;
+    }
+    $('qTime').value = quake.T;
+    if (now - quake.pushAt > 80) { quake.pushAt = now; pushCatalog(); }
+    quake.raf = requestAnimationFrame(tick);
+  };
+  quake.raf = requestAnimationFrame(tick);
+}
+
+function stopQuakes() {
+  if (!quake.playing) return;
+  quake.playing = false;
+  cancelAnimationFrame(quake.raf);
+  map.setLayoutProperty('catalog-flash', 'visibility', 'none');
+  setQuakePlayIcon();
+  if (profile.samples && !profileEl.hidden) drawProfile();
+}
+
+let quakePopup = null;
+function showQuakePopup(q) {
+  quakePopup?.remove();
+  quakePopup = new maplibregl.Popup({ closeButton: false, offset: 10, maxWidth: '260px' })
+    .setLngLat([q.lon, q.lat])
+    .setHTML(`<b>M${q.m.toFixed(1)}</b> · 震源深 ${fmtInt(q.d)} km${q.fx ? '（定值，實際深度不確定）' : ''}<br>${quakeTime(q.t)}（台灣時間）<br><a href="https://earthquake.usgs.gov/earthquakes/eventpage/${encodeURIComponent(q.id)}" target="_blank" rel="noopener">USGS 事件頁</a>`)
+    .addTo(map);
+}
+
+function flyToLatestQuake() {
+  const q = quake.list?.at(-1);
+  if (!q) return;
+  if (isMobile()) setSheet(false);
+  stopTour(); stopOrbit();
+  quake.T = Infinity;
+  syncTimeRange();
+  pushCatalog();
+  map.flyTo({ center: [q.lon, q.lat], zoom: 8.2, pitch: 50, padding: viewPadding(), speed: 1.1 });
+  // 減少動態時 flyTo 立即完成，moveend 早於監聽
+  if (map.isMoving()) map.once('moveend', () => showQuakePopup(q));
+  else showQuakePopup(q);
 }
 
 // ---------------------------------------------------------------- HUD
@@ -1187,6 +1594,7 @@ function toast(msg) {
 function shareUrl() {
   const base = location.origin + location.pathname;
   if (tour.def) return `${base}#tour=${tour.def.id}`;
+  if (profile.section && !profileEl.hidden) return `${base}#section=${profile.section}`;
   if (state.current) return `${base}#spot=${state.current.id}`;
   const c = map.getCenter();
   return `${base}#cam=${c.lng.toFixed(4)},${c.lat.toFixed(4)},${map.getZoom().toFixed(2)},${map.getBearing().toFixed(0)},${map.getPitch().toFixed(0)}`;
@@ -1333,6 +1741,23 @@ function bindUI() {
     document.querySelectorAll('#seasonSeg button').forEach((x) => x.setAttribute('aria-checked', String(x === b)));
     applySun();
   }));
+  $('qCatalog').addEventListener('change', (e) => setCatalog(e.target.checked));
+  $('qPlates').addEventListener('change', (e) => setPlates(e.target.checked));
+  $('qPlay').addEventListener('click', () => (quake.playing ? stopQuakes() : playQuakes()));
+  let qFrame = 0;
+  $('qTime').addEventListener('input', (e) => {
+    stopQuakes();
+    const v = +e.target.value;
+    quake.T = v >= +e.target.max - 0.005 ? Infinity : v;
+    if (!qFrame) qFrame = requestAnimationFrame(() => { qFrame = 0; pushCatalog(); });
+  });
+  document.querySelectorAll('#qMagSeg button').forEach((b) => b.addEventListener('click', () => {
+    quake.minMag = +b.dataset.mag;
+    document.querySelectorAll('#qMagSeg button').forEach((x) => x.setAttribute('aria-checked', String(x === b)));
+    pushCatalog();
+  }));
+  document.querySelectorAll('#qSections button').forEach((b) => b.addEventListener('click', () => openSection(b.dataset.section)));
+  $('qLatest').addEventListener('click', flyToLatestQuake);
   $('sea').addEventListener('input', (e) => { state.sea = +e.target.value; applySea(); });
   document.querySelectorAll('#seaPresets button').forEach((b) => b.addEventListener('click', () => {
     state.sea = +b.dataset.sea;
@@ -1395,6 +1820,7 @@ function bindUI() {
 
   bindRadioGroup('#basemapSeg [role=radio]');
   bindRadioGroup('#seasonSeg [role=radio]');
+  bindRadioGroup('#qMagSeg [role=radio]');
   syncInert();
   mobileMQ.addEventListener('change', () => { syncInert(); relayout(0); });
   let resizeTimer = 0;
@@ -1425,6 +1851,13 @@ function bindMap() {
       selectSpot(byId.get(hits[0].properties.id));
       return;
     }
+    // 震源圓點：重疊時取規模最大的那筆
+    const qHits = quake.on ? map.queryRenderedFeatures([[e.point.x - pad, e.point.y - pad], [e.point.x + pad, e.point.y + pad]], { layers: ['catalog-dot'] }) : [];
+    if (qHits.length) {
+      const f = qHits.reduce((a, b) => (b.properties.m > a.properties.m ? b : a));
+      showQuakePopup(quake.list[f.properties.i]);
+      return;
+    }
     if (isMobile()) {
       setSheet(false);
       elevationAt(e.lngLat.lng, e.lngLat.lat, clamp(Math.floor(map.getZoom()) + 1, 6, 12)).then((v) => {
@@ -1436,6 +1869,8 @@ function bindMap() {
     }
   });
 
+  map.on('mouseenter', 'catalog-dot', () => { if (!profile.picking) map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', 'catalog-dot', () => { if (hoverId === null) map.getCanvas().style.cursor = ''; });
   map.on('mousemove', (e) => updateHudPos(e.lngLat));
   map.on('move', updateHudCam);
 
@@ -1456,6 +1891,10 @@ function bindMap() {
 function applyHash() {
   const h = new URLSearchParams(location.hash.slice(1));
   if (h.has('spot') && byId.has(h.get('spot'))) { selectSpot(byId.get(h.get('spot'))); return true; }
+  if (h.has('section') && SECTIONS[h.get('section')]) {
+    if (profile.section !== h.get('section')) openSection(h.get('section'));
+    return true;
+  }
   if (h.has('tour')) {
     const t = TOURS.find((x) => x.id === h.get('tour'));
     if (t) { startTour(t, 0); return true; }
@@ -1504,4 +1943,4 @@ map.on('load', () => {
 addEventListener('hashchange', () => applyHash());
 
 // 方便除錯：在 console 存取 map
-window.__tw3d = { map, state, tour, SPOTS, TOURS, elevationAt, sunPosition };
+window.__tw3d = { map, state, tour, quake, profile, SPOTS, TOURS, elevationAt, sunPosition };

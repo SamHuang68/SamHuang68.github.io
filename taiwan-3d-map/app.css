@@ -265,6 +265,27 @@ body.panel-collapsed .panel-toggle { left: var(--gap); }
 .presets { display: flex; gap: 6px; margin-top: 10px; }
 .presets button { flex: 1; padding: 6px 4px; border: 1px solid var(--line); border-radius: 8px; background: none; font: 12px/1.2 var(--mono); color: var(--text-dim); }
 .presets button:hover { color: var(--text); border-color: var(--line-strong); }
+.presets-wrap { flex-wrap: wrap; }
+.presets-wrap button { flex: 1 1 30%; font-family: inherit; font-size: 12.5px; padding: 7px 4px; }
+
+/* ---------- 地震與板塊 ---------- */
+.toggles-1 { grid-template-columns: 1fr; }
+.quake-body { margin-top: 8px; }
+.q-legend { margin: 2px 0 10px; }
+.q-bar { height: 7px; border-radius: 4px; background: linear-gradient(90deg, #ff3b30 0%, #ff7a35 5%, #ffc53d 11.7%, #9be15d 23.3%, #3cc4e6 50%, #7c6cff 100%); }
+.q-ticks { position: relative; height: 16px; font: 10.5px/16px var(--mono); color: var(--text-faint); }
+.q-ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.q-ticks span:first-child { transform: none; }
+.q-ticks span:last-child { transform: translateX(-100%); }
+.q-mags { display: flex; gap: 14px; align-items: center; margin-top: 4px; font: 10.5px var(--mono); color: var(--text-faint); }
+.q-mags span { display: inline-flex; align-items: center; gap: 5px; }
+.q-mags i { width: var(--s); height: var(--s); border-radius: 50%; background: rgba(255, 255, 255, .55); border: 1px solid rgba(0, 0, 0, .6); }
+.q-time { display: flex; align-items: center; gap: 10px; margin: 2px 0 12px; }
+.q-time .range { flex: 1; }
+.q-time .q-play { flex: none; background: var(--accent); color: var(--accent-ink); }
+.q-time .q-play:hover { background: #f3c66a; color: var(--accent-ink); }
+.sub-title { margin: 16px 0 0; font-size: 12px; font-weight: 600; letter-spacing: .08em; color: var(--text-dim); }
+.q-latest { display: block; margin-top: 6px; padding: 0; text-align: left; font: 12px/1.5 var(--mono); color: var(--text-dim); }
 
 .panel-foot { display: flex; gap: 8px; justify-content: center; padding: 10px; border-top: 1px solid var(--line); font-size: 12px; color: var(--text-faint); }
 .panel-foot a, .linklike { color: var(--text-dim); text-decoration: none; border: 0; background: none; padding: 0; font-size: 12px; }
@@ -340,7 +361,7 @@ body.panel-collapsed .panel-toggle { left: var(--gap); }
   animation: card-in .4s ease;
   transition: left .35s ease, bottom .35s ease;
 }
-body.profile-open .player { bottom: calc(var(--gap) + 236px + var(--safe-b)); }
+body.profile-open .player { bottom: calc(var(--gap) + var(--profile-h) + 24px + var(--safe-b)); }
 .player-meta { min-width: 0; display: flex; flex-direction: column; }
 .player-tour { font-size: 11.5px; color: var(--accent); letter-spacing: 0.1em; font-weight: 600; }
 .player-stop { font: 600 15px/1.4 var(--serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -355,7 +376,7 @@ body.profile-open .player { bottom: calc(var(--gap) + 236px + var(--safe-b)); }
 /* ---------- 剖面 ---------- */
 .profile {
   position: fixed; z-index: 9; bottom: calc(var(--gap) + var(--safe-b));
-  left: var(--inset-l); right: var(--inset-r); height: 212px;
+  left: var(--inset-l); right: var(--inset-r); height: var(--profile-h);
   display: flex; flex-direction: column;
   border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--glass-strong); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
@@ -375,6 +396,14 @@ body.profile-open .player { bottom: calc(var(--gap) + 236px + var(--safe-b)); }
 .profile-chart .tip { font: 600 11px var(--mono); fill: var(--text); }
 .profile-chart .tip-bg { fill: rgba(10, 12, 15, .85); }
 .profile-chart .busy { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-dim); font-size: 12px; }
+/* 開啟地震目錄時，剖面多一層「地底下」的震源分布 */
+:root { --profile-h: 212px; }
+body.profile-deep { --profile-h: max(212px, min(344px, 50vh)); }
+.profile-note { margin: 2px 16px 0; font-size: 12px; line-height: 1.45; color: var(--text-dim); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.profile-chart .crust { fill: rgba(255, 255, 255, .025); stroke: rgba(255, 255, 255, .07); }
+.profile-chart .panel-label { font-size: 11px; font-weight: 600; fill: var(--text-dim); letter-spacing: .04em; }
+.profile-chart .hypo { stroke: rgba(8, 10, 14, .8); stroke-width: .6; }
+.profile-chart .hypo-fixed { fill: none; stroke-width: 1; stroke-opacity: .5; }
 
 /* ---------- HUD 與 MapLibre 控制 ---------- */
 .hud {
@@ -402,6 +431,7 @@ body:not(.panel-collapsed) .maplibregl-ctrl-bottom-right { left: calc(var(--inse
 .maplibregl-popup-content { background: var(--glass-strong); color: var(--text); border: 1px solid var(--line-strong); border-radius: 10px; padding: 8px 12px; font: 12px/1.5 var(--mono); box-shadow: var(--shadow); }
 .maplibregl-popup-tip { display: none; }
 .maplibregl-popup-content b { color: var(--accent); }
+.maplibregl-popup-content a { color: var(--accent); }
 
 .toast {
   position: fixed; z-index: 60; top: calc(var(--gap) + 58px);
@@ -473,7 +503,9 @@ body:not(.panel-collapsed) .maplibregl-ctrl-bottom-right { left: calc(var(--inse
   .player { top: 62px; bottom: auto; left: 12px; right: 60px; width: auto; transform: none; padding: 8px 8px 8px 12px; }
   body.profile-open .player { bottom: auto; }
   .player-stop { font-size: 14px; }
-  .profile { left: 8px; right: 8px; bottom: calc(var(--peek) + 8px + var(--safe-b)); height: 190px; }
+  :root { --profile-h: 190px; }
+  body.profile-deep { --profile-h: max(190px, min(300px, 40vh)); }
+  .profile { left: 8px; right: 8px; bottom: calc(var(--peek) + 8px + var(--safe-b)); }
   body.profile-open .card, body.sheet-open .profile { display: none; }
   .hud { display: none; }
   .maplibregl-ctrl-bottom-left { left: 8px; bottom: calc(var(--peek) + 4px + var(--safe-b)); }
