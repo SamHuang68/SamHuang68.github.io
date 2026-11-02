@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>台灣 3D 地景</title>
-  <meta name="description" content="在 3D 地球上飛覽台灣：即時串流衛星影像與實測地形，80 處導覽點、14 條主題路線、日照與海平面模擬、地形剖面，以及半世紀地震目錄與隱沒帶震源剖面。">
-  <meta name="app-version" content="2.1.0">
+  <meta name="description" content="在 3D 地球上飛覽台灣：即時串流衛星影像與實測地形，80 處導覽點、14 條主題路線、日照與海平面模擬、地形剖面、半世紀地震目錄與隱沒帶震源剖面，以及自行車環島、健行步道與百岳旅遊專項。">
+  <meta name="app-version" content="2.2.0">
   <meta name="theme-color" content="#0b0d10">
   <meta property="og:type" content="website">
   <meta property="og:title" content="台灣 3D 地景">
@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.14.0/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="app.css?v=2.1.0">
+  <link rel="stylesheet" href="app.css?v=2.2.0">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -76,6 +76,7 @@
     <div class="tabs" role="tablist" aria-label="探索">
       <button role="tab" id="tab-spots" aria-controls="pane-spots" aria-selected="true" data-tab="spots">導覽點</button>
       <button role="tab" id="tab-tours" aria-controls="pane-tours" aria-selected="false" data-tab="tours" tabindex="-1">路線</button>
+      <button role="tab" id="tab-travel" aria-controls="pane-travel" aria-selected="false" data-tab="travel" tabindex="-1">旅遊專項</button>
       <button role="tab" id="tab-layers" aria-controls="pane-layers" aria-selected="false" data-tab="layers" tabindex="-1">圖層與模擬</button>
     </div>
 
@@ -87,6 +88,63 @@
     <section class="pane" id="pane-tours" role="tabpanel" aria-labelledby="tab-tours" hidden>
       <p class="pane-lede">選一條路線，鏡頭會自動飛過每一站並停留環繞。播放中可用 ← → 切換，空白鍵暫停。</p>
       <ul class="tour-list" id="tourList"></ul>
+    </section>
+
+    <section class="pane pane-travel" id="pane-travel" role="tabpanel" aria-labelledby="tab-travel" hidden>
+      <div class="segmented travel-seg" id="travelSeg" role="radiogroup" aria-label="旅遊專項">
+        <button role="radio" aria-checked="true" data-mode="bike">自行車環島</button>
+        <button role="radio" aria-checked="false" data-mode="hike">健行步道</button>
+        <button role="radio" aria-checked="false" data-mode="peaks">百岳</button>
+      </div>
+
+      <div class="travel-body" id="travel-bike">
+        <div class="t-stats" id="bikeStats"><p class="hint">載入環島路線中…</p></div>
+        <div class="group">
+          <div class="group-head">
+            <h2 class="group-title" id="bikeDaysLabel">方向與天數</h2>
+            <output class="readout" id="bikeDaysOut" for="bikeDays">9 天</output>
+          </div>
+          <div class="segmented" id="bikeDirSeg" role="radiogroup" aria-label="騎乘方向">
+            <button role="radio" aria-checked="true" data-dir="ccw">逆時針・西部南下</button>
+            <button role="radio" aria-checked="false" data-dir="cw">順時針・東部南下</button>
+          </div>
+          <input class="range t-days" type="range" id="bikeDays" min="5" max="15" step="1" value="9" aria-labelledby="bikeDaysLabel">
+          <div class="t-actions">
+            <button class="btn" id="bikeProfile" type="button"><svg class="ic" aria-hidden="true"><use href="#i-profile"/></svg>全線剖面</button>
+            <button class="btn btn-accent" id="bikeRide" type="button"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>虛擬騎乘</button>
+          </div>
+        </div>
+        <h3 class="sub-title">每日行程</h3>
+        <ol class="t-list" id="bikeStages"></ol>
+        <h3 class="sub-title">主要爬坡</h3>
+        <ol class="t-list" id="bikeClimbs"></ol>
+        <h3 class="sub-title">補給提醒</h3>
+        <ul class="t-list" id="bikeGaps"></ul>
+        <div class="toggles t-poi" id="bikePoiToggles">
+          <label class="toggle"><input type="checkbox" data-poi="station" checked><span class="sw"></span>臺鐵車站</label>
+          <label class="toggle"><input type="checkbox" data-poi="store"><span class="sw"></span>便利商店</label>
+          <label class="toggle"><input type="checkbox" data-poi="bike"><span class="sw"></span>單車店與打氣站</label>
+          <label class="toggle"><input type="checkbox" data-poi="police"><span class="sw"></span>派出所</label>
+        </div>
+        <p class="hint" id="bikeHint"></p>
+      </div>
+
+      <div class="travel-body" id="travel-hike" hidden>
+        <input class="t-filter" id="hikeFilter" type="search" placeholder="篩選步道名稱、縣市或步道系統" aria-label="篩選步道" autocomplete="off">
+        <div class="chips t-chips" id="hikeChips" role="group" aria-label="依難度篩選"></div>
+        <ol class="t-list" id="hikeList"><li class="hint">載入步道資料中…</li></ol>
+        <p class="hint" id="hikeHint"></p>
+      </div>
+
+      <div class="travel-body" id="travel-peaks" hidden>
+        <div class="t-progress">
+          <span>已登頂 <b id="peakDone">0</b> / 100</span>
+          <span class="t-bar" aria-hidden="true"><i id="peakBar"></i></span>
+        </div>
+        <div class="chips t-chips" id="peakChips" role="group" aria-label="篩選百岳"></div>
+        <ol class="t-list" id="peakList"><li class="hint">載入百岳資料中…</li></ol>
+        <p class="hint" id="peakHint"></p>
+      </div>
     </section>
 
     <section class="pane pane-layers" id="pane-layers" role="tabpanel" aria-labelledby="tab-layers" hidden>
@@ -211,14 +269,15 @@
     <h2 class="card-title" id="cardTitle"></h2>
     <p class="card-badge" id="cardBadge"></p>
     <dl class="card-facts">
-      <div><dt>海拔</dt><dd id="cardElev"></dd></div>
-      <div><dt>座標</dt><dd id="cardCoord"></dd></div>
+      <div><dt id="cardElevLabel">海拔</dt><dd id="cardElev"></dd></div>
+      <div><dt id="cardCoordLabel">座標</dt><dd id="cardCoord"></dd></div>
     </dl>
     <p class="card-metric" id="cardMetric"></p>
     <p class="card-desc" id="cardDesc"></p>
     <div class="card-actions">
       <button class="btn" id="cardPrev" type="button" aria-label="上一個導覽點"><svg class="ic" aria-hidden="true"><use href="#i-prev"/></svg></button>
       <button class="btn" id="cardOrbit" type="button"><svg class="ic" aria-hidden="true"><use href="#i-orbit"/></svg>環繞</button>
+      <button class="btn" id="cardRide" type="button" hidden><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>飛覽</button>
       <button class="btn" id="cardProfile" type="button"><svg class="ic" aria-hidden="true"><use href="#i-profile"/></svg>剖面</button>
       <button class="btn" id="cardShare" type="button"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg>分享</button>
       <button class="btn" id="cardNext" type="button" aria-label="下一個導覽點"><svg class="ic" aria-hidden="true"><use href="#i-next"/></svg></button>
@@ -248,13 +307,14 @@
       <button class="icon-btn" id="pPrev" type="button" aria-label="上一站"><svg class="ic" aria-hidden="true"><use href="#i-prev"/></svg></button>
       <button class="icon-btn play" id="pPlay" type="button" aria-label="暫停"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg></button>
       <button class="icon-btn" id="pNext" type="button" aria-label="下一站"><svg class="ic" aria-hidden="true"><use href="#i-next"/></svg></button>
+      <button class="icon-btn p-speed" id="pSpeed" type="button" aria-label="播放速度 1 倍" hidden>1×</button>
       <button class="icon-btn" id="pStop" type="button" aria-label="結束路線"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
   </div>
 
   <section class="profile" id="profile" aria-label="地形剖面" hidden>
     <header class="profile-head">
-      <h2>地形剖面</h2>
+      <h2 id="profileTitle">地形剖面</h2>
       <p class="profile-stats" id="profileStats">在地圖上點選起點與終點</p>
       <button class="icon-btn" id="profileClose" type="button" aria-label="關閉剖面"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
     </header>
@@ -286,6 +346,10 @@
       <li><b>海平面</b>：只依高程門檻著色，不模擬潮汐、地層下陷與堤防，僅供示意。</li>
       <li><b>地震目錄</b>：美國地質調查所 USGS ANSS ComCat，1973 年起、北緯 20.5–26.5°、東經 118.5–124.5°、規模 4 以上，2026-11-02 快照，開啟時再向 USGS 即時補抓之後的地震。早年觀測網較疏，小地震紀錄偏少；震源深度以 USGS 定位為準，其中約三成是定位時固定的 10、33 或 35 km（剖面上畫成空心）。規模為 USGS 發布值（大地震多為地震矩規模 Mw），可能與中央氣象署的芮氏規模不同，例如 921 集集地震 USGS 為 7.7、氣象署為 7.3，2024 年花蓮地震分別為 7.4 與 7.2。</li>
       <li><b>板塊邊界</b>：Bird (2003) PB2002 全球板塊模型（Ahlenius 整理，ODC-BY 1.0），只畫琉球海溝、馬尼拉海溝與沖繩海槽，為簡化示意線。收斂速率約每年 8 公分、朝西北，取自 GPS 研究（Yu 等，1997）。</li>
+      <li><b>自行車環島</b>：交通部「環島 1 號線」在 OpenStreetMap 的路線（關係 5752808，© OpenStreetMap 貢獻者，ODbL），沿線便利商店、臺鐵車站、單車店、打氣站與派出所同樣取自 OpenStreetMap，2026-11-03 擷取。路線每 100 m 取樣；高程取自地形資料並平滑，隧道與橋樑改以兩端路面內插。爬升為估算值，實際路線可能因施工或改道而不同。</li>
+      <li><b>健行步道</b>：農業部林業及自然保育署「自然步道基本資料」與「所轄自然步道軌跡圖」（政府資料開放授權條款－第 1 版），難度為該署的 0–6 級分級（數字愈大愈難）。軌跡的爬升與高度由地形資料計算。</li>
+      <li><b>百岳</b>：名單、測高、行政區、山脈、登山路線、國家公園與 0–6 級分級整理自中文維基百科「台灣百岳」條目（CC BY-SA 4.0）；座標取自 OpenStreetMap 或 Wikidata，以地形高程擇一。登頂紀錄只存在這台裝置的瀏覽器裡。</li>
+      <li><b>安全提醒</b>：本頁資料僅供規劃參考。登山與長途騎乘前，請查詢官方公告、天候與入山入園規定。</li>
       <li><b>導覽點文字</b>：2026-11 依政府機關、營運單位與學術資料逐點查證修訂；少數細節僅有百科或新聞來源，查無來源的說法已刪除。</li>
       <li><b>繪圖引擎</b>：MapLibre GL JS 6.14（BSD-3-Clause）。</li>
     </ul>
@@ -296,6 +360,6 @@
 
   <noscript><p class="noscript">這個頁面需要 JavaScript 與 WebGL。也可改看<a href="classic.html">舊版介面</a>。</p></noscript>
 
-  <script type="module" src="app.js?v=2.1.0"></script>
+  <script type="module" src="app.js?v=2.2.0"></script>
 </body>
 </html>
