@@ -762,6 +762,7 @@ function renderCard(s) {
   $('cardElev').textContent = s.elev < 0 ? `水深 ${fmtInt(-s.elev)} m` : `${fmtInt(s.elev)} m`;
   $('cardCoord').textContent = `${s.lat.toFixed(3)}°N ${s.lon.toFixed(3)}°E`;
   $('cardRide').hidden = true;
+  $('cardGpx').hidden = true;
   $('cardOrbit').hidden = false;
   $('cardPrev').setAttribute('aria-label', '上一個導覽點');
   $('cardNext').setAttribute('aria-label', '下一個導覽點');
@@ -1565,7 +1566,7 @@ function flyToLatestQuake() {
 
 // ---------------------------------------------------------------- 旅遊專項：自行車環島、健行步道、百岳
 // 三份資料都在開啟該專項時才載入。環島取樣自台北起算、順時針排列，逆時針時整條反轉。
-const TRAVEL_URL = { bike: './cycling.json?v=2.2.0', hike: './trails.json?v=2.2.0', peaks: './peaks.json?v=2.2.0' };
+const TRAVEL_URL = { bike: './cycling.json?v=2.2.0', hike: './trails.json?v=2.3.0', peaks: './peaks.json?v=2.2.0' };
 const TRAVEL_LAYERS = {
   bike: ['bike-route-casing', 'bike-route', 'bike-hl', 'bike-poi', 'bike-poi-label', 'bike-stage', 'bike-stage-label'],
   hike: ['trail-line', 'trail-hl', 'trail-head', 'trail-label'],
@@ -1671,9 +1672,10 @@ function showTravelCard(c) {
   $('cardCoord').textContent = c.f2[1];
   $('cardMetric').textContent = c.metric;
   $('cardDesc').textContent = c.desc;
-  // 環島與步道用「飛覽」（沿著路線前進）取代「環繞」，按鈕列維持五顆
+  // 環島與步道用「飛覽」（沿著路線前進）取代「環繞」；可匯出時再加一顆只有圖示的 GPX 下載鈕
   $('cardRide').hidden = !(travel.sel?.mode === 'bike' || travel.sel?.kind === 'trail');
   $('cardOrbit').hidden = !$('cardRide').hidden;
+  $('cardGpx').hidden = !gpxForSel();
   $('cardPrev').setAttribute('aria-label', '上一個');
   $('cardNext').setAttribute('aria-label', '下一個');
   const wasHidden = cardEl.hidden;
@@ -2252,6 +2254,102 @@ function selectPeak(p, { fly = true } = {}) {
   if (fly) map.flyTo({ center: [p.lon, p.lat], zoom: 13.2 - (isMobile() ? 0.6 : 0), pitch: 64, bearing: (p.rank * 47) % 360 - 180, padding: viewPadding(), speed: 0.9, curve: 1.45, maxDuration: 8000 });
 }
 
+// ---------- GPX 匯出：整條環島（每日終點為航點）、選取的那一天、爬坡、步道或百岳
+// 座標取到 1e-5 度（約 1 m）；高度是烘製時的地形推估值。檔頭附資料來源、擷取日期與授權（ODbL 等要求標示出處）。
+const GPX_LICENSE = {
+  bike: ['OpenStreetMap 貢獻者', 'https://opendatacommons.org/licenses/odbl/1-0/'],
+  hike: ['農業部林業及自然保育署', 'https://data.gov.tw/license'],
+  peaks: ['中文維基百科貢獻者', 'https://creativecommons.org/licenses/by-sa/4.0/'],
+};
+
+function gpxXml({ mode, name, wpts, trks, hash }) {
+  const ll = ([lon, lat]) => `lat="${lat.toFixed(5)}" lon="${lon.toFixed(5)}"`;
+  const ele = (e) => (Number.isFinite(e) ? `<ele>${Math.round(e)}</ele>` : '');
+  const [author, license] = GPX_LICENSE[mode];
+  const data = travel.data[mode];
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<gpx version="1.1" creator="台灣 3D 地景" xmlns="http://www.topografix.com/GPX/1/1">',
+    `<metadata><name>${esc(name)}</name><desc>${esc(`${data.source}（${data.retrieved} 擷取）。距離與高度為地形資料推估值，出發前請核對官方路況與公告。`)}</desc>`
+      + `<copyright author="${esc(author)}"><license>${license}</license></copyright>`
+      + `<link href="${esc(location.origin + location.pathname + hash)}"><text>台灣 3D 地景</text></link><time>${new Date().toISOString()}</time></metadata>`,
+    ...wpts.map((w) => `<wpt ${ll(w.p)}>${ele(w.e)}<name>${esc(w.name)}</name>${w.desc ? `<desc>${esc(w.desc)}</desc>` : ''}${w.src ? `<src>${esc(w.src)}</src>` : ''}${w.type ? `<type>${esc(w.type)}</type>` : ''}</wpt>`),
+    ...trks.map((t) => `<trk><name>${esc(t.name)}</name>\n${t.segs.map((seg) => `<trkseg>\n${seg.map((s) => `<trkpt ${ll(s.p)}>${ele(s.e)}</trkpt>`).join('\n')}\n</trkseg>`).join('\n')}\n</trk>`),
+    '</gpx>',
+    '',
+  ].join('\n');
+}
+
+const bikeDirShort = () => (travel.dir === 'ccw' ? '逆時針' : '順時針');
+
+function bikeRouteGpx() {
+  if (!travel.plan) return null;
+  const { m, stages } = travel.plan, P = m.path, dir = bikeDirShort();
+  return {
+    mode: 'bike', hash: '#bike', file: `環島1號線-${dir}-${stages.length}天`, name: `環島 1 號線（${dir}，${stages.length} 天）`,
+    wpts: [{ p: P[0].p, e: P[0].e, name: '起終點 臺北站' }, ...stages.slice(0, -1).map((st) => ({
+      p: P[st.b].p, e: P[st.b].e, name: `D${st.k} 終點 ${st.to}`, desc: `第 ${st.k} 天 ${st.km.toFixed(1)} km，爬升 ${fmtInt(st.up)} m`,
+    }))],
+    trks: [{ name: `環島 1 號線（${dir}）`, segs: [P] }],
+  };
+}
+
+// 目前選取項目的 GPX 內容；沒有可匯出的座標時回傳 null（卡片的下載鈕據此隱藏）
+function gpxForSel() {
+  const s = travel.sel;
+  let g = null;
+  if (s?.mode === 'bike' && travel.plan) {
+    const { m, stages, climbs } = travel.plan, P = m.path, dir = bikeDirShort();
+    if (s.kind === 'stage') {
+      const st = stages[s.k - 1];
+      const stations = m.pois.station.filter((x) => x.d > st.d0 + 0.5 && x.d < st.d1 - 0.5);
+      g = {
+        mode: 'bike', hash: '#bike', file: `環島-${dir}-D${st.k}-${st.from}-${st.to}`, name: `環島 1 號線 第 ${st.k} 天：${st.from} → ${st.to}（${dir}）`,
+        wpts: [{ p: P[st.a].p, e: P[st.a].e, name: `起點 ${st.from}` }, ...stations.map((x) => ({ p: [x.lon, x.lat], name: `${x.name}站`, type: '臺鐵車站' })), { p: P[st.b].p, e: P[st.b].e, name: `終點 ${st.to}` }],
+        trks: [{ name: `第 ${st.k} 天 ${st.from} → ${st.to}`, segs: [P.slice(st.a, st.b + 1)] }],
+      };
+    } else if (s.kind === 'climb') {
+      const c = climbs[s.i];
+      g = {
+        mode: 'bike', hash: '#bike', file: `環島爬坡-${dir}-${c.name}`, name: `環島爬坡：${c.name}（${dir}）`,
+        wpts: [{ p: P[c.a].p, e: P[c.a].e, name: '坡底' }, { p: P[c.b].p, e: P[c.b].e, name: '坡頂', desc: `淨爬升 ${fmtInt(c.gain)} m，平均坡度 ${c.grade.toFixed(1)}%` }],
+        trks: [{ name: c.name, segs: [P.slice(c.a, c.b + 1)] }],
+      };
+    }
+  } else if (s?.kind === 'trail') {
+    const t = travel.data.hike.trails.find((x) => x.id === s.id);
+    const seg = (q) => q.lon.map((x, i) => ({ p: [x, q.lat[i]], e: q.elev[i] }));
+    const trks = t.segs.length ? [{ name: `${t.name}（主線，自登山口）`, segs: [seg(t.segs[0])] }] : [];
+    if (t.segs.length > 1) trks.push({ name: `${t.name}（支線與其他分段）`, segs: t.segs.slice(1).map(seg) });
+    g = {
+      mode: 'hike', hash: `#trail=${t.id}`, file: `步道-${t.name}`, name: t.name, trks,
+      wpts: t.entrances.map(([lon, lat, h], i) => ({ p: [lon, lat], e: h, name: t.entrances.length > 1 ? `步道入口 ${i + 1}` : '步道入口', type: '步道入口' })),
+    };
+  } else if (s?.kind === 'peak') {
+    const p = peakByRank(s.rank);
+    g = {
+      mode: 'peaks', hash: `#peak=${p.rank}`, file: `百岳-${p.rank}-${p.name}`, name: `${p.name}（百岳 #${p.rank}）`, trks: [],
+      // 名單與測高是維基（CC BY-SA），座標另有出處：多數取自 OSM（ODbL），少數取自 Wikidata（CC0）
+      wpts: [{ p: [p.lon, p.lat], e: p.h, name: p.name, desc: `百岳 #${p.rank}，最新測高 ${p.h} m`, src: p.src === 'osm' ? '座標 © OpenStreetMap 貢獻者（ODbL）' : '座標 Wikidata（CC0）', type: '山頂' }],
+    };
+  }
+  return g && (g.wpts.length || g.trks.length) ? g : null;
+}
+
+function downloadGpx(g) {
+  if (!g) { toast('這個項目沒有可匯出的座標'); return; }
+  const file = `${g.file.replace(/[\\/:*?"<>|]+/g, '').replace(/[\s→]+/g, '-')}.gpx`;
+  const url = URL.createObjectURL(new Blob([gpxXml(g)], { type: 'application/gpx+xml' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = file;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+  toast(`已匯出 ${file}`);
+}
+
 // ---------- 虛擬騎乘／沿線飛覽：鏡頭沿路徑前進，方向看向前方一段距離並平滑轉向
 const RIDE_SPEEDS = [1, 3, 10];
 const ride = { on: false, playing: false, mode: null, path: null, pos: 0, end: 0, speedIdx: 0, kmps: 0.5, zoom: 13, pitch: 62, look: 1, raf: 0, last: 0, upd: 0, bearing: null, segs: [], jump: false };
@@ -2756,6 +2854,8 @@ function bindUI() {
   });
   $('bikeProfile').addEventListener('click', bikeOverviewProfile);
   $('bikeRide').addEventListener('click', () => { if (isMobile()) setSheet(false); startBikeRide(); });
+  $('bikeGpx').addEventListener('click', () => (travel.plan ? downloadGpx(bikeRouteGpx()) : toast('環島資料載入中，請稍後再試')));
+  $('cardGpx').addEventListener('click', () => downloadGpx(gpxForSel()));
   $('bikeStages').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { if (isMobile()) setSheet(false); selectStage(+b.dataset.k); } });
   $('bikeClimbs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { if (isMobile()) setSheet(false); selectClimb(+b.dataset.i); } });
   $('bikeGaps').addEventListener('click', (e) => {
