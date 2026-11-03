@@ -31,6 +31,8 @@ node taiwan-3d-map/tools/bake-travel.mjs --out=.cache/out
 - **Overpass 常滿載**：`fetch.mjs` 依序換三個端點（overpass-api.de、maps.mail.ru 鏡像、private.coffee），查詢回應帶 `remark` 也視為失敗。各來源互不影響：某個來源失敗時，它的快取檔與 `meta.json` 紀錄維持舊的，其餘照常下載，最後以結束碼 1 列出未完成的來源。
 - **隧道與橋樑**：地形面量到的是山頂與谷底，環島路線改以兩端路面內插；隧道錨點取洞口外 1 km 內最低點。不處理會多算約 1,500 m 爬升。
 - **Terrarium 資料空洞**：z14–z15 偶有單點掉到 −1,998 m，環島取 z13；步道取 z14 後以前後 3 點中位數去尖刺（門檻 60 m）。
+  - 2.4.0 起，子站解碼 z12 以上圖磚時會把比 8 鄰點中位數低 400 m 以上的像素補成中位數（`app.js` 的 `despike`）；`elevate.mjs` 透過子站的 `elevationAt` 取高程，也一起套用。
+  - 以 2026-11-03 的原始輸入重跑：`cycling.json`、`peaks.json` 逐位元相同；`trails.json` 只有 049（主線爬升 238→241 m、下降 302→305 m）與 139（下降 529→530 m）不同。上線的 `trails.json` 仍是 2.3.0 烘製版，下次重建時會換成新值。
 - **步道主線**：軌跡分段端點相距 80 m 內視為同一節點，取最長簡單路徑為主線，自海拔最低的入口出發。
 - **百岳座標**：Wikidata 與 OSM 兩個候選點各在 ±120 m 內找地形最高點；都在公告測高 ±40 m 內時採 OSM 山頂節點，否則選最接近公告測高者。
 - **軌跡下載失敗**：個別資料集偶爾連線失敗（例如 2.2.0 擷取時的 023）。`meta.json` 的 `trails.failed` 會列出代碼，`bake-travel.mjs` 也會因此停下；重跑 `fetch.mjs trails` 即可。

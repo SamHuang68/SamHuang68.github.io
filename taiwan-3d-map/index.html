@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>台灣 3D 地景</title>
   <meta name="description" content="在 3D 地球上飛覽台灣：即時串流衛星影像與實測地形，80 處導覽點、14 條主題路線、日照與海平面模擬、地形剖面、半世紀地震目錄與隱沒帶震源剖面，以及自行車環島、健行步道與百岳旅遊專項。">
-  <meta name="app-version" content="2.3.0">
+  <meta name="app-version" content="2.4.0">
   <meta name="theme-color" content="#0b0d10">
   <meta property="og:type" content="website">
   <meta property="og:title" content="台灣 3D 地景">
@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.14.0/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="app.css?v=2.3.0">
+  <link rel="stylesheet" href="app.css?v=2.4.0">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -275,6 +275,7 @@
       <div><dt id="cardCoordLabel">座標</dt><dd id="cardCoord"></dd></div>
     </dl>
     <p class="card-metric" id="cardMetric"></p>
+    <p class="card-sun" id="cardSun" hidden></p>
     <p class="card-desc" id="cardDesc"></p>
     <div class="card-actions">
       <button class="btn" id="cardPrev" type="button" aria-label="上一個導覽點"><svg class="ic" aria-hidden="true"><use href="#i-prev"/></svg></button>
@@ -322,7 +323,8 @@
       <button class="icon-btn" id="profileClose" type="button" aria-label="關閉剖面"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
     </header>
     <p class="profile-note" id="profileNote" hidden></p>
-    <div class="profile-chart" id="profileChart"></div>
+    <div class="profile-chart" id="profileChart" aria-describedby="profileSummary"></div>
+    <p class="sr-only" id="profileSummary"></p>
   </section>
 
   <div class="hud" id="hud" aria-hidden="true">
@@ -343,7 +345,7 @@
     <h2 id="aboutTitle">資料與技術</h2>
     <ul>
       <li><b>衛星影像</b>：Esri World Imagery（Esri、Maxar、Earthstar Geographics）。</li>
-      <li><b>地形與水深</b>：Mapzen Terrarium，AWS Open Data 公開資料集，整合 SRTM、GEBCO 等來源；游標高程與剖面直接解碼同一份資料。</li>
+      <li><b>地形與水深</b>：Mapzen Terrarium，AWS Open Data 公開資料集，整合 SRTM、GEBCO 等來源；游標高程與剖面直接解碼同一份資料。高縮放圖磚偶有往下掉的壞值，比周圍低 400 m 以上的坑點（含幾個像素連成的小塊）會補成鄰點中位數。</li>
       <li><b>地名、河川、道路、建築</b>：OpenFreeMap 向量圖磚，© OpenMapTiles、© OpenStreetMap 貢獻者。</li>
       <li><b>日照</b>：以 NOAA 太陽位置近似公式計算台灣中部（23.7°N, 121°E）的方位與仰角。</li>
       <li><b>海平面</b>：只依高程門檻著色，不模擬潮汐、地層下陷與堤防，僅供示意。</li>
@@ -351,8 +353,9 @@
       <li><b>板塊邊界</b>：Bird (2003) PB2002 全球板塊模型（Ahlenius 整理，ODC-BY 1.0），只畫琉球海溝、馬尼拉海溝與沖繩海槽，為簡化示意線。收斂速率約每年 8 公分、朝西北，取自 GPS 研究（Yu 等，1997）。</li>
       <li><b>自行車環島</b>：交通部「環島 1 號線」在 OpenStreetMap 的路線（關係 5752808，© OpenStreetMap 貢獻者，ODbL），沿線便利商店、臺鐵車站、單車店、打氣站與派出所同樣取自 OpenStreetMap，2026-11-03 擷取。路線每 100 m 取樣；高程取自地形資料並平滑，隧道與橋樑改以兩端路面內插。爬升為估算值，實際路線可能因施工或改道而不同。</li>
       <li><b>健行步道</b>：農業部林業及自然保育署「自然步道基本資料」與「所轄自然步道軌跡圖」（政府資料開放授權條款－第 1 版），難度為該署的 0–6 級分級（數字愈大愈難）。軌跡的爬升與高度由地形資料計算。</li>
-      <li><b>百岳</b>：名單、測高、行政區、山脈、登山路線、國家公園與 0–6 級分級整理自中文維基百科「台灣百岳」條目（CC BY-SA 4.0）；座標取自 OpenStreetMap 或 Wikidata，以地形高程擇一。登頂紀錄只存在這台裝置的瀏覽器裡。</li>
+      <li><b>百岳</b>：名單、測高、行政區、山脈、登山路線、國家公園與 0–6 級分級整理自中文維基百科「台灣百岳」條目（CC BY-SA 4.0）；座標取自 OpenStreetMap 或 Wikidata，以地形高程擇一。登頂紀錄只存在這台裝置的瀏覽器裡。卡片上的日出時間與方位用同一套太陽位置公式計算，已計入山高讓地平線下沉的角度，但只算到海平面地平線，東方有更高山稜時實際會晚幾分鐘。</li>
       <li><b>GPX 匯出</b>：環島全程（含每日終點）、單日、爬坡、步道與百岳都可下載 GPX 1.1，可匯入導航或運動 App。檔頭附資料來源與授權，轉傳或再利用時請保留；高度為上述地形推估值。資料重建腳本在 <code>taiwan-3d-map/tools/</code>。</li>
+      <li><b>鍵盤操作</b>：剖面圖可用 Tab 聚焦，左右鍵移動游標（一次約 1%，Shift 一次約 10%），Home／End 到兩端。環島全線剖面按 Enter 選取游標所在的那一天；環島與步道飛覽中按 Enter 跳到游標處。聚焦剖面時，螢幕閱讀器會讀出長度、起終點與最高、最低點。</li>
       <li><b>安全提醒</b>：本頁資料僅供規劃參考。登山與長途騎乘前，請查詢官方公告、天候與入山入園規定。</li>
       <li><b>導覽點文字</b>：2026-11 依政府機關、營運單位與學術資料逐點查證修訂；少數細節僅有百科或新聞來源，查無來源的說法已刪除。</li>
       <li><b>繪圖引擎</b>：MapLibre GL JS 6.14（BSD-3-Clause）。</li>
@@ -364,6 +367,6 @@
 
   <noscript><p class="noscript">這個頁面需要 JavaScript 與 WebGL。也可改看<a href="classic.html">舊版介面</a>。</p></noscript>
 
-  <script type="module" src="app.js?v=2.3.0"></script>
+  <script type="module" src="app.js?v=2.4.0"></script>
 </body>
 </html>
