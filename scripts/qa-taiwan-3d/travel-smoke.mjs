@@ -152,10 +152,12 @@ export default async function run(browser, opts) {
       await page.waitForTimeout(300);
       ok('下一座百岳', await page.evaluate(() => document.getElementById('cardTitle').textContent === '雪山'));
       // 重新整理後紀錄仍在。重新整理會取消舊頁面進行中的圖磚請求，Firefox 與 WebKit 會把它記成地圖錯誤
-      // （Firefox：NetworkError／aborted；WebKit：Load failed／access control checks）。只排除重新整理期間的這幾種訊息，其餘錯誤照算
+      // （Firefox：NetworkError／aborted；WebKit：Load failed／access control checks，斷在讀取圖磚內容時是「reading the Blob argument」）。
+      // 只排除舊頁面卸載期間（到新頁面開始載入為止）的這幾種訊息，新頁面自己的錯誤照算
       const n0 = errors.length;
-      await page.reload({ waitUntil: 'load' });
-      errors.push(...errors.splice(n0).filter((e) => !/NetworkError when attempting to fetch resource|The operation was aborted|Load failed|due to access control checks/.test(e)));
+      await page.reload({ waitUntil: 'commit' });
+      errors.push(...errors.splice(n0).filter((e) => !/NetworkError when attempting to fetch resource|The operation was aborted|Load failed|due to access control checks|error occured reading the Blob argument/.test(e)));
+      await page.waitForLoadState('load');
       await waitFor(page, () => window.__tw3d && window.__tw3d.map.loaded());
       await waitFor(page, () => window.__tw3d.travel.data.peaks && document.getElementById('cardTitle').textContent === '雪山', null, 30000);
       const kept = await page.evaluate(() => document.getElementById('peakDone').textContent);

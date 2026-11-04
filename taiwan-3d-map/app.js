@@ -125,6 +125,53 @@ function withTimeout(signal, ms = 12000) {
   return AbortSignal.any ? AbortSignal.any([signal, t]) : signal;
 }
 
+function encodeTerrarium(d, i, e) {
+  const v = e + 32768;
+  d[i] = Math.floor(v / 256);
+  d[i + 1] = Math.floor(v) % 256;
+  d[i + 2] = Math.min(255, Math.round((v - Math.floor(v)) * 256));
+}
+
+// Terrarium 高縮放有往下掉的壞值：z14 圖磚 14/13698/7101 沿 121°E 整行約 −8,193 m（周圍約 2,700–3,400 m），
+// 3D 地形會出現一條數千公尺深的直溝；清水斷崖沿岸與德基水庫等處也有零星坑點，游標高程與剖面也會讀到。
+// z12 起一像素不到 40 m，真實地形不會在一格內陷下 400 m：比 8 鄰點中位數低 400 m 以上的像素補成中位數。
+// 只往上補、不壓低任何像素，成片壞值的邊緣才不會被擴散出去。幾個像素連成一塊的壞值（德基水庫 14/13706/7053 有 3×2 一塊）
+// 第一遍只補得到外圈，最多跑 4 遍由外往內補。回傳修正的次數。
+const SPIKE_MIN_Z = 12, SPIKE_M = 400, SPIKE_PASSES = 4;
+function despike(d, S) {
+  const e = new Float32Array(S * S);
+  for (let i = 0; i < S * S; i++) e[i] = d[i * 4] * 256 + d[i * 4 + 1] + d[i * 4 + 2] / 256 - 32768;
+  const nb = [];
+  let fixed = 0;
+  for (let pass = 0; pass < SPIKE_PASSES; pass++) {
+    // 一遍之內只讀上一遍的結果，修正順序不影響結果
+    const fix = [];
+    for (let y = 0; y < S; y++) {
+      for (let x = 0; x < S; x++) {
+        const i = y * S + x, v = e[i];
+        // 上下左右都沒有高出 400 m 就不是坑，絕大多數像素在這裡略過
+        if ((x === 0 || e[i - 1] - v <= SPIKE_M) && (x === S - 1 || e[i + 1] - v <= SPIKE_M)
+          && (y === 0 || e[i - S] - v <= SPIKE_M) && (y === S - 1 || e[i + S] - v <= SPIKE_M)) continue;
+        nb.length = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const xx = x + dx, yy = y + dy;
+            if ((dx || dy) && xx >= 0 && yy >= 0 && xx < S && yy < S) nb.push(e[yy * S + xx]);
+          }
+        }
+        nb.sort((a, b) => a - b);
+        const h = nb.length >> 1, med = nb.length % 2 ? nb[h] : (nb[h - 1] + nb[h]) / 2;
+        if (med - v > SPIKE_M) fix.push(i, med);
+      }
+    }
+    if (!fix.length) break;
+    for (let k = 0; k < fix.length; k += 2) { e[fix[k]] = fix[k + 1]; encodeTerrarium(d, fix[k] * 4, fix[k + 1]); }
+    fixed += fix.length / 2;
+  }
+  return fixed;
+}
+const demFixes = new Map(); // 除錯用：修正過的圖磚與像素數
+
 async function fetchTerrarium(z, x, y, signal) {
   const url = TERRARIUM.replace('{z}', z).replace('{x}', x).replace('{y}', y);
   const res = await fetch(url, { signal: withTimeout(signal), mode: 'cors' });
@@ -134,7 +181,12 @@ async function fetchTerrarium(z, x, y, signal) {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(bmp, 0, 0);
   bmp.close?.();
-  return { canvas, ctx, img: ctx.getImageData(0, 0, canvas.width, canvas.height) };
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  if (z >= SPIKE_MIN_Z) {
+    const n = despike(img.data, img.width);
+    if (n) demFixes.set(`${z}/${x}/${y}`, n);
+  }
+  return { canvas, ctx, img };
 }
 
 function demTile(z, x, y) {
@@ -181,13 +233,6 @@ async function elevationAt(lng, lat, z = 12) {
     if (b < 0) return b;
   }
   return v;
-}
-
-function encodeTerrarium(d, i, e) {
-  const v = e + 32768;
-  d[i] = Math.floor(v / 256);
-  d[i + 1] = Math.floor(v) % 256;
-  d[i + 2] = Math.min(255, Math.round((v - Math.floor(v)) * 256));
 }
 
 // twdem://z/x/y?mode=flat：海面以下壓平到 0 m。衛星與地勢模式的 3D 地形用，避免海面影像被拉進數千公尺的海溝。
@@ -246,6 +291,26 @@ function sunPosition(date, lat = SUN_SITE.lat, lon = SUN_SITE.lon) {
   const alt = Math.asin(Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H));
   const az = Math.atan2(-Math.sin(H), Math.tan(dec) * Math.cos(phi) - Math.sin(phi) * Math.cos(H));
   return { azimuth: ((az / rad) + 360) % 360, altitude: alt / rad };
+}
+
+// 山頂的下一次日出：太陽上緣碰到海平面地平線的時刻與方位。大氣折射加日面半徑取 0.833°；
+// 山高讓地平線再往下沉約 1.76′·√h（含地面折射），玉山約 1.8°，比平地早約 8 分鐘。
+// 只算到海平面地平線，東方有更高的山稜擋住時實際會晚一些。
+function nextSunrise(lat, lon, h, now = new Date()) {
+  const h0 = -0.833 - (1.76 / 60) * Math.sqrt(Math.max(0, h));
+  const tw = new Date(now.getTime() + 8 * 3600e3);
+  let t;
+  for (let day = 0; day < 2; day++) {
+    const mid = Date.UTC(tw.getUTCFullYear(), tw.getUTCMonth(), tw.getUTCDate() + day) - 8 * 3600e3; // 台灣時間午夜
+    let a = mid + 3 * 3600e3, b = mid + 9 * 3600e3;
+    for (let i = 0; i < 24; i++) {
+      const m = (a + b) / 2;
+      if (sunPosition(new Date(m), lat, lon).altitude < h0) a = m; else b = m;
+    }
+    t = { date: new Date(b), tomorrow: day === 1 };
+    if (b > now.getTime()) break;
+  }
+  return { ...t, azimuth: sunPosition(t.date, lat, lon).azimuth };
 }
 
 function sunDate() {
@@ -391,7 +456,7 @@ function buildStyle() {
       { id: 'sat', type: 'raster', source: 'sat', paint: { 'raster-fade-duration': 250 } },
       { id: 'seatint', type: 'color-relief', source: 'dem-shade', paint: { 'color-relief-color': SAT_SEA_RAMP } },
       { id: 'tint', type: 'color-relief', source: 'dem-shade', layout: { visibility: 'none' }, paint: { 'color-relief-color': RELIEF_RAMP } },
-      { id: 'night', type: 'raster', source: 'night', paint: { 'raster-opacity': 0, 'raster-fade-duration': 0 } },
+      { id: 'night', type: 'raster', source: 'night', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0, 'raster-fade-duration': 0 } },
       { id: 'sea', type: 'color-relief', source: 'dem-shade', layout: { visibility: 'none' }, paint: { 'color-relief-color': seaRamp(1) } },
       {
         id: 'shade', type: 'hillshade', source: 'dem-shade',
@@ -524,6 +589,15 @@ function relayout(duration = 450) {
 }
 
 // ---------------------------------------------------------------- 日照
+// 夜光圖磚（NASA Black Marble）全島視角約 3.5–4.5 MB，白天看不到，預設不載。
+// 一碰日照時間或季節控制就先載入，拖到黃昏時圖磚已經備妥，不會一格格冒出來。
+let nightWarm = false;
+function warmNight() {
+  if (nightWarm) return;
+  nightWarm = true;
+  mapReady.then(applySun);
+}
+
 function applySun() {
   const date = sunDate();
   const { azimuth, altitude } = sunPosition(date);
@@ -547,8 +621,8 @@ function applySun() {
   map.setPaintProperty('sat', 'raster-saturation', -0.45 * (1 - day) + 0.08 * golden);
   map.setPaintProperty('tint', 'color-relief-opacity', 0.25 + 0.75 * day);
 
-  // 夜光圖層常駐 visible（白天透明度 0），圖磚先載好，拖到黃昏時不會一格格冒出來。
   const lights = 1 - smooth(-8, 1, altitude);
+  map.setLayoutProperty('night', 'visibility', lights > 0 || nightWarm ? 'visible' : 'none');
   map.setPaintProperty('night', 'raster-opacity', ['interpolate', ['linear'], ['zoom'], 5, 0.95 * lights, 9, 0.7 * lights, 12, 0.3 * lights]);
 
   map.setLight({ anchor: 'map', position: [1.2, azimuth, 90 - clamp(altitude, 8, 80)], color: golden > 0.3 ? '#ffd2a1' : '#ffffff', intensity: 0.2 + 0.35 * day });
@@ -763,6 +837,7 @@ function renderCard(s) {
   $('cardCoord').textContent = `${s.lat.toFixed(3)}°N ${s.lon.toFixed(3)}°E`;
   $('cardRide').hidden = true;
   $('cardGpx').hidden = true;
+  $('cardSun').hidden = true;
   $('cardOrbit').hidden = false;
   $('cardPrev').setAttribute('aria-label', '上一個導覽點');
   $('cardNext').setAttribute('aria-label', '下一個導覽點');
@@ -991,6 +1066,21 @@ function setProfileNote(text) {
   $('profileNote').hidden = !text;
 }
 
+// 剖面區顯示提示文字（點選中、讀取中、失敗）時不是可操作的游標，拿掉 slider 角色與鍵盤焦點
+const SLIDER_ATTRS = ['tabindex', 'role', 'aria-label', 'aria-valuemin', 'aria-valuemax', 'aria-valuenow', 'aria-valuetext'];
+function setProfileMessage(html) {
+  const box = $('profileChart');
+  box.innerHTML = html;
+  for (const a of SLIDER_ATTRS) box.removeAttribute(a);
+  setProfileSummary('');
+}
+
+// 給螢幕閱讀器的文字摘要，由剖面的 aria-describedby 在聚焦時讀出。
+// 不用 aria-live：地震播放時剖面每 250 ms 重畫、震源筆數一直變，會被反覆朗讀。
+function setProfileSummary(text) {
+  $('profileSummary').textContent = text;
+}
+
 // 離開震源剖面預設：清掉說明與 #section 網址
 function clearSection() {
   profile.section = null;
@@ -1042,7 +1132,7 @@ function startPicking() {
   document.body.classList.add('map-cursor-pick');
   map.getSource('profile').setData(EMPTY);
   $('profileStats').textContent = '在地圖上點選起點';
-  $('profileChart').innerHTML = '<div class="busy">點地圖兩下：起點、終點。也可在導覽點介紹卡按「剖面」看東西向橫切。</div>';
+  setProfileMessage('<div class="busy">點地圖兩下：起點、終點。也可在導覽點介紹卡按「剖面」看東西向橫切。</div>');
 }
 
 function pickPoint(lngLat) {
@@ -1109,7 +1199,7 @@ async function runProfile(a, b, { frame }) {
   const ends = [a, b].map((c) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: c } }));
   map.getSource('profile').setData({ type: 'FeatureCollection', features: [line, ...ends] });
   $('profileStats').textContent = '讀取地形中…';
-  $('profileChart').innerHTML = '<div class="busy">解碼地形圖磚中…</div>';
+  setProfileMessage('<div class="busy">解碼地形圖磚中…</div>');
 
   if (frame) {
     const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
@@ -1133,7 +1223,7 @@ async function runProfile(a, b, { frame }) {
     if (token !== profile.token) return;
     console.warn(err);
     $('profileStats').textContent = '地形資料讀取失敗，請稍後再試。';
-    $('profileChart').innerHTML = '';
+    setProfileMessage('');
     return;
   }
   if (token !== profile.token) return;
@@ -1142,6 +1232,8 @@ async function runProfile(a, b, { frame }) {
 }
 
 function niceStep(range, target) {
+  // 長度為 0 時會算出 0，刻度迴圈就停不下來（只有一個點的步道主線曾讓分頁卡住約 5 秒）
+  if (!(range > 0)) return 1;
   const raw = range / target, mag = 10 ** Math.floor(Math.log10(raw)), r = raw / mag;
   return (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag;
 }
@@ -1193,6 +1285,12 @@ function drawProfile() {
   const dTop = tBot + 16, dBot = H - B;
   const len = S[S.length - 1].d;
   const path = profile.path;
+  // 只有一個點或起終點重合時沒有剖面可畫
+  if (S.length < 2 || !(len > 0.005)) {
+    $('profileStats').innerHTML = path?.stats || '';
+    setProfileMessage('<div class="busy">這段剖面太短，無法繪製。</div>');
+    return;
+  }
   let emin = Infinity, emax = -Infinity;
   for (const s of S) { if (s.e < emin) emin = s.e; if (s.e > emax) emax = s.e; }
   // 山區步道從最低點附近畫起；直線剖面與環島保留海平面基準
@@ -1317,17 +1415,46 @@ function drawProfile() {
     showAt(clamp(((sx - L) / (W - L - R)) * len, 0, len));
   };
   // 路徑剖面若是整條路線中的一段（offset：從第幾公里開始），另外標出全線里程
-  const showAt = (d) => {
-    const s = S[Math.round((clamp(d, 0, len) / len) * (S.length - 1))];
-    const at = path?.offset ? `${s.d.toFixed(1)} km（全線 ${(s.d + path.offset).toFixed(1)} km）` : `${s.d.toFixed(1)} km`;
-    showTip(x(s.d), y(s.e), T + 2, `${at} · ${s.e < 0 ? '水深 ' + fmtInt(-s.e) : fmtInt(s.e)} m`);
+  const at = (s) => (path?.offset ? `${s.d.toFixed(1)} km（全線 ${(s.d + path.offset).toFixed(1)} km）` : `${s.d.toFixed(1)} km`);
+  const setValue = (i) => {
+    const s = S[i];
+    box.setAttribute('aria-valuenow', s.d.toFixed(1));
+    box.setAttribute('aria-valuetext', `${at(s)}，${s.e < 0 ? `水深 ${fmtInt(-s.e)}` : `海拔 ${fmtInt(s.e)}`} m`);
+  };
+  // i 是樣本索引。user：滑鼠或鍵盤指定的位置，也就是 slider 的值（profile.keyI）。
+  // 飛覽每 120 ms 更新的位置只畫游標；剖面有鍵盤焦點且已指定位置時連游標也不動，免得把移好的位置拉回去、讓螢幕閱讀器連續朗讀
+  const showIdx = (i, user = true) => {
+    const j = clamp(i, 0, S.length - 1), s = S[j];
+    if (!user && profile.keyI != null && document.activeElement === box) return s;
+    showTip(x(s.d), y(s.e), T + 2, `${at(s)} · ${s.e < 0 ? '水深 ' + fmtInt(-s.e) : fmtInt(s.e)} m`);
     map.getSource('cursor').setData({ type: 'Feature', geometry: { type: 'Point', coordinates: s.p } });
+    if (user) { profile.keyI = j; setValue(j); }
     return s;
   };
+  // 沿線距離換成最近的樣本：路徑樣本不等距，不能用比例換算
+  const showAt = (d, user = true) => {
+    d = clamp(d, 0, len);
+    const i = pathIndex(S, d);
+    return showIdx(i > 0 && d - S[i - 1].d < S[i].d - d ? i - 1 : i, user);
+  };
+  const hide = () => { g.setAttribute('visibility', 'hidden'); map.getSource('cursor').setData(EMPTY); profile.keyI = null; setValue(0); };
   profile.showAt = showAt;
+  profile.showIdx = showIdx;
+  profile.hideCursor = hide;
+  // 鍵盤也能操作：剖面整區是一個 slider，值是沿線距離（km）。重畫（視窗縮放、地震播放）時保留鍵盤正在用的位置
+  const title = sec ? '地形與震源剖面' : path ? path.title : '地形剖面';
+  if (profile.keyS !== S || document.activeElement !== box) profile.keyI = null;
+  profile.keyS = S;
+  box.tabIndex = 0;
+  box.setAttribute('role', 'slider');
+  box.setAttribute('aria-label', `剖面位置：${title}`);
+  box.setAttribute('aria-valuemin', '0');
+  box.setAttribute('aria-valuemax', len.toFixed(1));
+  if (profile.keyI != null) showIdx(profile.keyI); else setValue(0);
+  setProfileSummary(profileSummaryText(S, title, sec));
   hit.addEventListener('pointermove', move);
   hit.addEventListener('pointerdown', move);
-  hit.addEventListener('pointerleave', () => { g.setAttribute('visibility', 'hidden'); map.getSource('cursor').setData(EMPTY); });
+  hit.addEventListener('pointerleave', hide);
   if (path?.onPick) {
     hit.style.cursor = 'pointer';
     hit.addEventListener('click', (ev) => {
@@ -1335,6 +1462,45 @@ function drawProfile() {
       path.onPick(clamp(((ev.clientX - r.left) / r.width) * len, 0, len));
     });
   }
+}
+
+// 剖面的文字摘要：長度、起終點、最高與最低點的位置（累積爬升在畫面上的統計列，算法依剖面種類不同，這裡不重算）
+function profileSummaryText(S, title, sec) {
+  const len = S[S.length - 1].d;
+  let hiS = S[0], loS = S[0];
+  for (const s of S) { if (s.e > hiS.e) hiS = s; if (s.e < loS.e) loS = s; }
+  const m = (e) => (e < 0 ? `水深 ${fmtInt(-e)} m` : `海拔 ${fmtInt(e)} m`);
+  return `${title}，全長 ${len.toFixed(1)} km。起點${m(S[0].e)}，終點${m(S[S.length - 1].e)}；`
+    + `最高點${m(hiS.e)}，在 ${hiS.d.toFixed(1)} km 處；最低點${m(loS.e)}，在 ${loS.d.toFixed(1)} km 處。`
+    + (sec ? `下方標出線兩側 ${sec.half} km 內的 ${fmtInt(sec.pts.length)} 筆震源。` : '')
+    + `聚焦剖面後可用左右鍵移動游標${!profile.path?.onPick ? '' : profile.path.ride === 'hike' ? '，飛覽中按 Enter 跳到該處' : '，按 Enter 等同點選該處'}。`;
+}
+
+// 剖面鍵盤操作：以樣本為單位，左右（上下）鍵一次約 1%、至少一點，加 Shift 或用 PageUp／PageDown 一次約 10%，Home／End 到兩端；
+// Enter 等同點選（環島全線剖面選取該天，飛覽中跳到該處）。處理過的按鍵不再傳給全站的左右鍵切換導覽點。
+function profileKey(e) {
+  const S = profile.samples;
+  if (!S || S.length < 2 || !profile.showIdx || e.altKey || e.ctrlKey || e.metaKey) return;
+  const n = S.length - 1, step = Math.max(1, Math.round(n / 100)), big = Math.max(1, Math.round(n / 10)), i = profile.keyI;
+  let next;
+  switch (e.key) {
+    case 'ArrowRight': case 'ArrowUp': next = i == null ? 0 : i + (e.shiftKey ? big : step); break;
+    case 'ArrowLeft': case 'ArrowDown': next = i == null ? 0 : i - (e.shiftKey ? big : step); break;
+    case 'PageUp': next = (i ?? 0) + big; break;
+    case 'PageDown': next = (i ?? 0) - big; break;
+    case 'Home': next = 0; break;
+    case 'End': next = n; break;
+    case 'Enter':
+      if (!profile.path?.onPick || i == null) return;
+      e.preventDefault();
+      e.stopPropagation();
+      profile.path.onPick(S[i].d);
+      return;
+    default: return;
+  }
+  e.preventDefault();
+  e.stopPropagation();
+  profile.showIdx(next);
 }
 
 // 沿路徑的高度剖面（環島分段、步道）：samples 為 [{ p, d, e }]，d 從 0 起算
@@ -1676,6 +1842,7 @@ function showTravelCard(c) {
   $('cardRide').hidden = !(travel.sel?.mode === 'bike' || travel.sel?.kind === 'trail');
   $('cardOrbit').hidden = !$('cardRide').hidden;
   $('cardGpx').hidden = !gpxForSel();
+  $('cardSun').hidden = true;
   $('cardPrev').setAttribute('aria-label', '上一個');
   $('cardNext').setAttribute('aria-label', '下一個');
   const wasHidden = cardEl.hidden;
@@ -2138,6 +2305,8 @@ function trailPath(t) {
 function trailProfile(t) {
   const P = t && trailPath(t);
   if (!P) { toast('這條步道沒有公開軌跡'); return; }
+  // 主線只有一個點（例如 180 龍麟山、212 撒固兒）時畫不出剖面，也不能飛覽
+  if (P.length < 2) { toast('這條步道的公開軌跡只有一個點，無法畫剖面'); return; }
   // 統計用烘製時 25 m 取樣算好的主線數字，與卡片、清單一致
   const st = t.track.main;
   showPathProfile(P, {
@@ -2248,8 +2417,14 @@ function selectPeak(p, { fly = true } = {}) {
     metric: `${p.range.join('・')} · 國家公園步道分級 ${p.grade ?? '—'} 級 · ${p.park ? `${p.park}國家公園` : '不在國家公園內'}`,
     desc: `常見登山路線：${p.routes.join('、') || '—'}。行政區：${p.admin.join('、')}。舊測高 ${fmtInt(p.hOld)} m。`
       + `${near.length ? `5 km 內的百岳：${near.slice(0, 6).map((q) => `${q.name}（${distanceKm([p.lon, p.lat], [q.lon, q.lat]).toFixed(1)} km）`).join('、')}。` : ''}`
+      + '日出時間以山頂望向海平面地平線計算，已計入山高；東方有更高山稜擋住時會晚幾分鐘。'
       + '在清單勾選即可記錄登頂；入山入園申請與天候請查國家公園與林業保育署公告。',
   });
+  const sr = nextSunrise(p.lat, p.lon, p.h);
+  const t = new Date(Math.round(sr.date.getTime() / 60000) * 60000 + 8 * 3600e3);
+  $('cardSun').textContent = `${sr.tomorrow ? '明天' : '今天'}（${t.getUTCMonth() + 1}/${t.getUTCDate()}）日出 `
+    + `${String(t.getUTCHours()).padStart(2, '0')}:${String(t.getUTCMinutes()).padStart(2, '0')} · 方位 ${Math.round(sr.azimuth)}°（${compassWord(sr.azimuth)}）`;
+  $('cardSun').hidden = false;
   history.replaceState(null, '', `#peak=${p.rank}`);
   if (fly) map.flyTo({ center: [p.lon, p.lat], zoom: 13.2 - (isMobile() ? 0.6 : 0), pitch: 64, bearing: (p.rank * 47) % 360 - 180, padding: viewPadding(), speed: 0.9, curve: 1.45, maxDuration: 8000 });
 }
@@ -2406,7 +2581,7 @@ function updateRideUI() {
     el.classList.toggle('cur', i === k);
     if (i === k) el.style.setProperty('--p', clamp((ride.pos - segs[i].d0) / (segs[i].d1 - segs[i].d0 || 1), 0, 1).toFixed(3));
   });
-  if (profile.path?.ride === ride.mode && profile.showAt) profile.showAt(ride.pos);
+  if (profile.path?.ride === ride.mode && profile.showAt) profile.showAt(ride.pos, false);
 }
 
 function rideSeek(d) {
@@ -2777,6 +2952,7 @@ function bindUI() {
     });
   });
   $('sun').addEventListener('input', (e) => { state.sunMinutes = +e.target.value; applySun(); });
+  for (const el of [$('sun'), $('seasonSeg')]) for (const ev of ['pointerdown', 'focusin']) el.addEventListener(ev, warmNight, { once: true });
   document.querySelectorAll('#seasonSeg button').forEach((b) => b.addEventListener('click', () => {
     state.season = b.dataset.season;
     document.querySelectorAll('#seasonSeg button').forEach((x) => x.setAttribute('aria-checked', String(x === b)));
@@ -2828,6 +3004,10 @@ function bindUI() {
     else document.documentElement.requestFullscreen?.().catch(() => toast('瀏覽器不允許全螢幕'));
   });
   $('profileClose').addEventListener('click', closeProfile);
+  $('profileChart').addEventListener('keydown', profileKey);
+  $('profileChart').addEventListener('blur', () => profile.hideCursor?.());
+  // 滑鼠或觸控點剖面不搶走焦點，全站左右鍵（切換導覽點、每日行程）照舊；用 Tab 進來才是鍵盤 slider
+  $('profileChart').addEventListener('mousedown', (e) => { if (document.activeElement !== e.currentTarget) e.preventDefault(); });
 
   $('pPlay').addEventListener('click', () => (ride.on ? (ride.playing ? pauseRide() : resumeRide()) : tour.playing ? pauseTour() : resumeTour()));
   $('pPrev').addEventListener('click', () => (ride.on ? rideStep(-1) : tourStep(-1)));
@@ -3096,4 +3276,4 @@ map.on('load', () => {
 addEventListener('hashchange', () => applyHash());
 
 // 方便除錯：在 console 存取 map
-window.__tw3d = { map, state, tour, quake, profile, travel, ride, SPOTS, TOURS, elevationAt, sunPosition };
+window.__tw3d = { map, state, tour, quake, profile, travel, ride, SPOTS, TOURS, elevationAt, sunPosition, nextSunrise, demFixes };
