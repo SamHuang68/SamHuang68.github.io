@@ -74,24 +74,25 @@ export default async function run(browser, opts) {
     await waitFor(page, () => window.__tw3d.travel.sel?.kind === 'peak' && !document.getElementById('cardSun').hidden, null, 60000);
     const t = () => page.evaluate(() => document.getElementById('cardSun').textContent);
     const idle = () => waitFor(page, () => !window.__tw3d.map.isMoving() && window.__tw3d.map.areTilesLoaded(), null, 120000);
-    // 快轉時鐘會讓進行中的地形圖磚請求直接觸發網站的 12 秒逾時（實測 dem-shade z11「signal timed out」），
-    // 等地圖靜止也不保證沒有請求在路上。只排除快轉那一刻的逾時與取消訊息，其餘錯誤照算
-    const jump = async (fn) => {
-      const n0 = errors.length;
-      await fn();
-      await page.waitForTimeout(500);
-      errors.push(...errors.splice(n0).filter((e) => !/signal timed out|The user aborted a request/.test(e)));
-    };
+    // 快轉時鐘會讓還在路上的圖磚請求失敗：實測有地形圖磚觸發網站的 12 秒逾時（dem-shade、dem-flat「signal timed out」）、
+    // 被 MapLibre 取消的請求（「The user aborted a request.」）與 OpenFreeMap 向量圖磚「Failed to fetch」，
+    // 而且可能在快轉後數秒才回報。這組測的是日出一行，第一次快轉之後的地圖圖磚錯誤（[map] 開頭）不算；
+    // 快轉前的所有錯誤、快轉後的頁面例外與其他錯誤照算，平常時間的地圖錯誤由其他組檢查
     await idle();
     const a = await t();
-    await jump(() => page.clock.fastForward('10:00'));
+    const n0 = errors.length;
+    await page.clock.fastForward('10:00');
+    await page.waitForTimeout(500);
     const b = await t();
     await idle();
-    await jump(async () => { await page.clock.setSystemTime(new Date('2026-11-04T23:59:40+08:00')); await page.clock.fastForward('01:05'); });
+    await page.clock.setSystemTime(new Date('2026-11-04T23:59:40+08:00'));
+    await page.clock.fastForward('01:05');
+    await page.waitForTimeout(500);
     const c = await t();
+    const errs = [...errors.slice(0, n0), ...errors.slice(n0).filter((e) => !e.startsWith('[map]'))];
     ok('6 卡片開著跨過日出：今天 → 明天', /^今天（11\/4）日出 05:5\d/.test(a) && /^明天（11\/5）日出 05:5\d/.test(b), `${a} → ${b}`);
     ok('7 系統時間跳過午夜：明天 → 今天（同一天日出）', /^今天（11\/5）日出 05:5\d/.test(c), c);
-    ok('6–7 無 JS 錯誤', errors.length === 0, errors.slice(0, 3).join(' | '));
+    ok('6–7 無 JS 錯誤', errs.length === 0, errs.slice(0, 3).join(' | '));
     await ctx.close();
   }
 
