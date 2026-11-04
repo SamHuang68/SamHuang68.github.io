@@ -550,7 +550,8 @@ map.addControl(attribution, 'bottom-right');
 // 寬螢幕上 compact 仍預設展開；收成「i」按鈕，點開才顯示完整來源。
 map.once('idle', () => attribution._container?.classList.remove('maplibregl-compact-show'));
 map.addControl(new maplibregl.ScaleControl({ unit: 'metric', maxWidth: 110 }), 'bottom-left');
-map.on('error', (e) => console.warn('[map]', e.error?.message || e));
+// 附上圖源與圖磚，偶發的請求錯誤才查得到是哪個圖層（例如「The user aborted a request.」）
+map.on('error', (e) => console.warn('[map]', e.error?.message || e, e.sourceId ? `(${e.sourceId}${e.tile ? ` ${e.tile.tileID.canonical.z}/${e.tile.tileID.canonical.x}/${e.tile.tileID.canonical.y}` : ''})` : ''));
 const mapReady = new Promise((resolve) => map.once('load', resolve));
 
 const beaconEl = document.createElement('div');
@@ -848,6 +849,24 @@ function renderCard(s) {
   cardEl.hidden = false;
   document.body.classList.add('card-open');
   if (wasHidden && !map.isMoving()) relayout();
+  announceCard();
+}
+
+// 介紹卡的螢幕閱讀器播報。卡片本身不設 aria-live：逐欄更新時 NVDA 會拆成零碎片段、順序錯亂地念
+// （2026-11 以 NVDA 2026.3 實測；加 aria-atomic 則整張卡連按鈕名稱重複念好幾遍）。
+// 改在同一輪的欄位都填好後，依畫面順序把卡片文字整理成一段放進 #cardStatus（role=status），只念一次。
+let cardAnnouncePending = false;
+function announceCard() {
+  if (cardAnnouncePending) return;
+  cardAnnouncePending = true;
+  queueMicrotask(() => {
+    cardAnnouncePending = false;
+    if (cardEl.hidden) return;
+    const text = (id) => ($(id).hidden ? '' : $(id).textContent.trim().replace(/[。\s]+$/, ''));
+    const parts = [`${text('cardTag')} ${text('cardIndex')}`, text('cardTitle'), text('cardBadge'), `${text('cardElevLabel')} ${text('cardElev')}`,
+      `${text('cardCoordLabel')} ${text('cardCoord')}`, text('cardMetric'), text('cardSun'), text('cardDesc')];
+    $('cardStatus').textContent = `${parts.map((s) => s.trim()).filter(Boolean).join('。')}。`;
+  });
 }
 
 // 只清掉導覽點的選取（地圖高亮、信標、清單標記），不關卡片
@@ -1754,10 +1773,10 @@ const travelEarlyClicks = [];
 function useTravel() {
   if (!travelImport) {
     travelTries++;
-    travelImport = import(`./travel.js?v=2.5.0${travelTries > 1 ? `&retry=${travelTries}` : ''}`).then((m) => {
+    travelImport = import(`./travel.js?v=2.5.1${travelTries > 1 ? `&retry=${travelTries}` : ''}`).then((m) => {
       m.init({ maplibregl, map, $, travel, ride, profile, beacon, cardEl, esc, pathIndex, clamp, fmtInt, isMobile, withTimeout,
         mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
-        stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, GRADE_STOPS, DIF_COLORS, EMPTY });
+        stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, announceCard, GRADE_STOPS, DIF_COLORS, EMPTY });
       T = m;
       for (const b of travelEarlyClicks.splice(0)) b.click();
       return m;

@@ -1,4 +1,4 @@
-// 2.5.0：旅遊專項延遲載入模組、百岳日出隨時間更新、無障礙修正（工具列 landmark、來源說明鈕不被剖面蓋住、手機把手觸控高度）
+// 2.5.0／2.5.1：旅遊專項延遲載入模組、百岳日出隨時間更新、無障礙修正（工具列 landmark、來源說明鈕不被剖面蓋住、手機把手觸控高度；2.5.1 介紹卡播報）
 // 由 scripts/qa-taiwan-3d.mjs 執行；BASE 為子站網址，OUT 為截圖目錄，ok(name, pass, detail) 記錄結果
 let BASE, OUT, ok;
 
@@ -73,11 +73,21 @@ export default async function run(browser, opts) {
     const { ctx, page, errors } = await open(browser, '#peak=1', { clock: new Date('2026-11-04T05:50:00+08:00') });
     await waitFor(page, () => window.__tw3d.travel.sel?.kind === 'peak' && !document.getElementById('cardSun').hidden, null, 60000);
     const t = () => page.evaluate(() => document.getElementById('cardSun').textContent);
+    const idle = () => waitFor(page, () => !window.__tw3d.map.isMoving() && window.__tw3d.map.areTilesLoaded(), null, 120000);
+    // 快轉時鐘會讓進行中的地形圖磚請求直接觸發網站的 12 秒逾時（實測 dem-shade z11「signal timed out」），
+    // 等地圖靜止也不保證沒有請求在路上。只排除快轉那一刻的逾時與取消訊息，其餘錯誤照算
+    const jump = async (fn) => {
+      const n0 = errors.length;
+      await fn();
+      await page.waitForTimeout(500);
+      errors.push(...errors.splice(n0).filter((e) => !/signal timed out|The user aborted a request/.test(e)));
+    };
+    await idle();
     const a = await t();
-    await page.clock.fastForward('10:00');
+    await jump(() => page.clock.fastForward('10:00'));
     const b = await t();
-    await page.clock.setSystemTime(new Date('2026-11-04T23:59:40+08:00'));
-    await page.clock.fastForward('01:05');
+    await idle();
+    await jump(async () => { await page.clock.setSystemTime(new Date('2026-11-04T23:59:40+08:00')); await page.clock.fastForward('01:05'); });
     const c = await t();
     ok('6 卡片開著跨過日出：今天 → 明天', /^今天（11\/4）日出 05:5\d/.test(a) && /^明天（11\/5）日出 05:5\d/.test(b), `${a} → ${b}`);
     ok('7 系統時間跳過午夜：明天 → 今天（同一天日出）', /^今天（11\/5）日出 05:5\d/.test(c), c);
@@ -172,6 +182,28 @@ export default async function run(browser, opts) {
     await ctx.close();
   }
 
+  // 16（2.5.1，NVDA 2026.3 實測後的修正）：介紹卡改由 #cardStatus 依畫面順序播報一次
+  {
+    const { ctx, page, errors } = await open(browser, '#peak=1');
+    await waitFor(page, () => window.__tw3d.travel.sel?.kind === 'peak' && !document.getElementById('cardSun').hidden, null, 60000);
+    const order = (s, words) => words.every((w, i) => s.indexOf(w) >= 0 && (i === 0 || s.indexOf(w) > s.indexOf(words[i - 1])));
+    const peak = await page.evaluate(() => ({ live: document.getElementById('card').getAttribute('aria-live'), role: document.getElementById('cardStatus').getAttribute('role'), text: document.getElementById('cardStatus').textContent, sun: document.getElementById('cardSun').textContent }));
+    ok('16 百岳卡片：卡片本身不是 live region，#cardStatus 依序念出名稱、測高、座標、日出與說明', peak.live === null && peak.role === 'status' && order(peak.text, ['百岳 #1', '玉山', '最新測高 3,952 m', '座標', peak.sun.replace(/[。\s]+$/, ''), '常見登山路線']), JSON.stringify(peak).slice(0, 400));
+    await page.click('#cardNext');
+    await waitFor(page, () => document.getElementById('cardTitle').textContent === '雪山', null, 30000);
+    await page.waitForTimeout(200);
+    const next = await page.evaluate(() => document.getElementById('cardStatus').textContent);
+    ok('16 按「下一個」：播報換成雪山，只有一段', order(next, ['百岳 #2', '雪山', '最新測高']) && !/玉山（/.test(next.split('常見登山路線')[0]), next.slice(0, 120));
+    await page.click('#tab-spots');
+    await page.click('#spotList li:nth-child(2) button');
+    await waitFor(page, () => window.__tw3d.state.current, null, 30000);
+    await page.waitForTimeout(200);
+    const spot = await page.evaluate(() => ({ title: document.getElementById('cardTitle').textContent, text: document.getElementById('cardStatus').textContent }));
+    ok('16 導覽點卡片也由 #cardStatus 播報，名稱在前、說明在後', spot.text.includes(spot.title) && order(spot.text, [spot.title, '海拔', '座標']), JSON.stringify(spot).slice(0, 200));
+    ok('16 無 JS 錯誤', errors.length === 0, errors.slice(0, 3).join(' | '));
+    await ctx.close();
+  }
+
   // 11–14 需要攔截或延遲 travel.js。page.route 會讓 WebKit 的圖磚請求卡住，只在 Chromium／Firefox 測
   if (engine !== 'webkit') {
     const routed = async (handler) => {
@@ -223,7 +255,8 @@ export default async function run(browser, opts) {
     }
     // 14. 模組下載期間按「順時針」與「百岳」：載入後方向照按的套用，分段鈕的鍵盤焦點順序也正確
     {
-      const { ctx, page, errors } = await routed(async (r) => { await new Promise((s) => setTimeout(s, 2000)); r.continue(); });
+      // 延遲 6 秒：機器忙時三次點擊可能就超過 2 秒，模組先到了，就測不到「下載期間」
+      const { ctx, page, errors } = await routed(async (r) => { await new Promise((s) => setTimeout(s, 6000)); r.continue(); });
       await page.goto(BASE + '#cam=121,23.7,7.4,16,52', { waitUntil: 'load' });
       await waitFor(page, () => window.__tw3d && window.__tw3d.map.loaded());
       await page.click('#tab-travel');

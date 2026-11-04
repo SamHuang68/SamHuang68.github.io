@@ -4,12 +4,12 @@
 // travel、ride 兩個狀態物件留在 app.js：模組載入前，導覽、鍵盤與播放器也要能判斷有沒有選取、是否正在騎乘。
 let maplibregl, map, $, travel, ride, profile, beacon, cardEl, esc, pathIndex, clamp, fmtInt, isMobile, withTimeout,
   mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
-  stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, GRADE_STOPS, DIF_COLORS, EMPTY;
+  stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, announceCard, GRADE_STOPS, DIF_COLORS, EMPTY;
 
 export function init(api) {
   ({ maplibregl, map, $, travel, ride, profile, beacon, cardEl, esc, pathIndex, clamp, fmtInt, isMobile, withTimeout,
     mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
-    stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, GRADE_STOPS, DIF_COLORS, EMPTY } = api);
+    stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, announceCard, GRADE_STOPS, DIF_COLORS, EMPTY } = api);
   bindTravelUI();
 }
 
@@ -110,6 +110,7 @@ function showTravelCard(c) {
   cardEl.hidden = false;
   document.body.classList.add('card-open');
   if (wasHidden && !map.isMoving()) relayout();
+  announceCard();
 }
 
 function setTravelSel(sel) {
@@ -672,11 +673,13 @@ function peakSunText(p) {
 function renderPeakSun(p) {
   $('cardSun').textContent = peakSunText(p);
   $('cardSun').hidden = false;
+  announceCard();
   clearInterval(sunTimer);
   sunTimer = setInterval(() => {
     if (travel.sel?.kind !== 'peak' || travel.sel.rank !== p.rank || cardEl.hidden) { clearInterval(sunTimer); return; }
     const s = peakSunText(p);
-    if ($('cardSun').textContent !== s) $('cardSun').textContent = s;
+    // 卡片開著時只播報改了的日出這一行
+    if ($('cardSun').textContent !== s) { $('cardSun').textContent = s; $('cardStatus').textContent = s; }
   }, 60000);
 }
 
