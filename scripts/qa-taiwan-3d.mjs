@@ -1,4 +1,4 @@
-// 台灣 3D 地景子站的定向回歸：導覽與剖面、地震與板塊、旅遊專項、GPX 匯出、日照地形與鍵盤操作（各次審查修正的情境）
+// 台灣 3D 地景子站的定向回歸：導覽與剖面、地震與板塊、旅遊專項、GPX 匯出、日照地形與鍵盤操作、旅遊模組延遲載入（各次審查修正的情境）
 // 不是首頁全套 QA；會在本機啟動 scripts/serve-local.mjs（除非指定 --base）
 // 用法：node scripts/qa-taiwan-3d.mjs [--browser=chromium|webkit|firefox] [--only=regress,travel-smoke]
 //       [--base=<子站網址>] [--playwright=<playwright 套件目錄>] [--out=<截圖與結果目錄>] [--port=4192]
@@ -8,7 +8,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SUITES = ['regress', 'quake-smoke', 'quake-review', 'travel-smoke', 'travel-review', 'gpx', 'sun-terrain-a11y'];
+const SUITES = ['regress', 'quake-smoke', 'quake-review', 'travel-smoke', 'travel-review', 'gpx', 'sun-terrain-a11y', 'lazy-travel'];
 const args = Object.fromEntries(process.argv.slice(2).map((s) => s.replace(/^--/, '').split(/=(.*)/s).slice(0, 2)));
 const engine = args.browser || 'chromium';
 const only = args.only ? args.only.split(',') : SUITES;

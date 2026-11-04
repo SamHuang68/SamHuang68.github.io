@@ -101,7 +101,8 @@ export default async function run(browser, opts) {
       await waitFor(page, () => document.querySelectorAll('#hikeList button').length > 50, null, 30000);
       const n0 = await page.evaluate(() => document.querySelectorAll('#hikeList button').length);
       await page.fill('#hikeFilter', '嘉明湖');
-      await page.waitForTimeout(400);
+      // 篩選延遲 120 ms 才重畫，機器忙時固定等 400 ms 不夠；等到清單更新為止，最多 5 秒
+      await waitFor(page, () => document.querySelectorAll('#hikeList button').length < 117, null, 5000).catch(() => {});
       const n1 = await page.evaluate(() => [...document.querySelectorAll('#hikeList button')].map((b) => b.innerText.replace(/\s+/g, ' ')));
       ok('步道清單與篩選', n0 === 117 && n1.length >= 1 && n1[0].includes('嘉明湖'), `${n0} → ${n1.join(' | ')}`);
       await page.click('#hikeList li:nth-child(1) button');

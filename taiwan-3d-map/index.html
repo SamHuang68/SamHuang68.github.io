@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>台灣 3D 地景</title>
   <meta name="description" content="在 3D 地球上飛覽台灣：即時串流衛星影像與實測地形，80 處導覽點、14 條主題路線、日照與海平面模擬、地形剖面、半世紀地震目錄與隱沒帶震源剖面，以及自行車環島、健行步道與百岳旅遊專項。">
-  <meta name="app-version" content="2.4.0">
+  <meta name="app-version" content="2.5.0">
   <meta name="theme-color" content="#0b0d10">
   <meta property="og:type" content="website">
   <meta property="og:title" content="台灣 3D 地景">
@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.14.0/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="app.css?v=2.4.0">
+  <link rel="stylesheet" href="app.css?v=2.5.0">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -288,6 +288,7 @@
     </div>
   </article>
 
+  <aside aria-label="地圖操作">
   <div class="tools" role="toolbar" aria-label="地圖工具" aria-orientation="vertical">
     <button class="tool" id="tHome" type="button" title="回到全島 (H)" aria-label="回到全島"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg></button>
     <button class="tool compass" id="tCompass" type="button" title="指北 (N)" aria-label="轉回正北"><svg class="ic" aria-hidden="true"><use href="#i-compass"/></svg></button>
@@ -300,8 +301,9 @@
     <button class="tool" id="tShare" type="button" title="複製分享連結" aria-label="複製分享連結"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg></button>
     <button class="tool" id="tFull" type="button" title="全螢幕 (F)" aria-label="全螢幕"><svg class="ic" aria-hidden="true"><use href="#i-expand"/></svg></button>
   </div>
+  </aside>
 
-  <div class="player" id="player" hidden>
+  <div class="player" id="player" role="region" aria-label="播放控制" hidden>
     <div class="player-meta">
       <span class="player-tour" id="playerTour"></span>
       <span class="player-stop" id="playerStop"></span>
@@ -367,6 +369,6 @@
 
   <noscript><p class="noscript">這個頁面需要 JavaScript 與 WebGL。也可改看<a href="classic.html">舊版介面</a>。</p></noscript>
 
-  <script type="module" src="app.js?v=2.4.0"></script>
+  <script type="module" src="app.js?v=2.5.0"></script>
 </body>
 </html>

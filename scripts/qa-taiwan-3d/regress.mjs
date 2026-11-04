@@ -119,7 +119,8 @@ export default async function run(browser, opts) {
         await waitFor(page, () => !window.__tw3d.map.isMoving());
         const b0 = await page.evaluate(() => window.__tw3d.map.getBearing());
         await page.click('#cardOrbit');
-        await page.waitForTimeout(2500);
+        // 機器忙時無頭 Chromium 的軟體繪圖一秒可能不到一格（2.5 秒只轉 1.1°，舊版同樣會發生），等到轉超過 2° 為止，最多 10 秒
+        await waitFor(page, (b) => Math.abs(window.__tw3d.map.getBearing() - b) > 2, b0, 10000).catch(() => {});
         const b1 = await page.evaluate(() => window.__tw3d.map.getBearing());
         ok('環繞會轉動鏡頭', Math.abs(b1 - b0) > 2, `Δ=${(b1 - b0).toFixed(1)}°`);
         ok('環繞無 JS 錯誤', errors.length === 0, errors.join(' | '));
