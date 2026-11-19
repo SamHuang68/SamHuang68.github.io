@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>台灣 3D 地景</title>
   <meta name="description" content="在 3D 地球上飛覽台灣：即時串流衛星影像與實測地形，80 處導覽點、14 條主題路線、日照與海平面模擬、地形剖面、半世紀地震目錄與隱沒帶震源剖面，以及自行車環島、健行步道與百岳旅遊專項。">
-  <meta name="app-version" content="2.5.1">
+  <meta name="app-version" content="2.6.0">
   <meta name="theme-color" content="#0b0d10">
   <meta property="og:type" content="website">
   <meta property="og:title" content="台灣 3D 地景">
@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.14.0/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="app.css?v=2.5.1">
+  <link rel="stylesheet" href="app.css?v=2.6.0">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -42,6 +42,9 @@
       <symbol id="i-panel" viewBox="0 0 24 24"><path d="M4 5h16v14H4zM10 5v14"/></symbol>
       <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol>
       <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+      <symbol id="i-skyline" viewBox="0 0 24 24"><path d="M2 19h20M3 16l4-6 3 3.5 5-7.5 6 10"/><circle cx="18.5" cy="6.5" r="2"/></symbol>
+      <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.5 6 7.8 6 11a6 6 0 0 1-12 0c0-3.2 2.5-6.5 6-11z"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V5M7 9.5 12 4.5l5 5M5 20h14"/></symbol>
     </defs>
   </svg>
 
@@ -96,6 +99,11 @@
         <button role="radio" aria-checked="true" data-mode="bike">自行車環島</button>
         <button role="radio" aria-checked="false" data-mode="hike">健行步道</button>
         <button role="radio" aria-checked="false" data-mode="peaks">百岳</button>
+      </div>
+      <div class="gpx-bar" id="gpxBar">
+        <input type="file" id="gpxFile" accept=".gpx,application/gpx+xml,text/xml" hidden>
+        <button class="btn" id="gpxImportBtn" type="button" title="匯入個人 GPX 軌跡檔（亦可直接將 .gpx 拖曳至地圖）"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg>匯入 GPX 軌跡</button>
+        <button class="btn" id="gpxDemoBtn" type="button" title="載入能高安東軍縱走示範 GPX 軌跡">示範縱走 GPX</button>
       </div>
 
       <div class="travel-body" id="travel-bike">
@@ -247,6 +255,21 @@
         </div>
         <p class="hint" id="seaHint">現今海平面。</p>
       </div>
+
+      <div class="group">
+        <div class="group-head">
+          <h2 class="group-title" id="cloudLabel">高山雲海（逆溫層）</h2>
+          <output class="readout" id="cloudOut" for="cloud">關閉</output>
+        </div>
+        <input class="range range-cloud" type="range" id="cloud" min="0" max="3500" step="50" value="0" aria-labelledby="cloudLabel">
+        <div class="presets" id="cloudPresets">
+          <button type="button" data-cloud="0">關閉</button>
+          <button type="button" data-cloud="1200">1,200 m</button>
+          <button type="button" data-cloud="2200">阿里山 2,200</button>
+          <button type="button" data-cloud="3000">百岳 3,000</button>
+        </div>
+        <p class="hint" id="cloudHint">關閉雲海。拉動滑桿可模擬台灣高山逆溫層雲海與百岳破雲群峰景觀。</p>
+      </div>
     </section>
 
     <footer class="panel-foot">
@@ -276,12 +299,14 @@
     </dl>
     <p class="card-metric" id="cardMetric"></p>
     <p class="card-sun" id="cardSun" hidden></p>
+    <p class="card-horizon" id="cardHorizon" hidden></p>
     <p class="card-desc" id="cardDesc"></p>
     <div class="card-actions">
       <button class="btn" id="cardPrev" type="button" aria-label="上一個導覽點"><svg class="ic" aria-hidden="true"><use href="#i-prev"/></svg></button>
       <button class="btn" id="cardOrbit" type="button"><svg class="ic" aria-hidden="true"><use href="#i-orbit"/></svg>環繞</button>
       <button class="btn" id="cardRide" type="button" hidden><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>飛覽</button>
       <button class="btn" id="cardProfile" type="button"><svg class="ic" aria-hidden="true"><use href="#i-profile"/></svg>剖面</button>
+      <button class="btn" id="cardSkyline" type="button" title="360° 真實山稜天際線與百岳指認"><svg class="ic" aria-hidden="true"><use href="#i-skyline"/></svg>環景</button>
       <button class="btn" id="cardShare" type="button"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg>分享</button>
       <button class="btn" id="cardGpx" type="button" aria-label="下載 GPX 軌跡" title="下載 GPX 軌跡" hidden><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg></button>
       <button class="btn" id="cardNext" type="button" aria-label="下一個導覽點"><svg class="ic" aria-hidden="true"><use href="#i-next"/></svg></button>
@@ -297,7 +322,8 @@
     <button class="tool" id="tZoomOut" type="button" title="縮小" aria-label="縮小"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button>
     <button class="tool" id="tPitch" type="button" title="切換俯視／立體 (P)" aria-label="切換俯視或立體" aria-pressed="true"><svg class="ic" aria-hidden="true"><use href="#i-cube"/></svg></button>
     <button class="tool" id="tOrbit" type="button" title="環繞飛行 (O)" aria-label="環繞飛行" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-orbit"/></svg></button>
-    <button class="tool" id="tProfile" type="button" title="地形剖面" aria-label="地形剖面" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-profile"/></svg></button>
+    <button class="tool" id="tProfile" type="button" title="地形剖面與雙點通視" aria-label="地形剖面" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-profile"/></svg></button>
+    <button class="tool" id="tRain" type="button" title="落雨順流追蹤 (R)：點選山坡看雨水流向何處出海" aria-label="落雨順流追蹤" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-drop"/></svg></button>
     <button class="tool" id="tShot" type="button" title="匯出畫面" aria-label="匯出目前畫面為圖片"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg></button>
     <button class="tool" id="tShare" type="button" title="複製分享連結" aria-label="複製分享連結"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg></button>
     <button class="tool" id="tFull" type="button" title="全螢幕 (F)" aria-label="全螢幕"><svg class="ic" aria-hidden="true"><use href="#i-expand"/></svg></button>
@@ -323,6 +349,7 @@
     <header class="profile-head">
       <h2 id="profileTitle">地形剖面</h2>
       <p class="profile-stats" id="profileStats">在地圖上點選起點與終點</p>
+      <button class="btn btn-sm" id="profileAction" type="button" hidden><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span>飛覽</span></button>
       <button class="icon-btn" id="profileClose" type="button" aria-label="關閉剖面"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
     </header>
     <p class="profile-note" id="profileNote" hidden></p>
@@ -361,15 +388,20 @@
       <li><b>鍵盤操作</b>：剖面圖可用 Tab 聚焦，左右鍵移動游標（一次約 1%，Shift 一次約 10%），Home／End 到兩端。環島全線剖面按 Enter 選取游標所在的那一天；環島與步道飛覽中按 Enter 跳到游標處。聚焦剖面時，螢幕閱讀器會讀出長度、起終點與最高、最低點。</li>
       <li><b>安全提醒</b>：本頁資料僅供規劃參考。登山與長途騎乘前，請查詢官方公告、天候與入山入園規定。</li>
       <li><b>導覽點文字</b>：2026-11 依政府機關、營運單位與學術資料逐點查證修訂；少數細節僅有百科或新聞來源，查無來源的說法已刪除。</li>
+      <li><b>360° 環景稜線與破稜日出</b>：利用 Terrarium DEM 圖磚於瀏覽器端進行 360° 射線投射（Ray-Casting），解算近／中／遠層真實山稜天際線、地球曲率與大氣折射，自動指認視線無遮蔽之可見百岳，並計算東方山稜遮擋後的實際破稜日出時間。</li>
+      <li><b>雙點通視與落雨順流追蹤</b>：直線剖面自動解算 A↔B 視線通視性（Line-of-Sight）與最高遮擋山稜；落雨順流追蹤（快捷鍵 R）依 DEM 最陡梯度追蹤雨水從山坡匯入溪谷至出海口的 3D 水路與落差剖面。</li>
+      <li><b>個人 GPX 匯入與高山雲海模擬</b>：支援拖曳或選取個人 GPX 軌跡檔貼合 3D 地形、坡度著色與沿線飛覽；高山雲海滑桿依逆溫層高程門檻模擬山谷雲海與百岳破雲景觀。</li>
       <li><b>繪圖引擎</b>：MapLibre GL JS 6.14（BSD-3-Clause）。</li>
     </ul>
     <form method="dialog"><button class="btn" type="submit">關閉</button></form>
   </dialog>
 
+  <div class="drop-veil" id="dropVeil" hidden aria-hidden="true"><div class="drop-box"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg><p>放開以匯入 GPX 軌跡並貼合 3D 地形</p></div></div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <noscript><p class="noscript">這個頁面需要 JavaScript 與 WebGL。也可改看<a href="classic.html">舊版介面</a>。</p></noscript>
 
-  <script type="module" src="app.js?v=2.5.1"></script>
+  <script type="module" src="app.js?v=2.6.0"></script>
 </body>
 </html>
