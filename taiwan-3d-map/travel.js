@@ -3,12 +3,12 @@
 // 共用的地圖、狀態物件與工具函式由 init() 一次傳入，名稱與 app.js 相同，區段內的程式原樣沿用。
 // travel、ride 兩個狀態物件留在 app.js：模組載入前，導覽、鍵盤與播放器也要能判斷有沒有選取、是否正在騎乘。
 let maplibregl, map, $, travel, ride, profile, beacon, cardEl, esc, pathIndex, clamp, fmtInt, isMobile, withTimeout,
-  mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
+  mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, computeHorizonSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
   stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, announceCard, GRADE_STOPS, DIF_COLORS, EMPTY;
 
 export function init(api) {
   ({ maplibregl, map, $, travel, ride, profile, beacon, cardEl, esc, pathIndex, clamp, fmtInt, isMobile, withTimeout,
-    mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
+    mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, computeHorizonSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
     stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, announceCard, GRADE_STOPS, DIF_COLORS, EMPTY } = api);
   bindTravelUI();
 }
@@ -102,8 +102,12 @@ function showTravelCard(c) {
   // 環島與步道用「飛覽」（沿著路線前進）取代「環繞」；可匯出時再加一顆只有圖示的 GPX 下載鈕
   $('cardRide').hidden = !(travel.sel?.mode === 'bike' || travel.sel?.kind === 'trail');
   $('cardOrbit').hidden = !$('cardRide').hidden;
+  $('cardSkyline').hidden = travel.sel?.kind !== 'peak';
   $('cardGpx').hidden = !gpxForSel();
   $('cardSun').hidden = true;
+  $('cardHorizon').hidden = true;
+  if ($('cardContext')) $('cardContext').hidden = true;
+  if ($('cardProfileLabel')) $('cardProfileLabel').textContent = travel.sel?.kind === 'peak' ? '山稜剖面' : '路線剖面';
   $('cardPrev').setAttribute('aria-label', '上一個');
   $('cardNext').setAttribute('aria-label', '下一個');
   const wasHidden = cardEl.hidden;
@@ -674,6 +678,19 @@ function renderPeakSun(p) {
   $('cardSun').textContent = peakSunText(p);
   $('cardSun').hidden = false;
   announceCard();
+  // 非同步解算東方真實山稜天際線遮擋角與實際破稜日出時刻（不變動 #cardSun 與 #cardStatus 初次播報）
+  if (computeHorizonSunrise) {
+    const rank = p.rank;
+    computeHorizonSunrise(p.lat, p.lon, p.h).then((hz) => {
+      if (travel.sel?.kind !== 'peak' || travel.sel.rank !== rank || cardEl.hidden) return;
+      const rt = new Date(Math.round(hz.ridgeDate.getTime() / 60000) * 60000 + 8 * 3600e3);
+      const hm = `${String(rt.getUTCHours()).padStart(2, '0')}:${String(rt.getUTCMinutes()).padStart(2, '0')}`;
+      $('cardHorizon').textContent = hz.delayMin > 0 && hz.maxAngle > -0.5
+        ? `實測東稜遮擋：距 ${hz.maxDist.toFixed(1)} km 山稜仰角 +${hz.maxAngle.toFixed(1)}° · 破稜日出 ${hm}（晚 ${hz.delayMin} 分）`
+        : `實測東向天際線：最高稜線仰角 ${hz.maxAngle >= 0 ? '+' : ''}${hz.maxAngle.toFixed(1)}°（無高稜遮擋，與海平面日出同步）`;
+      $('cardHorizon').hidden = false;
+    }).catch(() => {});
+  }
   clearInterval(sunTimer);
   sunTimer = setInterval(() => {
     if (travel.sel?.kind !== 'peak' || travel.sel.rank !== p.rank || cardEl.hidden) { clearInterval(sunTimer); return; }
@@ -1003,5 +1020,9 @@ function mapClick(box) {
   return false;
 }
 
+function startCustomRide(opts) {
+  startRide({ mode: 'custom', pitch: 64, ...opts });
+}
+
 export { loadTravel, setTravelMode, syncTravelLayers, clearTravelSel, travelStep, travelProfile, travelHash, selectPeak, selectTrail, peakByRank,
-  stopRide, pauseRide, resumeRide, rideStep, setRideSpeed, RIDE_SPEEDS, mapClick };
+  stopRide, pauseRide, resumeRide, rideStep, rideSeek, setRideSpeed, startCustomRide, fitCoords, RIDE_SPEEDS, mapClick };

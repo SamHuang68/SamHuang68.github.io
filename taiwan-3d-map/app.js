@@ -102,6 +102,7 @@ const state = {
   base: 'satellite',
   exaggeration: 1.6,
   sea: 0,
+  cloud: 0,
   sunMinutes: 630,
   season: 'today',
   group: 'all',
@@ -450,6 +451,10 @@ function buildStyle() {
       peaks: { type: 'geojson', data: EMPTY },
       profile: { type: 'geojson', data: EMPTY },
       cursor: { type: 'geojson', data: EMPTY },
+      rain: { type: 'geojson', data: EMPTY },
+      gpx: { type: 'geojson', data: EMPTY },
+      'gpx-wpts': { type: 'geojson', data: EMPTY },
+      skyline: { type: 'geojson', data: EMPTY },
     },
     terrain: { source: 'dem-flat', exaggeration: state.exaggeration },
     layers: [
@@ -463,6 +468,7 @@ function buildStyle() {
         id: 'shade', type: 'hillshade', source: 'dem-shade',
         paint: { 'hillshade-method': 'combined', 'hillshade-illumination-anchor': 'map', 'hillshade-exaggeration': 0.3, 'hillshade-shadow-color': 'rgba(6,10,22,0.6)', 'hillshade-highlight-color': 'rgba(255,248,232,0.16)', 'hillshade-accent-color': 'rgba(0,0,0,0)' },
       },
+      { id: 'cloud-sea', type: 'color-relief', source: 'dem-shade', layout: { visibility: 'none' }, paint: { 'color-relief-color': cloudRamp(2200) } },
       { id: 'parks', type: 'line', source: 'omt', 'source-layer': 'park', filter: ['==', ['get', 'class'], 'national_park'], layout: { visibility: 'none' }, paint: { 'line-color': '#a6e38a', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 1, 12, 2.4], 'line-dasharray': [3, 2], 'line-opacity': 0.9 } },
       { id: 'rivers', type: 'line', source: 'omt', 'source-layer': 'waterway', minzoom: 6, filter: ['==', ['get', 'class'], 'river'], layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#7ad6ff', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.7, 10, 1.6, 14, 3.5], 'line-opacity': 0.9 } },
       { id: 'roads', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 6, filter: ['match', ['get', 'class'], ['motorway', 'trunk'], true, false], layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ffd38a', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.6, 10, 1.4, 14, 3], 'line-opacity': 0.85 } },
@@ -483,6 +489,14 @@ function buildStyle() {
       { id: 'profile-line-casing', type: 'line', source: 'profile', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round' }, paint: { 'line-color': 'rgba(0,0,0,0.45)', 'line-width': 5 } },
       { id: 'profile-line', type: 'line', source: 'profile', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round' }, paint: { 'line-color': '#ffffff', 'line-width': 2.2, 'line-dasharray': [2, 1.4] } },
       { id: 'profile-ends', type: 'circle', source: 'profile', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 5, 'circle-color': '#e9b44c', 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 2 } },
+      { id: 'rain-glow', type: 'line', source: 'rain', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': 'rgba(94,194,230,0.38)', 'line-width': 8 } },
+      { id: 'rain-line', type: 'line', source: 'rain', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#5ec2e6', 'line-width': 3 } },
+      { id: 'rain-ends', type: 'circle', source: 'rain', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 5.5, 'circle-color': ['coalesce', ['get', 'color'], '#5ec2e6'], 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 2 } },
+      { id: 'gpx-casing', type: 'line', source: 'gpx', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': 'rgba(8,10,14,0.75)', 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 4.5, 13, 8.5] } },
+      { id: 'gpx-line', type: 'line', source: 'gpx', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': GRADE_COLOR, 'line-width': ['interpolate', ['linear'], ['zoom'], 6, 2.6, 13, 5] } },
+      { id: 'gpx-wpt', type: 'circle', source: 'gpx-wpts', paint: { 'circle-radius': 5.5, 'circle-color': '#e9b44c', 'circle-stroke-color': '#0b0d10', 'circle-stroke-width': 2 } },
+      { id: 'gpx-wpt-label', type: 'symbol', source: 'gpx-wpts', layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-size': 11.5, 'text-offset': [0, 0.9], 'text-anchor': 'top' }, paint: { ...TEXT_PAINT, 'text-color': '#ffd88a' } },
+      { id: 'skyline-ray', type: 'line', source: 'skyline', layout: { 'line-cap': 'round' }, paint: { 'line-color': '#e9b44c', 'line-width': 2.2, 'line-dasharray': [2, 1.4] } },
       { id: 'quakes-ring', type: 'circle', source: 'quakes', layout: { visibility: 'none' }, paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, ['*', ['-', ['get', 'mag'], 5], 9], 10, ['*', ['-', ['get', 'mag'], 5], 30]], 'circle-color': 'rgba(255,122,89,0.16)', 'circle-stroke-color': '#ff7a59', 'circle-stroke-width': 1.6, 'circle-pitch-alignment': 'map' } },
       { id: 'parks-label', type: 'symbol', source: 'omt', 'source-layer': 'park', minzoom: 8, filter: ['==', ['get', 'class'], 'national_park'], layout: { visibility: 'none', 'text-field': NAME, 'text-font': ['Noto Sans Italic'], 'text-size': 12, 'text-max-width': 7 }, paint: { ...TEXT_PAINT, 'text-color': '#c7f0b2' } },
       { id: 'rivers-label', type: 'symbol', source: 'omt', 'source-layer': 'waterway', minzoom: 9, filter: ['==', ['get', 'class'], 'river'], layout: { visibility: 'none', 'symbol-placement': 'line', 'text-field': NAME, 'text-font': ['Noto Sans Italic'], 'text-size': 11.5, 'text-letter-spacing': 0.1 }, paint: { ...TEXT_PAINT, 'text-color': '#a9e6ff' } },
@@ -673,6 +687,39 @@ function applySea() {
   map.setLayoutProperty('sea', 'visibility', 'visible');
 }
 
+// ---------------------------------------------------------------- 高山雲海（逆溫層）模擬
+function cloudRamp(H) {
+  const clear = 'rgba(0,0,0,0)';
+  const base = Math.max(60, H - 750);
+  const mid = Math.max(base + 40, H - 220);
+  const top = Math.max(mid + 20, H - 25);
+  return ['interpolate', ['linear'], ['elevation'],
+    -12000, clear,
+    Math.max(10, base - 80), clear,
+    base, 'rgba(218,230,246,0.32)',
+    mid, 'rgba(238,245,253,0.84)',
+    top, 'rgba(250,253,255,0.95)',
+    H + 15, 'rgba(255,248,235,0.52)',
+    H + 55, clear,
+    9000, clear];
+}
+
+function cloudCaption(H) {
+  if (H <= 0) return '關閉雲海。拉動滑桿可模擬台灣高山逆溫層雲海與百岳破雲群峰景觀。';
+  if (H <= 1400) return `雲頂海拔 ${fmtInt(H)} m：低海拔山谷與盆地（日月潭、溪頭、臺北盆地周緣）湧現晨霧雲海。`;
+  if (H <= 2500) return `雲頂海拔 ${fmtInt(H)} m：典型秋冬逆溫層高度，阿里山、大雪山、太平山可俯瞰壯闊山谷雲海。`;
+  return `雲頂海拔 ${fmtInt(H)} m：高空雲海淹沒中低山稜，僅玉山、雪山、中央山脈等三千公尺百岳如群島浮出雲面。`;
+}
+
+function applyCloud() {
+  const H = state.cloud;
+  $('cloudOut').textContent = H <= 0 ? '關閉' : `${fmtInt(H)} m`;
+  $('cloudHint').textContent = cloudCaption(H);
+  if (H <= 0) { map.setLayoutProperty('cloud-sea', 'visibility', 'none'); return; }
+  map.setPaintProperty('cloud-sea', 'color-relief-color', cloudRamp(H));
+  map.setLayoutProperty('cloud-sea', 'visibility', 'visible');
+}
+
 // ---------------------------------------------------------------- 底圖與圖層
 function applyBase() {
   const b = state.base;
@@ -840,16 +887,179 @@ function renderCard(s) {
   $('cardRide').hidden = true;
   $('cardGpx').hidden = true;
   $('cardSun').hidden = true;
+  $('cardHorizon').hidden = true;
+  $('cardSkyline').hidden = s.elev < -100;
   $('cardOrbit').hidden = false;
   $('cardPrev').setAttribute('aria-label', '上一個導覽點');
   $('cardNext').setAttribute('aria-label', '下一個導覽點');
   $('cardMetric').textContent = s.metric;
   $('cardDesc').textContent = s.desc;
+  const tr = spotTransect(s);
+  $('cardProfileLabel').textContent = tr.btnLabel;
+  $('cardProfile').title = `${tr.title}（${tr.aLabel} → ${tr.bLabel}）`;
+  renderSpotContext(s, tr);
   const wasHidden = cardEl.hidden;
   cardEl.hidden = false;
   document.body.classList.add('card-open');
   if (wasHidden && !map.isMoving()) relayout();
   announceCard();
+}
+
+// ---------------------------------------------------------------- 導覽點專屬深度情報與局部特徵剖面
+const GROUP_SPEC_LABELS = {
+  mountain: ['山岳定位', '測高與地標', '高山地形剖面'],
+  landscape: ['地貌成因', '地質／水文尺度', '地景特徵剖面'],
+  ecology: ['生態與綠能', '棲地／容量指標', '棲地環境剖面'],
+  tech: ['核心技術定位', '產能／觀測規格', '園區台地剖面'],
+  infra: ['工程樞紐定位', '建設規格與運量', '工程廊道剖面'],
+  heritage: ['文化資產定位', '歷史年代與規模', '遺址地貌剖面'],
+};
+
+// 為不同導覽點量身定制有實際地理意義的局部特徵剖面（取代過去千篇一律的 120.0°E–121.95°E 全島 200 km 橫切）
+const CUSTOM_TRANSECTS = {
+  yushan: { a: [120.892, 23.476], b: [121.022, 23.464], aLabel: '塔塔加鞍部', bLabel: '玉山東峰・秀姑巒源', btnLabel: '登頂剖面', title: '玉山登頂稜線剖面', note: '自塔塔加鞍部經排雲山莊攀升至玉山主峰（3,952 m）與東峰之完整登頂高程變化。' },
+  paiyun_lodge: { a: [120.892, 23.476], b: [120.975, 23.470], aLabel: '塔塔加登山口', bLabel: '玉山主峰頂', btnLabel: '登頂剖面', title: '排雲山莊登頂剖面', note: '塔塔加登山口至排雲山莊（3,402 m）及最後 2.4 公里碎石陡坡攻頂玉山主峰的路線剖面。' },
+  xueshan: { a: [121.215, 24.375], b: [121.315, 24.370], aLabel: '雪山主峰頂', bLabel: '一號圈谷・七家灣溪', btnLabel: '圈谷剖面', title: '雪山冰斗圈谷剖面', note: '自雪山主峰（3,886 m）東北坡下切雪山一號冰斗圈谷，一路降至武陵七家灣溪谷的冰河地形剖面。' },
+  nanhu_cirque: { a: [121.355, 24.385], b: [121.465, 24.355], aLabel: '思源埡口・蘭陽溪源', bLabel: '南湖上下圈谷・主峰', btnLabel: '圈谷剖面', title: '南湖大山冰河圈谷剖面', note: '跨越蘭陽溪與大甲溪分水嶺、爬升至南湖大山上下冰河圈谷與主峰（3,742 m）的高山剖面。' },
+  dabajian_peak: { a: [121.185, 24.475], b: [121.295, 24.455], aLabel: '馬達拉溪溪谷', bLabel: '大霸尖山・聖稜北端', btnLabel: '奇峰剖面', title: '大霸尖山酒桶孤峰剖面', note: '展現大霸尖山（3,492 m）水平砂頁岩互層在山脊上突起的酒桶狀懸壁地形。' },
+  taroko_gorge: { a: [121.567, 24.212], b: [121.567, 24.135], aLabel: '錐麓山北稜', bLabel: '立霧溪谷・塔山南稜', btnLabel: '峽谷剖面', title: '太魯閣大理岩峽谷橫剖面', note: '南北向垂直橫切立霧溪峽谷，呈現兩側逾 1,100 m 大理岩斷崖夾峙深邃溪谷的 V 型下切地貌。' },
+  suhua_qingshui: { a: [121.630, 24.225], b: [121.775, 24.225], aLabel: '清水大山 (2,408m)', bLabel: '太平洋深海', btnLabel: '山海斷崖', title: '清水斷崖山海落差剖面', note: '短短 15 公里內由海拔 2,408 m 的清水大山近乎垂直墜入太平洋千米深海的極限海崖地形。' },
+  kuroshio_waves: { a: [121.625, 24.210], b: [121.820, 24.210], aLabel: '蘇花海岸山嶺', bLabel: '黑潮暖流深海槽', btnLabel: '海崖水深', title: '清水斷崖與黑潮海槽剖面', note: '自蘇花臨海斷崖直落太平洋大陸斜坡，呈現黑潮暖流緊貼東岸陡峭深海北上的海底地形。' },
+  xueshan_tunnel: { a: [121.665, 24.965], b: [121.785, 24.855], aLabel: '坪林北勢溪西口', bLabel: '頭城蘭陽平原東口', btnLabel: '隧道剖面', title: '國道五號雪山隧道岩體縱剖面', note: '沿雪山隧道 12.9 km 軸線切開雪山山脈，呈現隧道上方最高約 700 m 覆蓋岩層與四稜砂岩山體。' },
+  yuanshanzi: { a: [121.812, 25.088], b: [121.838, 25.126], aLabel: '瑞芳基隆河攔河堰', bLabel: '分洪隧道山嶺・東海出水口', btnLabel: '分洪剖面', title: '員山子分洪隧道縱剖面', note: '自基隆河上游瑞芳河段穿過 2.48 km 分洪隧道山體直排東海的防洪工程剖面。' },
+  dulishan_spiral: { a: [120.575, 23.535], b: [120.642, 23.538], aLabel: '樟腦寮站 (543m)', bLabel: '獨立山螺旋頂・梨園寮', btnLabel: '螺旋爬升', title: '獨立山三連螺旋鐵路爬升剖面', note: '阿里山林鐵自樟腦寮（543 m）繞獨立山三圈爬升 200 m 至獨立山站（743 m）的陡坡地形。' },
+  alishan_railway: { a: [120.575, 23.538], b: [120.645, 23.538], aLabel: '嘉南平原麓・樟腦寮', bLabel: '獨立山螺旋段・交力坪', btnLabel: '林鐵爬升', title: '阿里山林鐵獨立山爬升剖面', note: '展現林業鐵路自平原山麓切入獨立山陡峭山嶺的螺旋爬升梯度。' },
+  luye_valley: { a: [121.020, 22.925], b: [121.250, 22.925], aLabel: '中央山脈東麓', bLabel: '鹿野高台・海岸山脈', btnLabel: '縱谷剖面', title: '花東縱谷鹿野高台橫剖面', note: '橫跨中央山脈、鹿野高台河階、卑南溪谷與海岸山脈的板塊縫合縱谷地形。' },
+  chishang_fault: { a: [121.100, 23.122], b: [121.340, 23.122], aLabel: '中央山脈東坡', bLabel: '池上斷層縱谷・海岸山脈', btnLabel: '斷層縱谷', title: '花東縱谷與池上斷層橫剖面', note: '橫切歐亞板塊（中央山脈）與菲律賓海板塊（海岸山脈）碰撞縫合之池上縱谷平原。' },
+  guanshan_yuli: { a: [121.210, 23.332], b: [121.440, 23.332], aLabel: '中央山脈側', bLabel: '秀姑巒溪玉里斷層・海岸山脈', btnLabel: '板塊交界', title: '玉里秀姑巒溪板塊交界橫剖面', note: '跨越秀姑巒溪河谷與玉富自行車道板塊交界帶的東西向縱谷剖面。' },
+  changhua_wind: { a: [119.860, 24.040], b: [120.360, 24.040], aLabel: '大彰化外海風場', bLabel: '彰芳風場・芳苑海岸', btnLabel: '風場水深', title: '彰化外海離岸風場水深剖面', note: '展現台灣海峽大陸棚自芳苑海岸向外延伸 50 公里、水深約 15–45 m 的離岸風場海床。' },
+  hsinchu_sp: { a: [121.008, 24.830], b: [121.008, 24.715], aLabel: '頭前溪谷（竹北）', bLabel: '竹科寶山台地・北埔丘陵', btnLabel: '台地剖面', title: '新竹科學園區與寶山台地剖面', note: '南北向切過頭前溪沖積平原、新竹科學園區隆起台地與寶山丘陵的階地地形。' },
+  hsinchu_baoshan_2nm: { a: [121.005, 24.820], b: [121.005, 24.715], aLabel: '頭前溪南岸', bLabel: '竹科・寶山 Fab 20 台地', btnLabel: '台地剖面', title: '新竹寶山 2nm 晶圓廠台地剖面', note: '呈現寶山晶圓二十廠座落於新竹台地南側丘陵鞍部的穩固地貌。' },
+  central_sp: { a: [120.515, 24.212], b: [120.695, 24.212], aLabel: '臺中港海岸平原', bLabel: '大肚台地（中科）・臺中盆地', btnLabel: '台地剖面', title: '大肚台地與中部科學園區剖面', note: '東西向跨越海岸平原、大肚台地背斜隆起（中科園區所在）與臺中盆地的完整剖面。' },
+  southern_sp: { a: [120.080, 23.105], b: [120.380, 23.105], aLabel: '七股潟湖海岸', bLabel: '嘉南平原（南科）・新化丘陵', btnLabel: '平原剖面', title: '嘉南平原與南部科學園區剖面', note: '由台江七股海岸經嘉南平原南科園區延伸至東側新化丘陵的平緩沖積地形。' },
+  tsmc_fab18_nanotech: { a: [120.120, 23.112], b: [120.370, 23.112], aLabel: '西側濱海平原', bLabel: '南科 Fab 18・東側新化丘陵', btnLabel: '平原剖面', title: '南科晶圓十八廠嘉南平原剖面', note: '展現南科 3nm/5nm 基地所在的嘉南平原地勢與東西兩側高程變化。' },
+  taipei: { a: [121.390, 25.042], b: [121.630, 25.042], aLabel: '林口台地（西緣）', bLabel: '淡水河臺北盆地・南港山系', btnLabel: '盆地剖面', title: '臺北盆地與林口台地橫剖面', note: '一眼看清西側海拔 250 m 林口台地陡降至海拔僅 5–15 m 的臺北陷落盆地與東側丘陵。' },
+  guandu_confluence: { a: [121.415, 25.095], b: [121.525, 25.155], aLabel: '觀音山 (616m)', bLabel: '關渡門淡水河口・大屯火山群', btnLabel: '峽口剖面', title: '關渡門雙山夾峙峽口剖面', note: '橫跨觀音山與大屯火山群夾峙的「關渡門」淡水河出海隘口與紅樹林濕地。' },
+  guishan_milky: { a: [121.905, 24.842], b: [122.015, 24.842], aLabel: '蘭陽外海海盆', bLabel: '龜山島火山錐 (398m)・熱泉海域', btnLabel: '火山島剖面', title: '龜山島活火山與海底熱泉剖面', note: '自海底隆起至海拔 398 m 龜甲山峰、東側緊鄰淺海硫磺熱液噴口的火山島地形。' },
+  kueishan_vent: { a: [121.925, 24.838], b: [122.035, 24.830], aLabel: '龜山島主峰', bLabel: '龜首淺海熱液噴口・沖繩海槽', btnLabel: '熱泉水深', title: '龜山島海底熱液噴口水深剖面', note: '自龜山島陸域延伸至東側水深 5–30 m 熱液噴口群及沖繩海槽西端斜坡。' },
+  sunmoonlake: { a: [120.855, 23.858], b: [120.985, 23.858], aLabel: '水社大山西麓', bLabel: '日月潭盆地 (748m)・水社大山 (2,059m)', btnLabel: '湖盆剖面', title: '日月潭高山湖盆與水社大山剖面', note: '呈現海拔 748 m 日月潭蓄水盆地與東側海拔 2,059 m 水社大山的高差對比。' },
+  deji_hydro: { a: [121.115, 24.254], b: [121.220, 24.254], aLabel: '大甲溪下游谷關方向', bLabel: '德基雙曲拱壩 (1,408m)・上游集水谷', btnLabel: '水庫峽谷', title: '大甲溪德基水庫峽谷剖面', note: '呈現大甲溪深切高山峽谷與海拔 1,408 m 德基水庫蓄水谷地的陡峻地勢。' },
+  feitsui_watershed: { a: [121.525, 24.908], b: [121.645, 24.908], aLabel: '新店溪下游側', bLabel: '翡翠水庫拱壩・北勢溪千島湖', btnLabel: '水庫谷地', title: '翡翠水庫與北勢溪曲流谷地剖面', note: '橫切北勢溪淹沒曲流峽灣與茶園山巒交錯的水庫集水區地形。' },
+  liuqiu_canyon: { a: [120.260, 22.310], b: [120.460, 22.390], aLabel: '高屏海底峽谷深槽', bLabel: '小琉球珊瑚礁島・東港海岸', btnLabel: '海谷與礁島', title: '高屏海底峽谷與小琉球珊瑚島剖面', note: '展現小琉球隆起珊瑚礁島西側緊鄰水深逾數百公尺之高屏海底峽谷陡槽。' },
+  ryukyu_trench_abyss: { a: [121.550, 23.450], b: [123.250, 23.050], aLabel: '東台灣海岸山脈', bLabel: '琉球海溝深淵 (-6,030m)', btnLabel: '海溝深淵', title: '東台灣陸坡至琉球海溝深淵剖面', note: '自花東海岸跨越陡峭大陸斜坡直抵水深逾 6,000 公尺的琉球海溝板塊隱沒前緣。' },
+};
+
+function spotTransect(s) {
+  if (CUSTOM_TRANSECTS[s.id]) {
+    const c = CUSTOM_TRANSECTS[s.id];
+    const total = distanceKm(c.a, c.b);
+    const dSpot = clamp(distanceKm(c.a, [s.lon, s.lat]), 0, total);
+    return { ...c, spotDist: dSpot, spotLabel: s.short || s.name };
+  }
+  // 依導覽點類別與海陸位置自動建立高解析度局部特徵剖面（10–22 km）
+  const isSea = (s.elev ?? 0) < -5;
+  const isHigh = (s.elev ?? s.h ?? 0) > 1200;
+  const isEast = s.lon > 121.35;
+  const spanLon = isSea ? 0.14 : isHigh ? 0.08 : 0.09;
+  const spanLat = isEast ? 0.03 : 0.015;
+  const a = [s.lon - spanLon, s.lat - spanLat];
+  const b = [s.lon + spanLon, s.lat + spanLat];
+  const total = distanceKm(a, b);
+  const gInfo = GROUP_SPEC_LABELS[s.group] || ['地景定位', '現地指標', '局部地形剖面'];
+  const btnLabel = isSea ? '水深剖面' : isHigh ? '山稜剖面' : s.group === 'tech' ? '台地剖面' : s.group === 'infra' ? '工程剖面' : '局部剖面';
+  const aLabel = isEast ? '西側山嶺' : isSea ? '西側海域' : '西側平原／山麓';
+  const bLabel = isEast ? '東側太平洋岸' : isSea ? '東側海床' : '東側丘陵／山稜';
+  return {
+    a, b, aLabel, bLabel, btnLabel,
+    title: `${s.short || s.name}・${gInfo[2]}`,
+    note: `以「${s.short || s.name}」為中心之 ${(total).toFixed(1)} km 局部實測${isSea ? '海床水深' : '地形'}橫切剖面與雙點通視分析。`,
+    spotDist: total / 2,
+    spotLabel: s.short || s.name,
+  };
+}
+
+let spotCtxToken = 0;
+function renderSpotContext(s, tr) {
+  const box = $('cardContext');
+  if (!box) return;
+  const token = ++spotCtxToken;
+  const gLabels = GROUP_SPEC_LABELS[s.group] || ['導覽定位', '關鍵數據', '局部剖面'];
+  const badgeParts = (s.badge || '').split(/\s*·\s*/).filter(Boolean);
+  const metricParts = (s.metric || '').split(/\s*·\s*/).filter(Boolean);
+  const spec1 = badgeParts[1] || badgeParts[0] || s.badge;
+  const spec2 = metricParts[0] || s.metric;
+
+  // 找出距離最近的 3 個鄰近導覽點
+  const nearby = SPOTS
+    .filter((o) => o.id !== s.id)
+    .map((o) => ({ s: o, d: distanceKm([s.lon, s.lat], [o.lon, o.lat]), dir: compassWord((bearingTo([s.lon, s.lat], [o.lon, o.lat]) + 360) % 360) }))
+    .sort((u, v) => u.d - v.d)
+    .slice(0, 3);
+
+  // 找出收錄此導覽點的主題路線（排除全島 80 站）
+  const inTours = TOURS.filter((t) => t.id !== 'all' && t.stops.includes(s.id));
+
+  box.innerHTML = `
+    <div class="ctx-specs">
+      <div class="ctx-spec"><span class="ctx-spec-k">${esc(gLabels[0])}</span><span class="ctx-spec-v">${esc(spec1)}</span></div>
+      <div class="ctx-spec"><span class="ctx-spec-k">${esc(gLabels[1])}</span><span class="ctx-spec-v">${esc(spec2)}</span></div>
+    </div>
+    <div class="ctx-relief" id="cardLocalRelief">正在實測方圓 2.5 km 3D 地形與坡向…</div>
+    <div class="ctx-row" id="cardNearbyRow"><span class="ctx-label">鄰近導覽</span></div>
+    ${inTours.length ? '<div class="ctx-row" id="cardTourRow"><span class="ctx-label">主題路線</span></div>' : ''}
+  `;
+  box.hidden = false;
+
+  const nearRow = $('cardNearbyRow');
+  for (const n of nearby) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ctx-pill';
+    btn.style.setProperty('--c', GROUPS[n.s.group].color);
+    btn.innerHTML = `<i></i><span>${esc(n.s.short)}</span><small>${n.d < 10 ? n.d.toFixed(1) : Math.round(n.d)}km ${n.dir}</small>`;
+    btn.addEventListener('click', () => { stopTour(); selectSpot(n.s); });
+    nearRow.append(btn);
+  }
+
+  if (inTours.length) {
+    const tourRow = $('cardTourRow');
+    for (const t of inTours) {
+      const idx = t.stops.indexOf(s.id);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ctx-pill';
+      btn.innerHTML = `<span>🧭 ${esc(t.title)}</span><small>第 ${idx + 1}/${t.stops.length} 站</small>`;
+      btn.addEventListener('click', () => { if (isMobile()) setSheet(false); startTour(t, idx); });
+      tourRow.append(btn);
+    }
+  }
+
+  // 非同步實測該導覽點方圓 2.5 km 九宮格 DEM 高程與坡向特徵
+  const dirs = [0, 45, 90, 135, 180, 225, 270, 315];
+  const sampleCoords = [[s.lon, s.lat], ...dirs.map((az) => offsetKm([s.lon, s.lat], az, 2.5))];
+  Promise.all(sampleCoords.map(([x, y]) => elevationAt(x, y, 11))).then((es) => {
+    if (token !== spotCtxToken || state.current?.id !== s.id) return;
+    const el = $('cardLocalRelief');
+    if (!el) return;
+    const minE = Math.min(...es), maxE = Math.max(...es), span = Math.max(0, maxE - minE);
+    // 找出最低方向作為主坡向／出海方向
+    let lowIdx = 1;
+    for (let i = 2; i < es.length; i++) { if (es[i] < es[lowIdx]) lowIdx = i; }
+    const lowDir = compassWord(dirs[lowIdx - 1]);
+    let landform = '';
+    if (maxE <= 0) landform = span > 300 ? `大陸斜坡陡降海床 · 向${lowDir}加深` : `平緩大陸棚海域 · 水深變化 ${fmtInt(span)} m`;
+    else if (minE < 0) landform = `山海交界海岸帶 · 向${lowDir}入海`;
+    else if (span > 700) landform = `高山陡峻峽谷／稜脊 · 向${lowDir}傾降`;
+    else if (span > 180) landform = `丘陵階地與河谷 · 主坡朝${lowDir}`;
+    else landform = `開闊台地／沖積平原 · 起伏僅 ${fmtInt(span)} m`;
+
+    const rangeTxt = maxE <= 0
+      ? `水深 <b>${fmtInt(-maxE)}–${fmtInt(-minE)} m</b>`
+      : minE < 0
+      ? `水深 <b>${fmtInt(-minE)} m</b> 至海拔 <b>${fmtInt(maxE)} m</b>`
+      : `海拔 <b>${fmtInt(minE)}–${fmtInt(maxE)} m</b>`;
+    el.innerHTML = `現地 2.5 km 實測：${rangeTxt} · 高差 <b>${fmtInt(span)} m</b>（${landform}）`;
+  }).catch(() => {});
 }
 
 // 介紹卡的螢幕閱讀器播報。卡片本身不設 aria-live：逐欄更新時 NVDA 會拆成零碎片段、順序錯亂地念
@@ -1070,8 +1280,9 @@ function stopOrbit() {
 }
 
 // ---------------------------------------------------------------- 地形剖面
-// path：沿路徑剖面（旅遊專項）的標題、統計、標記與點選回呼；直線剖面為 null
-const profile = { picking: false, pts: [], samples: null, token: 0, section: null, path: null, showAt: null };
+// path：沿路徑剖面（旅遊專項、落雨順流、自訂 GPX）的標題、統計、標記與點選回呼；直線剖面為 null
+const profile = { picking: false, pts: [], samples: null, token: 0, section: null, path: null, skyline: null, showAt: null };
+const rain = { picking: false, token: 0, samples: null };
 
 // 地震目錄開著時，直線剖面加高並多畫一層震源深度
 function syncProfileDepth() {
@@ -1111,6 +1322,8 @@ function clearSection() {
 function stopPicking() {
   profile.picking = false;
   profile.pts = [];
+  rain.picking = false;
+  $('tRain')?.setAttribute('aria-pressed', 'false');
   document.body.classList.remove('map-cursor-pick');
 }
 
@@ -1127,17 +1340,22 @@ function openProfile() {
 function closeProfile() {
   profileEl.hidden = true;
   profile.picking = false;
+  rain.picking = false;
   profile.pts = [];
   profile.samples = null;
   profile.path = null;
+  profile.skyline = null;
   profile.showAt = null;
   $('profileTitle').textContent = '地形剖面';
+  $('profileAction').hidden = true;
   profile.token++;
   clearSection();
   document.body.classList.remove('profile-open', 'map-cursor-pick', 'profile-deep');
   $('tProfile').setAttribute('aria-pressed', 'false');
+  $('tRain')?.setAttribute('aria-pressed', 'false');
   map.getSource('profile').setData(EMPTY);
   map.getSource('cursor').setData(EMPTY);
+  map.getSource('skyline')?.setData(EMPTY);
   relayout();
 }
 
@@ -1166,12 +1384,11 @@ function pickPoint(lngLat) {
 }
 
 function profileForSpot(s) {
-  const a = [Math.min(s.lon - 0.3, 120.0), s.lat];
-  const b = [Math.max(s.lon + 0.3, 121.95), s.lat];
+  const tr = spotTransect(s);
   stopPicking();
   clearSection();
   openProfile();
-  runProfile(a, b, { frame: true });
+  runProfile(tr.a, tr.b, { frame: true, meta: tr });
 }
 
 // 震源剖面預設：自動打開地震目錄，再沿隱沒方向切剖面
@@ -1201,17 +1418,41 @@ async function openSection(key) {
 
 // 改回直線剖面：清掉路徑剖面的標題與設定，必要時恢復震源層
 function resetPathProfile() {
-  if (!profile.path) return;
+  profile.skyline = null;
+  profile.meta = null;
+  map.getSource('skyline')?.setData(EMPTY);
+  $('profileAction').hidden = true;
+  if (!profile.path) { $('profileTitle').textContent = '地形剖面'; return; }
   profile.path = null;
   profile.showAt = null;
   $('profileTitle').textContent = '地形剖面';
   syncProfileDepth();
 }
 
-async function runProfile(a, b, { frame }) {
+// ---------------------------------------------------------------- A↔B 雙點通視分析（Line-of-Sight，含地球曲率與大氣折射）
+const R_EFF_KM = 7323; // 等效地球半徑（含大氣折射係數 k ≈ 0.13）
+function computeLineOfSight(S) {
+  if (!S || S.length < 3) return null;
+  const len = S[S.length - 1].d;
+  if (!(len > 0.05)) return null;
+  const eA = Math.max(0, S[0].e) + 1.8, eB = Math.max(0, S[S.length - 1].e) + 1.8;
+  let maxDiff = -Infinity, blockIdx = -1;
+  for (let i = 1; i < S.length - 1; i++) {
+    const d = S[i].d;
+    const drop = (d * (len - d) * 1000) / (2 * R_EFF_KM);
+    const losE = eA + ((eB - eA) * d) / len - drop;
+    const diff = S[i].e - losE;
+    if (diff > maxDiff) { maxDiff = diff; blockIdx = i; }
+  }
+  return { eA, eB, blocked: maxDiff > 0, maxDiff, blockIdx, blockSample: blockIdx >= 0 ? S[blockIdx] : null };
+}
+
+async function runProfile(a, b, { frame, meta = null } = {}) {
   const token = ++profile.token;
   profile.samples = null;
   resetPathProfile();
+  profile.meta = meta;
+  if (meta?.title) $('profileTitle').textContent = meta.title;
   const len = distanceKm(a, b);
   const N = 240;
   const z = len > 140 ? 10 : len > 45 ? 11 : 12;
@@ -1293,6 +1534,7 @@ function depthColor(d) {
 }
 
 function drawProfile() {
+  if (profile.skyline) { drawSkyline(); return; }
   const S = profile.samples;
   if (!S) return;
   const box = $('profileChart');
@@ -1366,13 +1608,36 @@ function drawProfile() {
     const [r0, r1] = path.range;
     marks += `<rect x="${x(r0).toFixed(1)}" y="${T}" width="${Math.max(1, x(r1) - x(r0)).toFixed(1)}" height="${tBot - T}" fill="rgba(233,180,76,.12)"/>`;
   }
-  for (const m of path?.marks || []) {
-    if (m.d < 0 || m.d > len) continue;
-    const mx = x(m.d).toFixed(1);
-    marks += `<line x1="${mx}" x2="${mx}" y1="${T + 12}" y2="${tBot}" stroke="rgba(255,255,255,.28)" stroke-dasharray="2 3"/>`
-      + `<text class="axis" x="${mx}" y="${T + 9}" text-anchor="middle">${esc(m.label)}</text>`;
+  const meta = profile.meta;
+  const markList = path?.marks || (meta?.spotDist != null ? [{ d: meta.spotDist, label: `📍 ${meta.spotLabel}`, accent: true }] : []);
+  for (const m of markList) {
+    const mx = x(clamp(m.d, 0, len)).toFixed(1);
+    const stroke = m.accent ? 'rgba(233,180,76,.75)' : 'rgba(255,255,255,.28)';
+    const fill = m.accent ? 'style="fill:#ffd88a;font-weight:600"' : '';
+    marks += `<line x1="${mx}" x2="${mx}" y1="${T + 12}" y2="${tBot}" stroke="${stroke}" stroke-dasharray="2 3"/>`
+      + `<text class="axis" x="${mx}" y="${T + 9}" text-anchor="middle" ${fill}>${esc(m.label)}</text>`;
   }
-  const endA = esc(path?.a ?? 'A'), endB = esc(path?.b ?? 'B');
+  const endA = esc(path?.a ?? meta?.aLabel ?? 'A'), endB = esc(path?.b ?? meta?.bLabel ?? 'B');
+
+  // 直線剖面：自動計算 A↔B 雙點視線通視性（Line-of-Sight）並標出視線與最高阻擋山稜
+  let losSvg = '';
+  if (!path) {
+    const los = computeLineOfSight(S);
+    if (los) {
+      const c = los.blocked ? '#ff7a59' : '#7fd1ae';
+      losSvg += `<line x1="${x(0).toFixed(1)}" y1="${y(los.eA).toFixed(1)}" x2="${x(len).toFixed(1)}" y2="${y(los.eB).toFixed(1)}" stroke="${c}" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.9"/>`;
+      if (los.blocked && los.blockSample) {
+        const bx = x(los.blockSample.d).toFixed(1), by = y(los.blockSample.e).toFixed(1);
+        losSvg += `<circle cx="${bx}" cy="${by}" r="3.8" fill="#ff7a59" stroke="#0b0d10" stroke-width="1.4"/>`;
+      }
+      if (!profile.section) {
+        const losTxt = los.blocked
+          ? `雙點通視：視線於 ${los.blockSample.d.toFixed(1)} km 處受阻（海拔 ${fmtInt(los.blockSample.e)} m）`
+          : `雙點通視：兩端全線直線通視（最低餘裕 ${fmtInt(Math.abs(los.maxDiff))} m）`;
+        setProfileNote(meta?.note ? `${meta.note}（${losTxt}）` : losTxt);
+      }
+    }
+  }
 
   const stops = [[0, '#c9c3bd'], [0.35, '#b98e64'], [0.7, '#94b06e'], [1, '#5c8a5a']];
   const landTop = y(Math.max(hi, 1)), landBot = y0;
@@ -1390,6 +1655,7 @@ function drawProfile() {
     <path d="M${x(0)},${base} L${top} L${x(len)},${base}Z" fill="#1b2a3a" clip-path="url(#pgBelow)"/>
     <line class="sea" x1="${L}" x2="${W - R}" y1="${y0}" y2="${y0}"/>
     <path d="M${top}" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+    ${losSvg}
     <text class="axis" x="${x(0) + 2}" y="${T + 10}">${endA}</text><text class="axis" x="${x(len) - 2}" y="${T + 10}" text-anchor="end">${endB}</text>
     ${deep}
     <g id="pgHover" visibility="hidden">
@@ -1499,9 +1765,10 @@ function profileSummaryText(S, title, sec) {
 // 剖面鍵盤操作：以樣本為單位，左右（上下）鍵一次約 1%、至少一點，加 Shift 或用 PageUp／PageDown 一次約 10%，Home／End 到兩端；
 // Enter 等同點選（環島全線剖面選取該天，飛覽中跳到該處）。處理過的按鍵不再傳給全站的左右鍵切換導覽點。
 function profileKey(e) {
-  const S = profile.samples;
+  const isSky = !!profile.skyline;
+  const S = isSky ? profile.skyline.rays : profile.samples;
   if (!S || S.length < 2 || !profile.showIdx || e.altKey || e.ctrlKey || e.metaKey) return;
-  const n = S.length - 1, step = Math.max(1, Math.round(n / 100)), big = Math.max(1, Math.round(n / 10)), i = profile.keyI;
+  const n = S.length - 1, step = isSky ? 1 : Math.max(1, Math.round(n / 100)), big = isSky ? 10 : Math.max(1, Math.round(n / 10)), i = profile.keyI;
   let next;
   switch (e.key) {
     case 'ArrowRight': case 'ArrowUp': next = i == null ? 0 : i + (e.shiftKey ? big : step); break;
@@ -1511,7 +1778,7 @@ function profileKey(e) {
     case 'Home': next = 0; break;
     case 'End': next = n; break;
     case 'Enter':
-      if (!profile.path?.onPick || i == null) return;
+      if (isSky || !profile.path?.onPick || i == null) return;
       e.preventDefault();
       e.stopPropagation();
       profile.path.onPick(S[i].d);
@@ -1520,21 +1787,529 @@ function profileKey(e) {
   }
   e.preventDefault();
   e.stopPropagation();
-  profile.showIdx(next);
+  profile.showIdx(isSky ? ((next % S.length) + S.length) % S.length : next);
 }
 
-// 沿路徑的高度剖面（環島分段、步道）：samples 為 [{ p, d, e }]，d 從 0 起算
+// 沿路徑的高度剖面（環島分段、步道、落雨順流、自訂 GPX）：samples 為 [{ p, d, e }]，d 從 0 起算
 function showPathProfile(samples, opts) {
   stopPicking();
   clearSection();
   profile.token++;
+  profile.skyline = null;
   profile.path = opts;
   profile.samples = samples;
   map.getSource('profile').setData(EMPTY);
+  map.getSource('skyline')?.setData(EMPTY);
   openProfile();
   $('profileTitle').textContent = opts.title;
+  const actBtn = $('profileAction');
+  if (opts.actionLabel && opts.onAction) {
+    actBtn.querySelector('span').textContent = opts.actionLabel;
+    actBtn.onclick = opts.onAction;
+    actBtn.hidden = false;
+  } else {
+    actBtn.hidden = true;
+    actBtn.onclick = null;
+  }
   setProfileNote(opts.note || '');
   drawProfile();
+}
+
+// ---------------------------------------------------------------- 360° 真實山稜天際線與破稜日出儀（PeakFinder Skyline）
+async function computeHorizonSunrise(lat, lon, h, now = new Date()) {
+  const sr = nextSunrise(lat, lon, h, now);
+  const hObs = Math.max(0, h) + 1.8;
+  const dists = [0.7, 1.4, 2.5, 4.2, 6.8, 10.5, 15.5, 22, 31];
+  const azList = [sr.azimuth - 3, sr.azimuth, sr.azimuth + 3];
+  const pts = [];
+  for (const az of azList) for (const d of dists) pts.push({ az, d, c: offsetKm([lon, lat], az, d) });
+  const elevs = await Promise.all(pts.map((p) => elevationAt(p.c[0], p.c[1], 10)));
+  let maxAngle = -90, maxDist = 0, maxElev = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const d = pts[i].d, e = elevs[i];
+    const drop = (d * d * 1000) / (2 * R_EFF_KM);
+    const ang = (Math.atan2(e - hObs - drop, d * 1000) * 180) / Math.PI;
+    if (ang > maxAngle) { maxAngle = ang; maxDist = d; maxElev = e; }
+  }
+  const h0 = -0.833 - (1.76 / 60) * Math.sqrt(Math.max(0, h));
+  const targetAlt = Math.max(h0, maxAngle - 0.53);
+  let ridgeDate = sr.date;
+  if (targetAlt > h0 + 0.12) {
+    let a = sr.date.getTime(), b = a + 75 * 60000;
+    for (let i = 0; i < 20; i++) {
+      const m = (a + b) / 2;
+      if (sunPosition(new Date(m), lat, lon).altitude < targetAlt) a = m; else b = m;
+    }
+    ridgeDate = new Date(b);
+  }
+  const delayMin = Math.max(0, Math.round((ridgeDate.getTime() - sr.date.getTime()) / 60000));
+  return { maxAngle, maxDist, maxElev, ridgeDate, delayMin, seaSunrise: sr };
+}
+
+async function openSkyline(target) {
+  if (!target) return;
+  if (isMobile()) setSheet(false);
+  stopPicking();
+  clearSection();
+  const token = ++profile.token;
+  profile.path = null;
+  profile.samples = null;
+  profile.skyline = null;
+  $('profileAction').hidden = true;
+  openProfile();
+  $('profileTitle').textContent = `360° 環景稜線 · ${target.short || target.name}`;
+  $('profileStats').textContent = '解算 360° 實測山稜天際線與可見百岳中…';
+  setProfileNote('');
+  setProfileMessage('<div class="busy">投射 360° 地形射線與百岳通視中…</div>');
+
+  const lon = target.lon, lat = target.lat;
+  let h0 = Number.isFinite(target.h) ? target.h : Number.isFinite(target.elev) ? target.elev : null;
+  try {
+    if (h0 == null || h0 < 5) h0 = await elevationAt(lon, lat, 11);
+    const hObs = Math.max(0, h0) + 2;
+    const stepAz = 3, N = 360 / stepAz;
+    const dists = [1.0, 2.2, 4.0, 6.8, 10.5, 15.5, 22, 32];
+    const queries = [];
+    for (let i = 0; i < N; i++) {
+      const az = i * stepAz;
+      for (const d of dists) queries.push({ i, az, d, c: offsetKm([lon, lat], az, d) });
+    }
+    const [elevs] = await Promise.all([
+      Promise.all(queries.map((q) => elevationAt(q.c[0], q.c[1], 10))),
+      travel.data.peaks ? Promise.resolve() : useTravel().then((t) => t.loadTravel('peaks')).catch(() => {}),
+    ]);
+    if (token !== profile.token) return;
+
+    const rays = Array.from({ length: N }, (_, i) => ({
+      az: i * stepAz, near: -15, mid: -15, far: -15, maxAng: -15, maxDist: 10, maxElev: 0, maxCoord: offsetKm([lon, lat], i * stepAz, 15),
+    }));
+    for (let k = 0; k < queries.length; k++) {
+      const { i, d, c } = queries[k], e = elevs[k];
+      const drop = (d * d * 1000) / (2 * R_EFF_KM);
+      const ang = (Math.atan2(e - hObs - drop, d * 1000) * 180) / Math.PI;
+      const r = rays[i];
+      if (d <= 4.5 && ang > r.near) r.near = ang;
+      if (d <= 15.5 && ang > r.mid) r.mid = ang;
+      if (ang > r.far) r.far = ang;
+      if (ang > r.maxAng) { r.maxAng = ang; r.maxDist = d; r.maxElev = e; r.maxCoord = c; }
+    }
+
+    // 篩選 42 km 內且不被前排山稜遮擋的百岳
+    const visPeaks = [];
+    for (const p of travel.data.peaks?.peaks || []) {
+      const d = distanceKm([lon, lat], [p.lon, p.lat]);
+      if (d < 0.4 || d > 42) continue;
+      const az = (bearingTo([lon, lat], [p.lon, p.lat]) + 360) % 360;
+      const drop = (d * d * 1000) / (2 * R_EFF_KM);
+      const ang = (Math.atan2(p.h - hObs - drop, d * 1000) * 180) / Math.PI;
+      const idx = Math.round(az / stepAz) % N;
+      const block = d <= 5 ? -15 : d <= 16 ? rays[idx].near : rays[idx].mid;
+      if (ang >= block - 0.35) visPeaks.push({ name: p.name, rank: p.rank, h: p.h, d, az, ang });
+    }
+    visPeaks.sort((a, b) => b.h - a.h);
+
+    const hz = await computeHorizonSunrise(lat, lon, hObs);
+    if (token !== profile.token) return;
+    profile.skyline = { target, lon, lat, hObs, rays, stepAz, visPeaks: visPeaks.slice(0, 14), hz };
+    drawSkyline();
+  } catch (err) {
+    if (token !== profile.token) return;
+    console.warn('[skyline]', err);
+    $('profileStats').textContent = '環景天際線讀取失敗，請稍後再試。';
+    setProfileMessage('');
+  }
+}
+
+function drawSkyline() {
+  const sk = profile.skyline;
+  if (!sk) return;
+  const box = $('profileChart');
+  const W = box.clientWidth - 24, H = box.clientHeight - 12;
+  if (W < 50 || H < 40) return;
+  const L = 38, R = 10, T = 12, B = 18;
+  const { rays, visPeaks, hz, lon, lat, hObs } = sk;
+  let maxA = 12, minA = -6;
+  for (const r of rays) { if (r.maxAng > maxA) maxA = r.maxAng; }
+  for (const p of visPeaks) { if (p.ang > maxA) maxA = p.ang; }
+  const hi = Math.min(35, Math.ceil(maxA + 4)), lo = Math.max(-12, Math.floor(minA - 2));
+  const x = (az) => L + ((W - L - R) * clamp(az, 0, 360)) / 360;
+  const y = (ang) => T + ((H - T - B) * (hi - clamp(ang, lo, hi))) / (hi - lo);
+  const y0 = y(0), base = H - B;
+
+  const rt = new Date(Math.round(hz.ridgeDate.getTime() / 60000) * 60000 + 8 * 3600e3);
+  const rhm = `${String(rt.getUTCHours()).padStart(2, '0')}:${String(rt.getUTCMinutes()).padStart(2, '0')}`;
+  $('profileStats').innerHTML = `觀測高 <b>${fmtInt(hObs)}</b> m · 可見百岳 <b>${visPeaks.length}</b> 座 · 東稜仰角 <b>${hz.maxAngle >= 0 ? '+' : ''}${hz.maxAngle.toFixed(1)}°</b> · 破稜日出 <b>${rhm}</b>${hz.delayMin > 0 ? `（晚 ${hz.delayMin} 分）` : ''}`;
+  setProfileNote('移動游標或按左右方向鍵環視 360° 方位，3D 鏡頭與地圖視線將同步轉向目標山稜。');
+
+  const poly = (key) => {
+    const pts = rays.map((r) => `${x(r.az).toFixed(1)},${y(r[key]).toFixed(1)}`);
+    pts.push(`${x(360).toFixed(1)},${y(rays[0][key]).toFixed(1)}`);
+    return `M${x(0).toFixed(1)},${base} L${pts.join(' L')} L${x(360).toFixed(1)},${base}Z`;
+  };
+  const crest = rays.map((r) => `${x(r.az).toFixed(1)},${y(r.far).toFixed(1)}`).concat(`${x(360).toFixed(1)},${y(rays[0].far).toFixed(1)}`).join(' L');
+
+  let grid = '';
+  for (const a of [-5, 0, 5, 10, 15, 20, 25]) {
+    if (a < lo || a > hi) continue;
+    grid += `<line class="${a === 0 ? 'sea' : 'grid'}" x1="${L}" x2="${W - R}" y1="${y(a)}" y2="${y(a)}"/><text class="axis" x="${L - 5}" y="${y(a) + 3}" text-anchor="end">${a > 0 ? '+' + a : a}°</text>`;
+  }
+  const dirs = [[0, '北 0°'], [45, '東北'], [90, '東 90°'], [135, '東南'], [180, '南 180°'], [225, '西南'], [270, '西 270°'], [315, '西北'], [360, '北']];
+  for (const [az, lb] of dirs) {
+    grid += `<line class="grid" x1="${x(az)}" x2="${x(az)}" y1="${T}" y2="${base}"/><text class="axis" x="${x(az)}" y="${H - 4}" text-anchor="middle">${lb}</text>`;
+  }
+
+  // 標出視線可見的百岳山頭（避開水平重疊）
+  let peakSvg = '';
+  const usedX = [];
+  for (const p of visPeaks) {
+    const px = x(p.az), py = y(p.ang);
+    const crowded = usedX.some((ux) => Math.abs(ux - px) < 44);
+    peakSvg += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="2.8" fill="#f2c46d" stroke="#0b0d10" stroke-width="1"/>`;
+    if (!crowded && py > T + 12) {
+      usedX.push(px);
+      peakSvg += `<text class="axis" x="${px.toFixed(1)}" y="${(py - 5).toFixed(1)}" text-anchor="middle" style="fill:#ffd88a;font-weight:600">${esc(p.name)}</text>`;
+    }
+  }
+
+  // 破稜日出太陽標記
+  const sunX = x(hz.seaSunrise.azimuth).toFixed(1), sunY = y(Math.max(0, hz.maxAngle)).toFixed(1);
+  const sunSvg = `<circle cx="${sunX}" cy="${sunY}" r="5" fill="#e9b44c" stroke="#fff" stroke-width="1.4"/>`;
+
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="360度真實山稜天際線與百岳指認圖">
+    <defs>
+      <linearGradient id="skFar" x1="0" x2="0" y1="${T}" y2="${base}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8ab4d8" stop-opacity="0.55"/><stop offset="1" stop-color="#1d2c3f" stop-opacity="0.85"/></linearGradient>
+      <linearGradient id="skMid" x1="0" x2="0" y1="${T}" y2="${base}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#6b9678" stop-opacity="0.65"/><stop offset="1" stop-color="#17241e" stop-opacity="0.92"/></linearGradient>
+      <linearGradient id="skNear" x1="0" x2="0" y1="${T}" y2="${base}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#b98e64" stop-opacity="0.72"/><stop offset="1" stop-color="#181512" stop-opacity="0.96"/></linearGradient>
+    </defs>
+    ${grid}
+    <path d="${poly('far')}" fill="url(#skFar)"/>
+    <path d="${poly('mid')}" fill="url(#skMid)"/>
+    <path d="${poly('near')}" fill="url(#skNear)"/>
+    <path d="M${crest}" fill="none" stroke="#ece8e1" stroke-width="1.3"/>
+    ${sunSvg}
+    ${peakSvg}
+    <g id="pgHover" visibility="hidden">
+      <line x1="0" x2="0" y1="${T}" y2="${base}" stroke="#e9b44c" stroke-width="1"/>
+      <circle r="4" fill="#e9b44c" stroke="#0b0d10" stroke-width="1.5"/>
+      <rect class="tip-bg" rx="5" height="20" width="160"/>
+      <text class="tip"></text>
+    </g>
+    <rect id="pgHit" x="${L}" y="${T}" width="${W - L - R}" height="${base - T}" fill="transparent"/>
+  </svg>`;
+
+  const g = box.querySelector('#pgHover'), hit = box.querySelector('#pgHit');
+  const dot = g.querySelector('circle'), tipBg = g.querySelector('rect'), tip = g.querySelector('text');
+  const showIdx = (i, user = true) => {
+    const j = ((i % rays.length) + rays.length) % rays.length;
+    const r = rays[j];
+    const nearPeak = visPeaks.find((p) => Math.abs(p.az - r.az) <= 3.5);
+    const px = x(r.az), py = y(nearPeak ? nearPeak.ang : r.maxAng);
+    const label = nearPeak
+      ? `方位 ${r.az}°（${compassWord(r.az)}）· ${nearPeak.name} ${fmtInt(nearPeak.h)} m（距 ${nearPeak.d.toFixed(1)} km）`
+      : `方位 ${r.az}°（${compassWord(r.az)}）· 稜線仰角 ${r.maxAng >= 0 ? '+' : ''}${r.maxAng.toFixed(1)}°（距 ${r.maxDist.toFixed(1)} km · ${fmtInt(r.maxElev)} m）`;
+    g.setAttribute('visibility', 'visible');
+    g.querySelector('line').setAttribute('x1', px); g.querySelector('line').setAttribute('x2', px);
+    dot.setAttribute('cx', px); dot.setAttribute('cy', py);
+    tip.textContent = label;
+    const tw = Math.ceil(tip.getComputedTextLength?.() || label.length * 7) + 12;
+    const tx = px + tw + 12 > W ? px - tw - 4 : px + 8;
+    tipBg.setAttribute('x', tx - 4); tipBg.setAttribute('y', T + 2); tipBg.setAttribute('width', tw);
+    tip.setAttribute('x', tx + 2); tip.setAttribute('y', T + 16);
+
+    map.getSource('skyline').setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: [[lon, lat], r.maxCoord] } });
+    map.getSource('cursor').setData({ type: 'Feature', geometry: { type: 'Point', coordinates: r.maxCoord } });
+    if (user) {
+      profile.keyI = j;
+      box.setAttribute('aria-valuenow', String(r.az));
+      box.setAttribute('aria-valuetext', label);
+      if (!map.isMoving()) map.setBearing(r.az);
+    }
+    return r;
+  };
+  const hide = () => { g.setAttribute('visibility', 'hidden'); map.getSource('skyline').setData(EMPTY); map.getSource('cursor').setData(EMPTY); };
+  profile.showIdx = showIdx;
+  profile.hideCursor = hide;
+  box.tabIndex = 0;
+  box.setAttribute('role', 'slider');
+  box.setAttribute('aria-label', `360度環景方位：${sk.target.short || sk.target.name}`);
+  box.setAttribute('aria-valuemin', '0');
+  box.setAttribute('aria-valuemax', '357');
+  box.setAttribute('aria-valuenow', '90');
+  setProfileSummary(`360度環景稜線，觀測高度 ${fmtInt(hObs)} 公尺，視線內可見 ${visPeaks.length} 座百岳。東方山稜最高仰角 ${hz.maxAngle.toFixed(1)} 度，破稜日出時間 ${rhm}。`);
+  hit.addEventListener('pointermove', (ev) => {
+    const rect = hit.getBoundingClientRect();
+    const az = clamp(((ev.clientX - rect.left) / rect.width) * 360, 0, 359.9);
+    showIdx(Math.floor(az / sk.stepAz));
+  });
+  hit.addEventListener('pointerleave', hide);
+}
+
+// ---------------------------------------------------------------- 落雨順流追蹤（Raindrop Hydrology Steepest-Descent Trace）
+function startRainPicking() {
+  stopOrbit();
+  pauseTour();
+  stopRide();
+  profile.picking = false;
+  profile.pts = [];
+  rain.picking = true;
+  openProfile();
+  resetPathProfile();
+  $('tProfile').setAttribute('aria-pressed', 'false');
+  $('tRain').setAttribute('aria-pressed', 'true');
+  document.body.classList.add('map-cursor-pick');
+  $('profileTitle').textContent = '落雨順流追蹤';
+  $('profileStats').textContent = '在地圖任意山坡點一下，追蹤雨水順地形流向大海的路徑';
+  setProfileNote('');
+  setProfileMessage('<div class="busy">點選台灣任一山嶺或坡面，系統將依 Terrarium 實測地形梯度追蹤水流匯入溪谷至出海口的 3D 水路。</div>');
+}
+
+async function traceRaindrop(startLngLat) {
+  const token = ++rain.token;
+  rain.picking = false;
+  $('tRain').setAttribute('aria-pressed', 'false');
+  document.body.classList.remove('map-cursor-pick');
+  const p0 = [startLngLat.lng ?? startLngLat[0], startLngLat.lat ?? startLngLat[1]];
+  openProfile();
+  $('profileTitle').textContent = '落雨順流追蹤';
+  $('profileStats').textContent = '解算地形梯度與集水區順流路徑中…';
+  setProfileMessage('<div class="busy">沿實測 DEM 梯度追蹤順流水路中…</div>');
+
+  try {
+    const e0 = await elevationAt(p0[0], p0[1], 11);
+    if (token !== rain.token) return;
+    if (e0 <= 0.5) {
+      toast('此處已是海平面，請點選山坡或陸地');
+      startRainPicking();
+      return;
+    }
+    const divideLon = 121.02;
+    const seaDir = p0[0] >= divideLon ? 95 : 265;
+    const path = [{ p: p0, d: 0, e: e0 }];
+    let cur = p0, curE = e0, cumD = 0, prevAz = seaDir;
+    const dirs = Array.from({ length: 16 }, (_, i) => i * 22.5);
+
+    for (let step = 0; step < 220; step++) {
+      // 先看 0.38 km 鄰域；若遇平緩河谷或水庫微凹坑，擴大半徑至 1.1 km／2.4 km 尋找下游出口
+      let nextP = null, nextE = curE, stepKm = 0.38, bestAz = prevAz;
+      for (const rad of [0.38, 0.95, 2.1]) {
+        const candidates = dirs.map((az) => ({ az, c: offsetKm(cur, az, rad) }));
+        const elevs = await Promise.all(candidates.map((x) => elevationAt(x.c[0], x.c[1], 10)));
+        if (token !== rain.token) return;
+        let bestScore = Infinity;
+        for (let i = 0; i < candidates.length; i++) {
+          const e = elevs[i], az = candidates[i].az;
+          const turn = Math.abs((((az - prevAz) % 360) + 540) % 360 - 180);
+          if (turn > 135 && rad < 1.5) continue;
+          // 優先往低處流，並微幅偏好延續下游流向與朝海岸方向
+          const score = e + turn * 0.015;
+          if (e < curE - 0.2 && score < bestScore) {
+            bestScore = score; nextP = candidates[i].c; nextE = e; stepKm = rad; bestAz = az;
+          }
+        }
+        if (nextP) break;
+      }
+      if (!nextP) {
+        // 平原緩坡強制朝向近海方向推進
+        const c = offsetKm(cur, seaDir, 0.85);
+        const e = await elevationAt(c[0], c[1], 10);
+        if (token !== rain.token) return;
+        nextP = c; nextE = Math.min(curE, e); stepKm = 0.85; bestAz = seaDir;
+      }
+      cumD += stepKm;
+      curE = Math.min(curE, Math.max(0, nextE));
+      cur = nextP;
+      prevAz = bestAz;
+      path.push({ p: cur, d: cumD, e: curE });
+      if (nextE <= 0.5) break;
+    }
+
+    rain.samples = path;
+    const coords = path.map((s) => s.p);
+    const endP = path[path.length - 1];
+    const reachedSea = endP.e <= 2;
+    map.getSource('rain').setData({
+      type: 'FeatureCollection',
+      features: [
+        { type: 'Feature', geometry: { type: 'LineString', coordinates: coords }, properties: {} },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: p0 }, properties: { color: '#ffd88a' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: endP.p }, properties: { color: '#5ec2e6' } },
+      ],
+    });
+    const dropM = Math.max(0, e0 - endP.e);
+    const avgSlope = cumD > 0 ? ((dropM / (cumD * 1000)) * 100).toFixed(1) : '0.0';
+    showPathProfile(path, {
+      title: '落雨順流縱剖面',
+      a: `落雨點 ${fmtInt(e0)}m`,
+      b: reachedSea ? '出海口 0m' : `下游 ${fmtInt(endP.e)}m`,
+      stats: `流路長 <b>${cumD.toFixed(1)}</b> km · 總落差 <b>${fmtInt(dropM)}</b> m · 平均坡降 <b>${avgSlope}%</b> · 終點 <b>${reachedSea ? '注入海洋' : `海拔 ${fmtInt(endP.e)} m`}</b>`,
+      note: `落雨點（${p0[1].toFixed(3)}°N, ${p0[0].toFixed(3)}°E，海拔 ${fmtInt(e0)} m）順地形最陡梯度流經 ${cumD.toFixed(1)} km 匯入${p0[0] >= divideLon ? '太平洋／東海岸' : '台灣海峽／西海岸'}。`,
+      actionLabel: '沿水路飛覽',
+      onAction: () => {
+        useTravel().then((t) => t.startCustomRide({ path, title: `落雨順流飛覽（落差 ${fmtInt(dropM)} m）`, kmps: Math.max(0.25, cumD / 32), zoom: 12.6, look: 1.0 }));
+      },
+    });
+  } catch (err) {
+    console.warn('[rain]', err);
+    toast('落雨追蹤讀取地形失敗，請稍後再試');
+  }
+}
+
+// ---------------------------------------------------------------- 個人 GPX 軌跡拖曳／選檔匯入與 3D 飛覽室
+const DEMO_GPX = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="台灣 3D 地景" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata><name>能高安東軍縱走（示範 GPX 軌跡）</name></metadata>
+  <wpt lat="24.0472" lon="121.2165"><ele>2050</ele><name>屯原登山口</name></wpt>
+  <wpt lat="24.0428" lon="121.2862"><ele>2860</ele><name>天池山莊</name></wpt>
+  <wpt lat="23.9925" lon="121.2600"><ele>3262</ele><name>能高山主峰</name></wpt>
+  <wpt lat="23.9567" lon="121.2775"><ele>3349</ele><name>能高山南峰</name></wpt>
+  <wpt lat="23.9080" lon="121.2738"><ele>3110</ele><name>白石山</name></wpt>
+  <wpt lat="23.8722" lon="121.2647"><ele>3068</ele><name>安東軍山</name></wpt>
+  <trk><name>能高安東軍縱走</name><trkseg>
+    <trkpt lat="24.0472" lon="121.2165"><ele>2050</ele></trkpt>
+    <trkpt lat="24.0479" lon="121.2420"><ele>2360</ele></trkpt>
+    <trkpt lat="24.0455" lon="121.2685"><ele>2610</ele></trkpt>
+    <trkpt lat="24.0428" lon="121.2862"><ele>2860</ele></trkpt>
+    <trkpt lat="24.0315" lon="121.2850"><ele>2880</ele></trkpt>
+    <trkpt lat="24.0120" lon="121.2725"><ele>3010</ele></trkpt>
+    <trkpt lat="23.9925" lon="121.2600"><ele>3262</ele></trkpt>
+    <trkpt lat="23.9740" lon="121.2690"><ele>3150</ele></trkpt>
+    <trkpt lat="23.9567" lon="121.2775"><ele>3349</ele></trkpt>
+    <trkpt lat="23.9410" lon="121.2795"><ele>2960</ele></trkpt>
+    <trkpt lat="23.9278" lon="121.2762"><ele>3060</ele></trkpt>
+    <trkpt lat="23.9185" lon="121.2750"><ele>2770</ele></trkpt>
+    <trkpt lat="23.9080" lon="121.2738"><ele>3110</ele></trkpt>
+    <trkpt lat="23.8965" lon="121.2712"><ele>2790</ele></trkpt>
+    <trkpt lat="23.8840" lon="121.2680"><ele>2840</ele></trkpt>
+    <trkpt lat="23.8722" lon="121.2647"><ele>3068</ele></trkpt>
+  </trkseg></trk>
+</gpx>`;
+
+async function importGpxText(xmlText, fallbackName = '自訂 GPX 軌跡') {
+  const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+  if (doc.querySelector('parsererror')) { toast('GPX 檔案格式無法解析'); return; }
+  const name = doc.querySelector('trk > name, rte > name, metadata > name')?.textContent?.trim() || fallbackName.replace(/\.gpx$/i, '');
+  const rawNodes = [...doc.querySelectorAll('trkpt, rtept')];
+  const wptNodes = [...doc.querySelectorAll('wpt')];
+  const nodes = rawNodes.length >= 2 ? rawNodes : wptNodes;
+  if (nodes.length < 2) { toast('GPX 檔內找不到足夠的軌跡座標點'); return; }
+
+  const rawPts = [];
+  for (const n of nodes) {
+    const lat = parseFloat(n.getAttribute('lat')), lon = parseFloat(n.getAttribute('lon'));
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    const eleText = n.querySelector('ele')?.textContent;
+    const ele = eleText != null ? parseFloat(eleText) : NaN;
+    rawPts.push({ p: [lon, lat], e: Number.isFinite(ele) ? ele : null });
+  }
+  if (rawPts.length < 2) { toast('GPX 座標無效'); return; }
+
+  // 細化長線段並補齊缺失的地形高程
+  const dense = [rawPts[0]];
+  for (let i = 1; i < rawPts.length; i++) {
+    const a = rawPts[i - 1], b = rawPts[i];
+    const segKm = distanceKm(a.p, b.p);
+    const steps = clamp(Math.ceil(segKm / 0.25), 1, 16);
+    for (let s = 1; s <= steps; s++) {
+      const t = s / steps;
+      dense.push({
+        p: [a.p[0] + (b.p[0] - a.p[0]) * t, a.p[1] + (b.p[1] - a.p[1]) * t],
+        e: a.e != null && b.e != null ? a.e + (b.e - a.e) * t : null,
+      });
+    }
+  }
+  const needDem = dense.some((x) => x.e == null);
+  if (needDem) {
+    const sampled = await Promise.all(dense.map((x) => (x.e != null ? Promise.resolve(x.e) : elevationAt(x.p[0], x.p[1], 11))));
+    sampled.forEach((v, i) => { dense[i].e = v; });
+  }
+
+  let cumD = 0, up = 0, down = 0, ref = dense[0].e, minE = Infinity, maxE = -Infinity, maxGrade = 0;
+  const path = [];
+  const segFeats = [];
+  for (let i = 0; i < dense.length; i++) {
+    if (i > 0) {
+      const ds = distanceKm(dense[i - 1].p, dense[i].p);
+      cumD += ds;
+      const de = dense[i].e - dense[i - 1].e;
+      const g = ds > 0.02 ? (Math.abs(de) / (ds * 1000)) * 100 : 0;
+      if (g > maxGrade) maxGrade = g;
+      segFeats.push({
+        type: 'Feature',
+        properties: { g: Math.round(g * 10) / 10 },
+        geometry: { type: 'LineString', coordinates: [dense[i - 1].p, dense[i].p] },
+      });
+    }
+    const v = dense[i].e;
+    if (v < minE) minE = v;
+    if (v > maxE) maxE = v;
+    if (v - ref >= 3) { up += v - ref; ref = v; } else if (ref - v >= 3) { down += ref - v; ref = v; }
+    path.push({ p: dense[i].p, d: cumD, e: v });
+  }
+
+  const wpts = wptNodes.map((w) => ({
+    name: w.querySelector('name')?.textContent?.trim() || '航點',
+    p: [parseFloat(w.getAttribute('lon')), parseFloat(w.getAttribute('lat'))],
+  })).filter((w) => Number.isFinite(w.p[0]) && Number.isFinite(w.p[1]));
+  if (!wpts.length) {
+    wpts.push({ name: 'GPX 起點', p: path[0].p }, { name: 'GPX 終點', p: path.at(-1).p });
+  }
+
+  await mapReady;
+  stopTour();
+  stopOrbit();
+  stopRide();
+  clearSpot();
+  clearTravelSel();
+  map.getSource('gpx').setData({ type: 'FeatureCollection', features: segFeats });
+  map.getSource('gpx-wpts').setData({
+    type: 'FeatureCollection',
+    features: wpts.map((w) => ({ type: 'Feature', properties: { name: w.name }, geometry: { type: 'Point', coordinates: w.p } })),
+  });
+
+  // 顯示介紹卡與高度剖面，並綁定一鍵 3D 沿線飛覽
+  cardEl.style.setProperty('--c', '#e9b44c');
+  $('cardTag').textContent = 'GPX 3D 軌跡';
+  $('cardIndex').textContent = `${dense.length} 取樣點 · ${wpts.length} 航點`;
+  $('cardTitle').textContent = name;
+  $('cardBadge').textContent = '3D 地形貼合 · 坡度著色 · 第一人稱沿線飛覽';
+  $('cardElevLabel').textContent = '總距離';
+  $('cardElev').textContent = `${cumD.toFixed(1)} km`;
+  $('cardCoordLabel').textContent = '累積爬升';
+  $('cardCoord').textContent = `↑ ${fmtInt(up)} m`;
+  $('cardMetric').textContent = `累積下降 ↓ ${fmtInt(down)} m · 海拔範圍 ${fmtInt(minE)}–${fmtInt(maxE)} m · 最大坡度 ${maxGrade.toFixed(1)}%`;
+  $('cardDesc').textContent = `已匯入「${name}」並貼合 3D 地形。路線依坡度陡峭度著色（平緩綠 → 琥珀 → 陡坡珊瑚紅）。點擊「飛覽」可啟動第一人稱鏡頭沿此 GPX 軌跡自動飛行。`;
+  $('cardSun').hidden = true;
+  $('cardHorizon').hidden = true;
+  $('cardContext').hidden = true;
+  $('cardProfileLabel').textContent = '剖面';
+  $('cardOrbit').hidden = true;
+  $('cardSkyline').hidden = true;
+  $('cardGpx').hidden = true;
+  $('cardRide').hidden = false;
+  cardEl.hidden = false;
+  document.body.classList.add('card-open');
+  announceCard();
+
+  const startGpxFly = () => {
+    if (isMobile()) setSheet(false);
+    useTravel().then((t) => t.startCustomRide({ path, title: `GPX 飛覽 · ${name}`, kmps: clamp(cumD / 36, 0.08, 0.6), zoom: 13.8, look: clamp(cumD * 0.04, 0.2, 1.0) }));
+  };
+  travel.customRide = startGpxFly;
+
+  showPathProfile(path, {
+    title: `GPX · ${name}`,
+    floor: true,
+    a: wpts[0]?.name || '起點',
+    b: wpts.at(-1)?.name || '終點',
+    stats: `全長 <b>${cumD.toFixed(1)}</b> km · 爬升 <b>${fmtInt(up)}</b> m · 下降 <b>${fmtInt(down)}</b> m · 海拔 <b>${fmtInt(minE)}–${fmtInt(maxE)}</b> m`,
+    actionLabel: '飛覽軌跡',
+    onAction: startGpxFly,
+    onPick: (d) => { if (ride.on && ride.mode === 'custom') useTravel().then((t) => t.rideSeek?.(d)); },
+    ride: 'custom',
+  });
+
+  useTravel().then((t) => t.fitCoords(path.map((x) => x.p), { maxZoom: 13.5, pitch: 58 }));
+  toast(`已匯入 GPX：${name}（${cumD.toFixed(1)} km）`);
 }
 
 // ---------------------------------------------------------------- 地震目錄與板塊
@@ -1773,9 +2548,9 @@ const travelEarlyClicks = [];
 function useTravel() {
   if (!travelImport) {
     travelTries++;
-    travelImport = import(`./travel.js?v=2.5.1${travelTries > 1 ? `&retry=${travelTries}` : ''}`).then((m) => {
+    travelImport = import(`./travel.js?v=2.6.0${travelTries > 1 ? `&retry=${travelTries}` : ''}`).then((m) => {
       m.init({ maplibregl, map, $, travel, ride, profile, beacon, cardEl, esc, pathIndex, clamp, fmtInt, isMobile, withTimeout,
-        mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
+        mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, computeHorizonSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
         stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, announceCard, GRADE_STOPS, DIF_COLORS, EMPTY });
       T = m;
       for (const b of travelEarlyClicks.splice(0)) b.click();
@@ -2162,12 +2937,25 @@ function bindUI() {
     applySea();
     if (state.sea !== 0 && map.getZoom() > 9) map.flyTo({ ...HOME(), padding: viewPadding() });
   }));
+  $('cloud').addEventListener('input', (e) => { state.cloud = +e.target.value; applyCloud(); });
+  document.querySelectorAll('#cloudPresets button').forEach((b) => b.addEventListener('click', () => {
+    state.cloud = +b.dataset.cloud;
+    $('cloud').value = state.cloud;
+    applyCloud();
+  }));
 
   $('cardClose').addEventListener('click', () => { stopTour(); closeCard(); });
   $('cardPrev').addEventListener('click', () => (travel.sel && !tour.def ? T.travelStep(-1) : stepSpot(-1)));
   $('cardNext').addEventListener('click', () => (travel.sel && !tour.def ? T.travelStep(1) : stepSpot(1)));
   $('cardOrbit').addEventListener('click', () => (orbit.on ? stopOrbit() : startOrbit()));
   $('cardProfile').addEventListener('click', () => (travel.sel ? T.travelProfile() : state.current && profileForSpot(state.current)));
+  $('cardSkyline').addEventListener('click', () => {
+    const target = travel.sel?.kind === 'peak' ? T?.peakByRank(travel.sel.rank) : state.current;
+    if (target) openSkyline(target);
+  });
+  $('cardRide').addEventListener('click', () => {
+    if (!travel.sel && travel.customRide) travel.customRide();
+  });
   $('cardShare').addEventListener('click', share);
 
   $('tHome').addEventListener('click', goHome);
@@ -2176,7 +2964,8 @@ function bindUI() {
   $('tZoomOut').addEventListener('click', cameraAction(() => map.zoomOut()));
   $('tPitch').addEventListener('click', cameraAction(() => map.easeTo({ pitch: map.getPitch() > 8 ? 0 : 60, duration: 900 })));
   $('tOrbit').addEventListener('click', () => (orbit.on ? stopOrbit() : startOrbit()));
-  $('tProfile').addEventListener('click', () => (profileEl.hidden ? startPicking() : closeProfile()));
+  $('tProfile').addEventListener('click', () => (profileEl.hidden || rain.picking ? startPicking() : closeProfile()));
+  $('tRain').addEventListener('click', () => (rain.picking ? closeProfile() : startRainPicking()));
   $('tShot').addEventListener('click', exportShot);
   $('tShare').addEventListener('click', share);
   $('tFull').addEventListener('click', () => {
@@ -2199,8 +2988,34 @@ function bindUI() {
   document.querySelectorAll('#travelSeg button').forEach((b) => b.addEventListener('click', () => setTravelMode(b.dataset.mode)));
   $('pane-travel').addEventListener('click', (e) => {
     const b = !T && e.target.closest('button');
-    if (b && !b.closest('#travelSeg')) travelEarlyClicks.push(b);
+    if (b && !b.closest('#travelSeg') && !b.closest('#gpxBar')) travelEarlyClicks.push(b);
   }, true);
+  $('gpxImportBtn').addEventListener('click', () => $('gpxFile').click());
+  $('gpxFile').addEventListener('change', async (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    await importGpxText(await f.text(), f.name);
+    e.target.value = '';
+  });
+  $('gpxDemoBtn').addEventListener('click', () => importGpxText(DEMO_GPX, '能高安東軍縱走'));
+  let dragDepth = 0;
+  window.addEventListener('dragenter', (e) => {
+    if (e.dataTransfer?.types?.includes('Files')) { dragDepth++; $('dropVeil').hidden = false; }
+  });
+  window.addEventListener('dragover', (e) => {
+    if (e.dataTransfer?.types?.includes('Files')) e.preventDefault();
+  });
+  window.addEventListener('dragleave', () => {
+    if (--dragDepth <= 0) { dragDepth = 0; $('dropVeil').hidden = true; }
+  });
+  window.addEventListener('drop', async (e) => {
+    dragDepth = 0;
+    $('dropVeil').hidden = true;
+    const f = [...(e.dataTransfer?.files || [])].find((x) => /\.gpx$/i.test(x.name) || x.type.includes('xml'));
+    if (!f) return;
+    e.preventDefault();
+    await importGpxText(await f.text(), f.name);
+  });
   $('aboutOpen').addEventListener('click', () => $('about').showModal());
 
   document.addEventListener('keydown', (e) => {
@@ -2229,6 +3044,7 @@ function bindUI() {
     else if (k === 'n') $('tCompass').click();
     else if (k === 'p') $('tPitch').click();
     else if (k === 'o') $('tOrbit').click();
+    else if (k === 'r') $('tRain').click();
     else if (k === 'f') $('tFull').click();
   });
 
@@ -2259,6 +3075,7 @@ function bindMap() {
   }
 
   map.on('click', (e) => {
+    if (rain.picking) { traceRaindrop(e.lngLat); return; }
     if (profile.picking) { pickPoint(e.lngLat); return; }
     const pad = isMobile() ? 14 : 6;
     const hits = map.queryRenderedFeatures([[e.point.x - pad, e.point.y - pad], [e.point.x + pad, e.point.y + pad]], { layers: ['spots-dot', 'spots-label-major', 'spots-label'] });
@@ -2349,6 +3166,7 @@ function applyHash() {
 state.exaggeration = +$('exag').value;
 state.sunMinutes = +$('sun').value;
 state.sea = +$('sea').value;
+state.cloud = +$('cloud').value;
 $('exagOut').textContent = `${state.exaggeration.toFixed(1)}×`;
 renderChips();
 renderSpotList();
@@ -2359,6 +3177,7 @@ map.on('load', () => {
   bindMap();
   applyBase();
   applySea();
+  applyCloud();
   for (const inp of document.querySelectorAll('#overlayToggles input')) applyOverlay(inp.dataset.overlay, inp.checked);
   updateHudCam();
 
@@ -2378,4 +3197,4 @@ map.on('load', () => {
 addEventListener('hashchange', () => applyHash());
 
 // 方便除錯：在 console 存取 map
-window.__tw3d = { map, state, tour, quake, profile, travel, ride, SPOTS, TOURS, elevationAt, sunPosition, nextSunrise, demFixes };
+window.__tw3d = { map, state, tour, quake, profile, rain, travel, ride, SPOTS, TOURS, elevationAt, sunPosition, nextSunrise, computeHorizonSunrise, computeLineOfSight, openSkyline, traceRaindrop, importGpxText, demFixes };
