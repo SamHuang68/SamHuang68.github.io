@@ -106,6 +106,8 @@ function showTravelCard(c) {
   $('cardGpx').hidden = !gpxForSel();
   $('cardSun').hidden = true;
   $('cardHorizon').hidden = true;
+  if ($('cardContext')) $('cardContext').hidden = true;
+  if ($('cardProfileLabel')) $('cardProfileLabel').textContent = travel.sel?.kind === 'peak' ? '山稜剖面' : '路線剖面';
   $('cardPrev').setAttribute('aria-label', '上一個');
   $('cardNext').setAttribute('aria-label', '下一個');
   const wasHidden = cardEl.hidden;

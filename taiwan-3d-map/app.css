@@ -369,6 +369,34 @@ body.panel-collapsed .panel-toggle { left: var(--gap); }
 .card-sun { margin: 8px 0 0; font-size: 13px; color: #ffd88a; font-variant-numeric: tabular-nums; }
 .card-horizon { margin: 4px 0 0; font-size: 12px; color: #9be15d; font-variant-numeric: tabular-nums; }
 .card-desc { margin: 10px 0 0; font-size: 14px; line-height: 1.8; color: #d9d5ce; }
+.card-context {
+  margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line);
+  display: grid; gap: 9px; font-size: 12.5px;
+}
+.ctx-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ctx-spec {
+  padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025); min-width: 0;
+}
+.ctx-spec-k { display: block; font-size: 10.5px; color: var(--text-faint); letter-spacing: 0.06em; margin-bottom: 2px; }
+.ctx-spec-v { display: block; font-weight: 600; color: var(--text); font-size: 12px; line-height: 1.35; }
+.ctx-relief {
+  padding: 7px 10px; border-radius: 9px; border: 1px solid rgba(233, 180, 76, 0.22);
+  background: rgba(233, 180, 76, 0.06); color: #ece6d8; font: 500 12px/1.45 var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.ctx-relief b { color: var(--accent); font-weight: 600; }
+.ctx-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.ctx-label { font-size: 11px; color: var(--text-faint); margin-right: 2px; }
+.ctx-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border: 1px solid var(--line); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035); color: var(--text-dim); font-size: 11.5px;
+  transition: border-color .18s, color .18s, background .18s;
+}
+.ctx-pill:hover { color: var(--text); border-color: var(--accent); background: rgba(233, 180, 76, 0.1); }
+.ctx-pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--c, var(--accent)); }
+.ctx-pill small { font: 10.5px var(--mono); color: var(--text-faint); }
 .card-actions { display: flex; gap: 6px; margin-top: 16px; }
 .card-actions .btn { white-space: nowrap; padding: 0 10px; }
 .card-actions .btn:not([aria-label]) { flex: 1; }

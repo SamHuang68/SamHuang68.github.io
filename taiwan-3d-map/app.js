@@ -894,11 +894,172 @@ function renderCard(s) {
   $('cardNext').setAttribute('aria-label', '下一個導覽點');
   $('cardMetric').textContent = s.metric;
   $('cardDesc').textContent = s.desc;
+  const tr = spotTransect(s);
+  $('cardProfileLabel').textContent = tr.btnLabel;
+  $('cardProfile').title = `${tr.title}（${tr.aLabel} → ${tr.bLabel}）`;
+  renderSpotContext(s, tr);
   const wasHidden = cardEl.hidden;
   cardEl.hidden = false;
   document.body.classList.add('card-open');
   if (wasHidden && !map.isMoving()) relayout();
   announceCard();
+}
+
+// ---------------------------------------------------------------- 導覽點專屬深度情報與局部特徵剖面
+const GROUP_SPEC_LABELS = {
+  mountain: ['山岳定位', '測高與地標', '高山地形剖面'],
+  landscape: ['地貌成因', '地質／水文尺度', '地景特徵剖面'],
+  ecology: ['生態與綠能', '棲地／容量指標', '棲地環境剖面'],
+  tech: ['核心技術定位', '產能／觀測規格', '園區台地剖面'],
+  infra: ['工程樞紐定位', '建設規格與運量', '工程廊道剖面'],
+  heritage: ['文化資產定位', '歷史年代與規模', '遺址地貌剖面'],
+};
+
+// 為不同導覽點量身定制有實際地理意義的局部特徵剖面（取代過去千篇一律的 120.0°E–121.95°E 全島 200 km 橫切）
+const CUSTOM_TRANSECTS = {
+  yushan: { a: [120.892, 23.476], b: [121.022, 23.464], aLabel: '塔塔加鞍部', bLabel: '玉山東峰・秀姑巒源', btnLabel: '登頂剖面', title: '玉山登頂稜線剖面', note: '自塔塔加鞍部經排雲山莊攀升至玉山主峰（3,952 m）與東峰之完整登頂高程變化。' },
+  paiyun_lodge: { a: [120.892, 23.476], b: [120.975, 23.470], aLabel: '塔塔加登山口', bLabel: '玉山主峰頂', btnLabel: '登頂剖面', title: '排雲山莊登頂剖面', note: '塔塔加登山口至排雲山莊（3,402 m）及最後 2.4 公里碎石陡坡攻頂玉山主峰的路線剖面。' },
+  xueshan: { a: [121.215, 24.375], b: [121.315, 24.370], aLabel: '雪山主峰頂', bLabel: '一號圈谷・七家灣溪', btnLabel: '圈谷剖面', title: '雪山冰斗圈谷剖面', note: '自雪山主峰（3,886 m）東北坡下切雪山一號冰斗圈谷，一路降至武陵七家灣溪谷的冰河地形剖面。' },
+  nanhu_cirque: { a: [121.355, 24.385], b: [121.465, 24.355], aLabel: '思源埡口・蘭陽溪源', bLabel: '南湖上下圈谷・主峰', btnLabel: '圈谷剖面', title: '南湖大山冰河圈谷剖面', note: '跨越蘭陽溪與大甲溪分水嶺、爬升至南湖大山上下冰河圈谷與主峰（3,742 m）的高山剖面。' },
+  dabajian_peak: { a: [121.185, 24.475], b: [121.295, 24.455], aLabel: '馬達拉溪溪谷', bLabel: '大霸尖山・聖稜北端', btnLabel: '奇峰剖面', title: '大霸尖山酒桶孤峰剖面', note: '展現大霸尖山（3,492 m）水平砂頁岩互層在山脊上突起的酒桶狀懸壁地形。' },
+  taroko_gorge: { a: [121.567, 24.212], b: [121.567, 24.135], aLabel: '錐麓山北稜', bLabel: '立霧溪谷・塔山南稜', btnLabel: '峽谷剖面', title: '太魯閣大理岩峽谷橫剖面', note: '南北向垂直橫切立霧溪峽谷，呈現兩側逾 1,100 m 大理岩斷崖夾峙深邃溪谷的 V 型下切地貌。' },
+  suhua_qingshui: { a: [121.630, 24.225], b: [121.775, 24.225], aLabel: '清水大山 (2,408m)', bLabel: '太平洋深海', btnLabel: '山海斷崖', title: '清水斷崖山海落差剖面', note: '短短 15 公里內由海拔 2,408 m 的清水大山近乎垂直墜入太平洋千米深海的極限海崖地形。' },
+  kuroshio_waves: { a: [121.625, 24.210], b: [121.820, 24.210], aLabel: '蘇花海岸山嶺', bLabel: '黑潮暖流深海槽', btnLabel: '海崖水深', title: '清水斷崖與黑潮海槽剖面', note: '自蘇花臨海斷崖直落太平洋大陸斜坡，呈現黑潮暖流緊貼東岸陡峭深海北上的海底地形。' },
+  xueshan_tunnel: { a: [121.665, 24.965], b: [121.785, 24.855], aLabel: '坪林北勢溪西口', bLabel: '頭城蘭陽平原東口', btnLabel: '隧道剖面', title: '國道五號雪山隧道岩體縱剖面', note: '沿雪山隧道 12.9 km 軸線切開雪山山脈，呈現隧道上方最高約 700 m 覆蓋岩層與四稜砂岩山體。' },
+  yuanshanzi: { a: [121.812, 25.088], b: [121.838, 25.126], aLabel: '瑞芳基隆河攔河堰', bLabel: '分洪隧道山嶺・東海出水口', btnLabel: '分洪剖面', title: '員山子分洪隧道縱剖面', note: '自基隆河上游瑞芳河段穿過 2.48 km 分洪隧道山體直排東海的防洪工程剖面。' },
+  dulishan_spiral: { a: [120.575, 23.535], b: [120.642, 23.538], aLabel: '樟腦寮站 (543m)', bLabel: '獨立山螺旋頂・梨園寮', btnLabel: '螺旋爬升', title: '獨立山三連螺旋鐵路爬升剖面', note: '阿里山林鐵自樟腦寮（543 m）繞獨立山三圈爬升 200 m 至獨立山站（743 m）的陡坡地形。' },
+  alishan_railway: { a: [120.575, 23.538], b: [120.645, 23.538], aLabel: '嘉南平原麓・樟腦寮', bLabel: '獨立山螺旋段・交力坪', btnLabel: '林鐵爬升', title: '阿里山林鐵獨立山爬升剖面', note: '展現林業鐵路自平原山麓切入獨立山陡峭山嶺的螺旋爬升梯度。' },
+  luye_valley: { a: [121.020, 22.925], b: [121.250, 22.925], aLabel: '中央山脈東麓', bLabel: '鹿野高台・海岸山脈', btnLabel: '縱谷剖面', title: '花東縱谷鹿野高台橫剖面', note: '橫跨中央山脈、鹿野高台河階、卑南溪谷與海岸山脈的板塊縫合縱谷地形。' },
+  chishang_fault: { a: [121.100, 23.122], b: [121.340, 23.122], aLabel: '中央山脈東坡', bLabel: '池上斷層縱谷・海岸山脈', btnLabel: '斷層縱谷', title: '花東縱谷與池上斷層橫剖面', note: '橫切歐亞板塊（中央山脈）與菲律賓海板塊（海岸山脈）碰撞縫合之池上縱谷平原。' },
+  guanshan_yuli: { a: [121.210, 23.332], b: [121.440, 23.332], aLabel: '中央山脈側', bLabel: '秀姑巒溪玉里斷層・海岸山脈', btnLabel: '板塊交界', title: '玉里秀姑巒溪板塊交界橫剖面', note: '跨越秀姑巒溪河谷與玉富自行車道板塊交界帶的東西向縱谷剖面。' },
+  changhua_wind: { a: [119.860, 24.040], b: [120.360, 24.040], aLabel: '大彰化外海風場', bLabel: '彰芳風場・芳苑海岸', btnLabel: '風場水深', title: '彰化外海離岸風場水深剖面', note: '展現台灣海峽大陸棚自芳苑海岸向外延伸 50 公里、水深約 15–45 m 的離岸風場海床。' },
+  hsinchu_sp: { a: [121.008, 24.830], b: [121.008, 24.715], aLabel: '頭前溪谷（竹北）', bLabel: '竹科寶山台地・北埔丘陵', btnLabel: '台地剖面', title: '新竹科學園區與寶山台地剖面', note: '南北向切過頭前溪沖積平原、新竹科學園區隆起台地與寶山丘陵的階地地形。' },
+  hsinchu_baoshan_2nm: { a: [121.005, 24.820], b: [121.005, 24.715], aLabel: '頭前溪南岸', bLabel: '竹科・寶山 Fab 20 台地', btnLabel: '台地剖面', title: '新竹寶山 2nm 晶圓廠台地剖面', note: '呈現寶山晶圓二十廠座落於新竹台地南側丘陵鞍部的穩固地貌。' },
+  central_sp: { a: [120.515, 24.212], b: [120.695, 24.212], aLabel: '臺中港海岸平原', bLabel: '大肚台地（中科）・臺中盆地', btnLabel: '台地剖面', title: '大肚台地與中部科學園區剖面', note: '東西向跨越海岸平原、大肚台地背斜隆起（中科園區所在）與臺中盆地的完整剖面。' },
+  southern_sp: { a: [120.080, 23.105], b: [120.380, 23.105], aLabel: '七股潟湖海岸', bLabel: '嘉南平原（南科）・新化丘陵', btnLabel: '平原剖面', title: '嘉南平原與南部科學園區剖面', note: '由台江七股海岸經嘉南平原南科園區延伸至東側新化丘陵的平緩沖積地形。' },
+  tsmc_fab18_nanotech: { a: [120.120, 23.112], b: [120.370, 23.112], aLabel: '西側濱海平原', bLabel: '南科 Fab 18・東側新化丘陵', btnLabel: '平原剖面', title: '南科晶圓十八廠嘉南平原剖面', note: '展現南科 3nm/5nm 基地所在的嘉南平原地勢與東西兩側高程變化。' },
+  taipei: { a: [121.390, 25.042], b: [121.630, 25.042], aLabel: '林口台地（西緣）', bLabel: '淡水河臺北盆地・南港山系', btnLabel: '盆地剖面', title: '臺北盆地與林口台地橫剖面', note: '一眼看清西側海拔 250 m 林口台地陡降至海拔僅 5–15 m 的臺北陷落盆地與東側丘陵。' },
+  guandu_confluence: { a: [121.415, 25.095], b: [121.525, 25.155], aLabel: '觀音山 (616m)', bLabel: '關渡門淡水河口・大屯火山群', btnLabel: '峽口剖面', title: '關渡門雙山夾峙峽口剖面', note: '橫跨觀音山與大屯火山群夾峙的「關渡門」淡水河出海隘口與紅樹林濕地。' },
+  guishan_milky: { a: [121.905, 24.842], b: [122.015, 24.842], aLabel: '蘭陽外海海盆', bLabel: '龜山島火山錐 (398m)・熱泉海域', btnLabel: '火山島剖面', title: '龜山島活火山與海底熱泉剖面', note: '自海底隆起至海拔 398 m 龜甲山峰、東側緊鄰淺海硫磺熱液噴口的火山島地形。' },
+  kueishan_vent: { a: [121.925, 24.838], b: [122.035, 24.830], aLabel: '龜山島主峰', bLabel: '龜首淺海熱液噴口・沖繩海槽', btnLabel: '熱泉水深', title: '龜山島海底熱液噴口水深剖面', note: '自龜山島陸域延伸至東側水深 5–30 m 熱液噴口群及沖繩海槽西端斜坡。' },
+  sunmoonlake: { a: [120.855, 23.858], b: [120.985, 23.858], aLabel: '水社大山西麓', bLabel: '日月潭盆地 (748m)・水社大山 (2,059m)', btnLabel: '湖盆剖面', title: '日月潭高山湖盆與水社大山剖面', note: '呈現海拔 748 m 日月潭蓄水盆地與東側海拔 2,059 m 水社大山的高差對比。' },
+  deji_hydro: { a: [121.115, 24.254], b: [121.220, 24.254], aLabel: '大甲溪下游谷關方向', bLabel: '德基雙曲拱壩 (1,408m)・上游集水谷', btnLabel: '水庫峽谷', title: '大甲溪德基水庫峽谷剖面', note: '呈現大甲溪深切高山峽谷與海拔 1,408 m 德基水庫蓄水谷地的陡峻地勢。' },
+  feitsui_watershed: { a: [121.525, 24.908], b: [121.645, 24.908], aLabel: '新店溪下游側', bLabel: '翡翠水庫拱壩・北勢溪千島湖', btnLabel: '水庫谷地', title: '翡翠水庫與北勢溪曲流谷地剖面', note: '橫切北勢溪淹沒曲流峽灣與茶園山巒交錯的水庫集水區地形。' },
+  liuqiu_canyon: { a: [120.260, 22.310], b: [120.460, 22.390], aLabel: '高屏海底峽谷深槽', bLabel: '小琉球珊瑚礁島・東港海岸', btnLabel: '海谷與礁島', title: '高屏海底峽谷與小琉球珊瑚島剖面', note: '展現小琉球隆起珊瑚礁島西側緊鄰水深逾數百公尺之高屏海底峽谷陡槽。' },
+  ryukyu_trench_abyss: { a: [121.550, 23.450], b: [123.250, 23.050], aLabel: '東台灣海岸山脈', bLabel: '琉球海溝深淵 (-6,030m)', btnLabel: '海溝深淵', title: '東台灣陸坡至琉球海溝深淵剖面', note: '自花東海岸跨越陡峭大陸斜坡直抵水深逾 6,000 公尺的琉球海溝板塊隱沒前緣。' },
+};
+
+function spotTransect(s) {
+  if (CUSTOM_TRANSECTS[s.id]) {
+    const c = CUSTOM_TRANSECTS[s.id];
+    const total = distanceKm(c.a, c.b);
+    const dSpot = clamp(distanceKm(c.a, [s.lon, s.lat]), 0, total);
+    return { ...c, spotDist: dSpot, spotLabel: s.short || s.name };
+  }
+  // 依導覽點類別與海陸位置自動建立高解析度局部特徵剖面（10–22 km）
+  const isSea = (s.elev ?? 0) < -5;
+  const isHigh = (s.elev ?? s.h ?? 0) > 1200;
+  const isEast = s.lon > 121.35;
+  const spanLon = isSea ? 0.14 : isHigh ? 0.08 : 0.09;
+  const spanLat = isEast ? 0.03 : 0.015;
+  const a = [s.lon - spanLon, s.lat - spanLat];
+  const b = [s.lon + spanLon, s.lat + spanLat];
+  const total = distanceKm(a, b);
+  const gInfo = GROUP_SPEC_LABELS[s.group] || ['地景定位', '現地指標', '局部地形剖面'];
+  const btnLabel = isSea ? '水深剖面' : isHigh ? '山稜剖面' : s.group === 'tech' ? '台地剖面' : s.group === 'infra' ? '工程剖面' : '局部剖面';
+  const aLabel = isEast ? '西側山嶺' : isSea ? '西側海域' : '西側平原／山麓';
+  const bLabel = isEast ? '東側太平洋岸' : isSea ? '東側海床' : '東側丘陵／山稜';
+  return {
+    a, b, aLabel, bLabel, btnLabel,
+    title: `${s.short || s.name}・${gInfo[2]}`,
+    note: `以「${s.short || s.name}」為中心之 ${(total).toFixed(1)} km 局部實測${isSea ? '海床水深' : '地形'}橫切剖面與雙點通視分析。`,
+    spotDist: total / 2,
+    spotLabel: s.short || s.name,
+  };
+}
+
+let spotCtxToken = 0;
+function renderSpotContext(s, tr) {
+  const box = $('cardContext');
+  if (!box) return;
+  const token = ++spotCtxToken;
+  const gLabels = GROUP_SPEC_LABELS[s.group] || ['導覽定位', '關鍵數據', '局部剖面'];
+  const badgeParts = (s.badge || '').split(/\s*·\s*/).filter(Boolean);
+  const metricParts = (s.metric || '').split(/\s*·\s*/).filter(Boolean);
+  const spec1 = badgeParts[1] || badgeParts[0] || s.badge;
+  const spec2 = metricParts[0] || s.metric;
+
+  // 找出距離最近的 3 個鄰近導覽點
+  const nearby = SPOTS
+    .filter((o) => o.id !== s.id)
+    .map((o) => ({ s: o, d: distanceKm([s.lon, s.lat], [o.lon, o.lat]), dir: compassWord((bearingTo([s.lon, s.lat], [o.lon, o.lat]) + 360) % 360) }))
+    .sort((u, v) => u.d - v.d)
+    .slice(0, 3);
+
+  // 找出收錄此導覽點的主題路線（排除全島 80 站）
+  const inTours = TOURS.filter((t) => t.id !== 'all' && t.stops.includes(s.id));
+
+  box.innerHTML = `
+    <div class="ctx-specs">
+      <div class="ctx-spec"><span class="ctx-spec-k">${esc(gLabels[0])}</span><span class="ctx-spec-v">${esc(spec1)}</span></div>
+      <div class="ctx-spec"><span class="ctx-spec-k">${esc(gLabels[1])}</span><span class="ctx-spec-v">${esc(spec2)}</span></div>
+    </div>
+    <div class="ctx-relief" id="cardLocalRelief">正在實測方圓 2.5 km 3D 地形與坡向…</div>
+    <div class="ctx-row" id="cardNearbyRow"><span class="ctx-label">鄰近導覽</span></div>
+    ${inTours.length ? '<div class="ctx-row" id="cardTourRow"><span class="ctx-label">主題路線</span></div>' : ''}
+  `;
+  box.hidden = false;
+
+  const nearRow = $('cardNearbyRow');
+  for (const n of nearby) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ctx-pill';
+    btn.style.setProperty('--c', GROUPS[n.s.group].color);
+    btn.innerHTML = `<i></i><span>${esc(n.s.short)}</span><small>${n.d < 10 ? n.d.toFixed(1) : Math.round(n.d)}km ${n.dir}</small>`;
+    btn.addEventListener('click', () => { stopTour(); selectSpot(n.s); });
+    nearRow.append(btn);
+  }
+
+  if (inTours.length) {
+    const tourRow = $('cardTourRow');
+    for (const t of inTours) {
+      const idx = t.stops.indexOf(s.id);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ctx-pill';
+      btn.innerHTML = `<span>🧭 ${esc(t.title)}</span><small>第 ${idx + 1}/${t.stops.length} 站</small>`;
+      btn.addEventListener('click', () => { if (isMobile()) setSheet(false); startTour(t, idx); });
+      tourRow.append(btn);
+    }
+  }
+
+  // 非同步實測該導覽點方圓 2.5 km 九宮格 DEM 高程與坡向特徵
+  const dirs = [0, 45, 90, 135, 180, 225, 270, 315];
+  const sampleCoords = [[s.lon, s.lat], ...dirs.map((az) => offsetKm([s.lon, s.lat], az, 2.5))];
+  Promise.all(sampleCoords.map(([x, y]) => elevationAt(x, y, 11))).then((es) => {
+    if (token !== spotCtxToken || state.current?.id !== s.id) return;
+    const el = $('cardLocalRelief');
+    if (!el) return;
+    const minE = Math.min(...es), maxE = Math.max(...es), span = Math.max(0, maxE - minE);
+    // 找出最低方向作為主坡向／出海方向
+    let lowIdx = 1;
+    for (let i = 2; i < es.length; i++) { if (es[i] < es[lowIdx]) lowIdx = i; }
+    const lowDir = compassWord(dirs[lowIdx - 1]);
+    let landform = '';
+    if (maxE <= 0) landform = span > 300 ? `大陸斜坡陡降海床 · 向${lowDir}加深` : `平緩大陸棚海域 · 水深變化 ${fmtInt(span)} m`;
+    else if (minE < 0) landform = `山海交界海岸帶 · 向${lowDir}入海`;
+    else if (span > 700) landform = `高山陡峻峽谷／稜脊 · 向${lowDir}傾降`;
+    else if (span > 180) landform = `丘陵階地與河谷 · 主坡朝${lowDir}`;
+    else landform = `開闊台地／沖積平原 · 起伏僅 ${fmtInt(span)} m`;
+
+    const rangeTxt = maxE <= 0
+      ? `水深 <b>${fmtInt(-maxE)}–${fmtInt(-minE)} m</b>`
+      : minE < 0
+      ? `水深 <b>${fmtInt(-minE)} m</b> 至海拔 <b>${fmtInt(maxE)} m</b>`
+      : `海拔 <b>${fmtInt(minE)}–${fmtInt(maxE)} m</b>`;
+    el.innerHTML = `現地 2.5 km 實測：${rangeTxt} · 高差 <b>${fmtInt(span)} m</b>（${landform}）`;
+  }).catch(() => {});
 }
 
 // 介紹卡的螢幕閱讀器播報。卡片本身不設 aria-live：逐欄更新時 NVDA 會拆成零碎片段、順序錯亂地念
@@ -1223,12 +1384,11 @@ function pickPoint(lngLat) {
 }
 
 function profileForSpot(s) {
-  const a = [Math.min(s.lon - 0.3, 120.0), s.lat];
-  const b = [Math.max(s.lon + 0.3, 121.95), s.lat];
+  const tr = spotTransect(s);
   stopPicking();
   clearSection();
   openProfile();
-  runProfile(a, b, { frame: true });
+  runProfile(tr.a, tr.b, { frame: true, meta: tr });
 }
 
 // 震源剖面預設：自動打開地震目錄，再沿隱沒方向切剖面
@@ -1259,6 +1419,7 @@ async function openSection(key) {
 // 改回直線剖面：清掉路徑剖面的標題與設定，必要時恢復震源層
 function resetPathProfile() {
   profile.skyline = null;
+  profile.meta = null;
   map.getSource('skyline')?.setData(EMPTY);
   $('profileAction').hidden = true;
   if (!profile.path) { $('profileTitle').textContent = '地形剖面'; return; }
@@ -1286,10 +1447,12 @@ function computeLineOfSight(S) {
   return { eA, eB, blocked: maxDiff > 0, maxDiff, blockIdx, blockSample: blockIdx >= 0 ? S[blockIdx] : null };
 }
 
-async function runProfile(a, b, { frame }) {
+async function runProfile(a, b, { frame, meta = null } = {}) {
   const token = ++profile.token;
   profile.samples = null;
   resetPathProfile();
+  profile.meta = meta;
+  if (meta?.title) $('profileTitle').textContent = meta.title;
   const len = distanceKm(a, b);
   const N = 240;
   const z = len > 140 ? 10 : len > 45 ? 11 : 12;
@@ -1445,13 +1608,16 @@ function drawProfile() {
     const [r0, r1] = path.range;
     marks += `<rect x="${x(r0).toFixed(1)}" y="${T}" width="${Math.max(1, x(r1) - x(r0)).toFixed(1)}" height="${tBot - T}" fill="rgba(233,180,76,.12)"/>`;
   }
-  for (const m of path?.marks || []) {
-    if (m.d < 0 || m.d > len) continue;
-    const mx = x(m.d).toFixed(1);
-    marks += `<line x1="${mx}" x2="${mx}" y1="${T + 12}" y2="${tBot}" stroke="rgba(255,255,255,.28)" stroke-dasharray="2 3"/>`
-      + `<text class="axis" x="${mx}" y="${T + 9}" text-anchor="middle">${esc(m.label)}</text>`;
+  const meta = profile.meta;
+  const markList = path?.marks || (meta?.spotDist != null ? [{ d: meta.spotDist, label: `📍 ${meta.spotLabel}`, accent: true }] : []);
+  for (const m of markList) {
+    const mx = x(clamp(m.d, 0, len)).toFixed(1);
+    const stroke = m.accent ? 'rgba(233,180,76,.75)' : 'rgba(255,255,255,.28)';
+    const fill = m.accent ? 'style="fill:#ffd88a;font-weight:600"' : '';
+    marks += `<line x1="${mx}" x2="${mx}" y1="${T + 12}" y2="${tBot}" stroke="${stroke}" stroke-dasharray="2 3"/>`
+      + `<text class="axis" x="${mx}" y="${T + 9}" text-anchor="middle" ${fill}>${esc(m.label)}</text>`;
   }
-  const endA = esc(path?.a ?? 'A'), endB = esc(path?.b ?? 'B');
+  const endA = esc(path?.a ?? meta?.aLabel ?? 'A'), endB = esc(path?.b ?? meta?.bLabel ?? 'B');
 
   // 直線剖面：自動計算 A↔B 雙點視線通視性（Line-of-Sight）並標出視線與最高阻擋山稜
   let losSvg = '';
@@ -1465,9 +1631,10 @@ function drawProfile() {
         losSvg += `<circle cx="${bx}" cy="${by}" r="3.8" fill="#ff7a59" stroke="#0b0d10" stroke-width="1.4"/>`;
       }
       if (!profile.section) {
-        setProfileNote(los.blocked
-          ? `雙點通視：A ↔ B 視線受阻 · 最高遮擋於 ${los.blockSample.d.toFixed(1)} km 處（海拔 ${fmtInt(los.blockSample.e)} m，高出視線 ${fmtInt(los.maxDiff)} m）`
-          : `雙點通視：A ↔ B 全線直線通視（無地形遮擋，視線距稜線最低餘裕 ${fmtInt(Math.abs(los.maxDiff))} m）`);
+        const losTxt = los.blocked
+          ? `雙點通視：視線於 ${los.blockSample.d.toFixed(1)} km 處受阻（海拔 ${fmtInt(los.blockSample.e)} m）`
+          : `雙點通視：兩端全線直線通視（最低餘裕 ${fmtInt(Math.abs(los.maxDiff))} m）`;
+        setProfileNote(meta?.note ? `${meta.note}（${losTxt}）` : losTxt);
       }
     }
   }
@@ -2113,6 +2280,8 @@ async function importGpxText(xmlText, fallbackName = '自訂 GPX 軌跡') {
   $('cardDesc').textContent = `已匯入「${name}」並貼合 3D 地形。路線依坡度陡峭度著色（平緩綠 → 琥珀 → 陡坡珊瑚紅）。點擊「飛覽」可啟動第一人稱鏡頭沿此 GPX 軌跡自動飛行。`;
   $('cardSun').hidden = true;
   $('cardHorizon').hidden = true;
+  $('cardContext').hidden = true;
+  $('cardProfileLabel').textContent = '剖面';
   $('cardOrbit').hidden = true;
   $('cardSkyline').hidden = true;
   $('cardGpx').hidden = true;
