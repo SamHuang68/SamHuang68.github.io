@@ -3,12 +3,12 @@
 // 共用的地圖、狀態物件與工具函式由 init() 一次傳入，名稱與 app.js 相同，區段內的程式原樣沿用。
 // travel、ride 兩個狀態物件留在 app.js：模組載入前，導覽、鍵盤與播放器也要能判斷有沒有選取、是否正在騎乘。
 let maplibregl, map, $, travel, ride, profile, beacon, cardEl, esc, pathIndex, clamp, fmtInt, isMobile, withTimeout,
-  mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, computeHorizonSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
+  mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, computeHorizonSunrise, alpinePhysics, renderAlpineAtmoHtml, renderPathGradeHtml, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
   stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, announceCard, GRADE_STOPS, DIF_COLORS, EMPTY;
 
 export function init(api) {
   ({ maplibregl, map, $, travel, ride, profile, beacon, cardEl, esc, pathIndex, clamp, fmtInt, isMobile, withTimeout,
-    mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, computeHorizonSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
+    mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, computeHorizonSunrise, alpinePhysics, renderAlpineAtmoHtml, renderPathGradeHtml, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
     stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, announceCard, GRADE_STOPS, DIF_COLORS, EMPTY } = api);
   bindTravelUI();
 }
@@ -106,7 +106,10 @@ function showTravelCard(c) {
   $('cardGpx').hidden = !gpxForSel();
   $('cardSun').hidden = true;
   $('cardHorizon').hidden = true;
-  if ($('cardContext')) $('cardContext').hidden = true;
+  if ($('cardContext')) {
+    $('cardContext').innerHTML = c.ctxHtml || '';
+    $('cardContext').hidden = !c.ctxHtml;
+  }
   if ($('cardProfileLabel')) $('cardProfileLabel').textContent = travel.sel?.kind === 'peak' ? '山稜剖面' : '路線剖面';
   $('cardPrev').setAttribute('aria-label', '上一個');
   $('cardNext').setAttribute('aria-label', '下一個');
@@ -403,6 +406,7 @@ function selectStage(k) {
     metric: `下降 ${fmtInt(st.down)} m · 最高 ${fmtInt(st.max)} m · 便利商店 ${st.stores} 家 · 最長補給間距 ${st.gap.toFixed(1)} km`,
     desc: `${climbs.length ? `本日主要爬坡：${climbs.map((c) => `${c.name}（↑${fmtInt(c.gain)} m，平均 ${c.grade.toFixed(1)}%）`).join('、')}。` : '本日沒有淨爬升 100 m 以上的坡段。'}`
       + `${stations ? `途經臺鐵車站：${stations}，需要時可搭火車接駁。` : ''}按「剖面」看這一天的高度變化。`,
+    ctxHtml: renderPathGradeHtml ? renderPathGradeHtml(subPath(P, st.a, st.b), st.up, st.max) : '',
   });
   history.replaceState(null, '', '#bike');
   fitCoords(coords, { maxZoom: 12 });
@@ -421,6 +425,7 @@ function selectClimb(i) {
     f1: ['爬升', `${fmtInt(c.gain)} m`], f2: ['平均坡度', `${c.grade.toFixed(1)}%`],
     metric: `${c.d0.toFixed(1)}–${c.d1.toFixed(1)} km · 長 ${c.km.toFixed(1)} km · 頂點 ${fmtInt(c.top)} m${day ? ` · 第 ${day.k} 天` : ''}`,
     desc: `從谷底到坡頂淨爬升 ${fmtInt(c.gain)} m。坡度為地形資料推算的平均值，局部可能更陡；上坡前補水，下坡注意車速。`,
+    ctxHtml: renderPathGradeHtml ? renderPathGradeHtml(subPath(P, c.a, c.b), c.gain, c.top) : '',
   });
   history.replaceState(null, '', '#bike');
   fitCoords(coords, { maxZoom: 13 });
@@ -541,6 +546,7 @@ function selectTrail(t) {
     f1: ['長度', t.lenText || '—'], f2: ['海拔', t.alt ? `約 ${fmtInt(+t.alt)} m` : '—'],
     metric: tr ? `主線 ${tr.main.km.toFixed(1)} km（自登山口）· 爬升 ${fmtInt(tr.main.up)} m · 下降 ${fmtInt(tr.main.down)} m · 高度 ${fmtInt(tr.main.min)}–${fmtInt(tr.main.max)} m${parts}` : '這條步道沒有公開軌跡，地圖上標示入口位置。',
     desc: [t.tour && `路程：${t.tour}`, t.season && `最佳季節：${t.season}`, t.pave && `路面：${t.pave}`, t.special && `特色：${t.special}`, `位置：${t.pos}`, `管理：${t.admin}`].filter(Boolean).join('。') + '。' + mismatch,
+    ctxHtml: renderPathGradeHtml && tr ? renderPathGradeHtml(trailPath(t), tr.main.up, tr.main.max) : '',
   });
   history.replaceState(null, '', `#trail=${t.id}`);
   const coords = t.segs.flatMap((s) => s.lon.map((x, i) => [x, s.lat[i]]));
@@ -684,10 +690,12 @@ function renderPeakSun(p) {
     computeHorizonSunrise(p.lat, p.lon, p.h).then((hz) => {
       if (travel.sel?.kind !== 'peak' || travel.sel.rank !== rank || cardEl.hidden) return;
       const rt = new Date(Math.round(hz.ridgeDate.getTime() / 60000) * 60000 + 8 * 3600e3);
-      const hm = `${String(rt.getUTCHours()).padStart(2, '0')}:${String(rt.getUTCMinutes()).padStart(2, '0')}`;
+      const st = new Date(Math.round(hz.shadowDate.getTime() / 60000) * 60000 + 8 * 3600e3);
+      const rhm = `${String(rt.getUTCHours()).padStart(2, '0')}:${String(rt.getUTCMinutes()).padStart(2, '0')}`;
+      const shm = `${String(st.getUTCHours()).padStart(2, '0')}:${String(st.getUTCMinutes()).padStart(2, '0')}`;
       $('cardHorizon').textContent = hz.delayMin > 0 && hz.maxAngle > -0.5
-        ? `實測東稜遮擋：距 ${hz.maxDist.toFixed(1)} km 山稜仰角 +${hz.maxAngle.toFixed(1)}° · 破稜日出 ${hm}（晚 ${hz.delayMin} 分）`
-        : `實測東向天際線：最高稜線仰角 ${hz.maxAngle >= 0 ? '+' : ''}${hz.maxAngle.toFixed(1)}°（無高稜遮擋，與海平面日出同步）`;
+        ? `實測山稜日照窗：${rhm} 破稜（晚 ${hz.delayMin} 分）→ ${shm} 入影 · 直照 ${hz.directHours.toFixed(1)} hr（東稜 +${hz.maxAngle.toFixed(1)}°）`
+        : `實測山稜日照窗：${rhm} 見光 → ${shm} 入影 · 全日直照 ${hz.directHours.toFixed(1)} hr（東稜仰角 ${hz.maxAngle >= 0 ? '+' : ''}${hz.maxAngle.toFixed(1)}°）`;
       $('cardHorizon').hidden = false;
     }).catch(() => {});
   }
@@ -715,6 +723,7 @@ function selectPeak(p, { fly = true } = {}) {
       + `${near.length ? `5 km 內的百岳：${near.slice(0, 6).map((q) => `${q.name}（${distanceKm([p.lon, p.lat], [q.lon, q.lat]).toFixed(1)} km）`).join('、')}。` : ''}`
       + '日出時間以山頂望向海平面地平線計算，已計入山高；東方有更高山稜擋住時會晚幾分鐘。'
       + '在清單勾選即可記錄登頂；入山入園申請與天候請查國家公園與林業保育署公告。',
+    ctxHtml: renderAlpineAtmoHtml ? renderAlpineAtmoHtml(p.h) : '',
   });
   renderPeakSun(p);
   history.replaceState(null, '', `#peak=${p.rank}`);

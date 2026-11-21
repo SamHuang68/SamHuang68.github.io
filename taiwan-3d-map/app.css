@@ -397,6 +397,20 @@ body.panel-collapsed .panel-toggle { left: var(--gap); }
 .ctx-pill:hover { color: var(--text); border-color: var(--accent); background: rgba(233, 180, 76, 0.1); }
 .ctx-pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--c, var(--accent)); }
 .ctx-pill small { font: 10.5px var(--mono); color: var(--text-faint); }
+.ctx-atmo {
+  padding: 7px 10px; border-radius: 9px; border: 1px solid rgba(94, 194, 230, 0.25);
+  background: rgba(94, 194, 230, 0.07); color: #dcecf5; font: 500 11.5px/1.45 var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.ctx-atmo b { color: #7ad6ff; font-weight: 600; }
+.ctx-grade { display: grid; gap: 5px; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--line); background: rgba(255,255,255,0.025); }
+.ctx-grade-head { display: flex; justify-content: space-between; align-items: baseline; font: 500 11.5px var(--mono); color: var(--text-dim); }
+.ctx-grade-head b { color: var(--accent); }
+.ctx-grade-bar { display: flex; height: 6px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.08); gap: 1px; }
+.ctx-grade-bar i { display: block; height: 100%; }
+.ctx-grade-legend { display: flex; flex-wrap: wrap; gap: 6px 10px; font: 10.5px var(--mono); color: var(--text-dim); }
+.ctx-grade-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.ctx-grade-legend i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
 .card-actions { display: flex; gap: 6px; margin-top: 16px; }
 .card-actions .btn { white-space: nowrap; padding: 0 10px; }
 .card-actions .btn:not([aria-label]) { flex: 1; }

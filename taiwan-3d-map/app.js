@@ -978,6 +978,67 @@ function spotTransect(s) {
   };
 }
 
+// ---------------------------------------------------------------- 高山標準大氣物理（ICAO 氣壓、有效含氧率、Clausius-Clapeyron 水沸點）與路線坡度結構光譜
+function alpinePhysics(h) {
+  const alt = Math.max(0, h);
+  // ICAO 國際標準大氣對流層氣壓方程 (hPa)
+  const pHpa = 1013.25 * (1 - 2.25577e-5 * alt) ** 5.25588;
+  const o2Pct = Math.round((pHpa / 1013.25) * 100);
+  // Clausius-Clapeyron 水沸點方程 (ΔH_vap = 40660 J/mol, R = 8.31446 J/mol·K, T0 = 373.15 K)
+  const invT = 1 / 373.15 - (8.31446 / 40660) * Math.log(pHpa / 1013.25);
+  const boilC = 1 / invT - 273.15;
+  // 台灣山地濕絕熱垂直遞減率約 -6.0°C / km
+  const tempDropC = (alt * 0.006).toFixed(1);
+  return { alt: Math.round(alt), pHpa: Math.round(pHpa), o2Pct, boilC: +boilC.toFixed(1), tempDropC: +tempDropC };
+}
+
+function renderAlpineAtmoHtml(h) {
+  if (!(h >= 1000)) return '';
+  const a = alpinePhysics(h);
+  return `<div class="ctx-atmo">高山大氣物理：氣壓 <b>${a.pHpa} hPa</b> · 有效含氧 <b>${a.o2Pct}%</b> · 水沸點 <b>${a.boilC}°C</b> · 垂直溫差 <b>−${a.tempDropC}°C</b></div>`;
+}
+
+// 掃描路徑取樣點 [{p, d, e}]，解算 4 級坡度里程分布與 Naismith-Scarf 體能等效平路里程
+function analyzePathGrades(P, upM = null) {
+  if (!P || P.length < 2) return null;
+  const totalKm = P[P.length - 1].d - P[0].d;
+  if (!(totalKm > 0.05)) return null;
+  const bands = [0, 0, 0, 0]; // <3%, 3-7%, 7-12%, >=12%
+  let calcUp = 0, ref = P[0].e;
+  for (let i = 1; i < P.length; i++) {
+    const dk = P[i].d - P[i - 1].d;
+    if (!(dk > 0)) continue;
+    const de = P[i].e - P[i - 1].e;
+    const g = (Math.abs(de) / (dk * 1000)) * 100;
+    if (g < 3) bands[0] += dk;
+    else if (g < 7) bands[1] += dk;
+    else if (g < 12) bands[2] += dk;
+    else bands[3] += dk;
+    if (P[i].e - ref >= 3) { calcUp += P[i].e - ref; ref = P[i].e; }
+    else if (ref - P[i].e >= 3) { ref = P[i].e; }
+  }
+  const up = upM != null ? upM : calcUp;
+  // Naismith-Scarf 等效耗能平路里程：每爬升 100 m 等效於 +0.792 km 平路耗能
+  const eqKm = totalKm + (up / 1000) * 7.92;
+  const bonusPct = Math.round(((eqKm - totalKm) / totalKm) * 100);
+  const pcts = bands.map((b) => Math.round((b / totalKm) * 100));
+  return { totalKm, up, eqKm: +eqKm.toFixed(1), bonusPct, bands, pcts };
+}
+
+function renderPathGradeHtml(P, upM = null, maxElev = 0) {
+  const g = analyzePathGrades(P, upM);
+  if (!g) return renderAlpineAtmoHtml(maxElev);
+  const colors = ['#7fd1ae', '#cfe27a', '#f2c46d', '#ff5d6c'];
+  const labels = ['平緩 <3%', '緩坡 3–7%', '中陡 7–12%', '陡牆 ≥12%'];
+  const bars = g.bands.map((km, i) => (km > 0 ? `<i style="flex:${km.toFixed(3)};background:${colors[i]}"></i>` : '')).join('');
+  const leg = labels.map((lb, i) => `<span><i style="background:${colors[i]}"></i>${lb} <b>${g.pcts[i]}%</b></span>`).join('');
+  return `<div class="ctx-grade">
+    <div class="ctx-grade-head"><span>坡度光譜</span><span>等效平路 <b>${g.eqKm} km</b>（爬升 +${g.bonusPct}%）</span></div>
+    <div class="ctx-grade-bar">${bars}</div>
+    <div class="ctx-grade-legend">${leg}</div>
+  </div>${renderAlpineAtmoHtml(maxElev)}`;
+}
+
 let spotCtxToken = 0;
 function renderSpotContext(s, tr) {
   const box = $('cardContext');
@@ -1005,6 +1066,7 @@ function renderSpotContext(s, tr) {
       <div class="ctx-spec"><span class="ctx-spec-k">${esc(gLabels[1])}</span><span class="ctx-spec-v">${esc(spec2)}</span></div>
     </div>
     <div class="ctx-relief" id="cardLocalRelief">正在實測方圓 2.5 km 3D 地形與坡向…</div>
+    ${renderAlpineAtmoHtml(s.elev)}
     <div class="ctx-row" id="cardNearbyRow"><span class="ctx-label">鄰近導覽</span></div>
     ${inTours.length ? '<div class="ctx-row" id="cardTourRow"><span class="ctx-label">主題路線</span></div>' : ''}
   `;
@@ -1518,7 +1580,55 @@ function quakeSection(S) {
   }
   pts.sort((u, v) => u.q.m - v.q.m);
   const dmax = [50, 100, 150, 200, 250, 350, 500, 700].find((v) => v >= deepest * 1.06) || 700;
-  return { pts, half, dmax };
+  const metrics = computeSeismogenicMetrics(pts, len);
+  return { pts, half, dmax, metrics };
+}
+
+// ---------------------------------------------------------------- 震源剖面地球物理定量解算（Aki-Utsu b-value、地震矩能量、Wadati-Benioff 隱沒板塊界面擬合）
+function computeSeismogenicMetrics(pts, len) {
+  const n = pts.length;
+  if (!n) return null;
+  const mc = Math.max(4.0, quake.minMag || 4.0);
+  let sumM = 0, nMc = 0, sumEnergyJ = 0, shallowCount = 0, deepCount = 0, maxQ = pts[0].q;
+  for (const { q } of pts) {
+    if (q.m >= mc) { sumM += q.m; nMc++; }
+    // Gutenberg-Richter 地震波輻射能量 log10(E) = 4.8 + 1.5 * M (Joules)
+    sumEnergyJ += 10 ** (4.8 + 1.5 * q.m);
+    if (q.d <= 25) shallowCount++;
+    if (q.d >= 60) deepCount++;
+    if (q.m > maxQ.m) maxQ = q;
+  }
+  const meanM = nMc > 0 ? sumM / nMc : mc;
+  // Aki-Utsu (1965) 最大概似法 b 值估計（取樣步長 ΔM = 0.1）
+  const bVal = nMc >= 12 && meanM > mc - 0.02 ? Math.LOG10E / (meanM - (mc - 0.05)) : null;
+  const bErr = bVal ? bVal / Math.sqrt(nMc) : null;
+  const eqMw = sumEnergyJ > 0 ? (Math.log10(sumEnergyJ) - 4.8) / 1.5 : 0;
+  const energyText = sumEnergyJ >= 1e15
+    ? `${(sumEnergyJ / 1e15).toFixed(1)} PJ`
+    : `${(sumEnergyJ / 1e12).toFixed(1)} TJ`;
+  const shallowPct = Math.round((shallowCount / n) * 100);
+
+  // 自動擬合 Wadati-Benioff 隱沒板塊震源帶中軸／上界面包絡線（當深源地震 >= 15 筆時啟用）
+  const slabPts = [];
+  let dipDeg = null;
+  if (deepCount >= 15 && len > 40) {
+    const bins = 9;
+    for (let k = 0; k < bins; k++) {
+      const d0 = (len * k) / bins, d1 = (len * (k + 1)) / bins;
+      const inBin = pts.filter((p) => p.d >= d0 && p.d < d1 && !p.q.fx).map((p) => p.q.d).sort((a, b) => a - b);
+      if (inBin.length >= 5) {
+        // 取 35% 分位深度代表隱沒板塊上緣發震界面
+        const dep = inBin[Math.floor(inBin.length * 0.35)];
+        slabPts.push({ xKm: (d0 + d1) / 2, dep });
+      }
+    }
+    if (slabPts.length >= 3) {
+      const first = slabPts[0], last = slabPts[slabPts.length - 1];
+      const dx = Math.abs(last.xKm - first.xKm), dz = Math.abs(last.dep - first.dep);
+      if (dx > 20 && dz > 25) dipDeg = Math.round((Math.atan2(dz, dx) * 180) / Math.PI);
+    }
+  }
+  return { n, bVal, bErr, energyText, eqMw, shallowPct, maxQ, slabPts: dipDeg ? slabPts : [], dipDeg };
 }
 
 function hexMix(c1, c2, t) {
@@ -1590,9 +1700,6 @@ function drawProfile() {
     for (let v = 0; v <= sec.dmax; v += ds) {
       deep += `<line class="grid" x1="${L}" x2="${W - R}" y1="${dy(v)}" y2="${dy(v)}"/><text class="axis" x="${L - 6}" y="${dy(v) + 3}" text-anchor="end">${v}</text>`;
     }
-    // 標題放左下：三條預設剖面的左下角都沒有震源。筆數也放這裡，手機上統計列會被截斷
-    const label = W > 560 ? `地底震源 ${fmtInt(sec.pts.length)} 筆（線兩側 ${sec.half} km）· 空心圈＝定值深度` : `震源 ${fmtInt(sec.pts.length)} 筆 · 空心＝定值深度`;
-    deep += `<text class="panel-label" x="${L + 8}" y="${dBot - 7}">${label}</text>`;
     // 定值深度（定位時固定在 10／33／35 km）畫成空心，避免被讀成真的地層
     for (const { q, d } of sec.pts) {
       const r = clamp(1.3 * 1.75 ** (q.m - 4), 1.3, 11), c = depthColor(q.d);
@@ -1600,6 +1707,20 @@ function drawProfile() {
         ? `<circle class="hypo-fixed" cx="${x(d).toFixed(1)}" cy="${dy(q.d).toFixed(1)}" r="${r.toFixed(1)}" stroke="${c}"/>`
         : `<circle class="hypo" cx="${x(d).toFixed(1)}" cy="${dy(q.d).toFixed(1)}" r="${r.toFixed(1)}" fill="${c}" fill-opacity=".85"/>`;
     }
+    // 繪製 Wadati-Benioff 隱沒板塊發震帶擬合曲線與傾角
+    const sm = sec.metrics;
+    if (sm?.slabPts?.length >= 3) {
+      const sp = sm.slabPts.map((p) => `${x(p.xKm).toFixed(1)},${dy(p.dep).toFixed(1)}`).join(' L');
+      deep += `<path d="M${sp}" fill="none" stroke="#5ec2e6" stroke-width="1.8" stroke-dasharray="5 3" opacity="0.92"/>`;
+    }
+    // 左下角定量地震學指標（b-value、累積地震矩能量、淺源占比、隱沒傾角）
+    const bTxt = sm?.bVal ? ` · b=${sm.bVal.toFixed(2)}` : '';
+    const eTxt = sm ? ` · 能量 ${sm.energyText} (等效 Mw${sm.eqMw.toFixed(1)}) · 淺源 ${sm.shallowPct}%` : '';
+    const dipTxt = sm?.dipDeg ? ` · 隱沒傾角 ~${sm.dipDeg}°` : '';
+    const label = W > 560
+      ? `震源 ${fmtInt(sec.pts.length)} 筆（±${sec.half}km）${bTxt}${eTxt}${dipTxt}`
+      : `震源 ${fmtInt(sec.pts.length)} 筆${bTxt} · 淺源 ${sm?.shallowPct ?? 0}%`;
+    deep += `<text class="panel-label" x="${L + 8}" y="${dBot - 7}">${label}</text>`;
   }
 
   // 路徑剖面：區段底色（例如目前這一天）與標記線（每日終點、爬坡頂點）
@@ -1815,35 +1936,108 @@ function showPathProfile(samples, opts) {
   drawProfile();
 }
 
-// ---------------------------------------------------------------- 360° 真實山稜天際線與破稜日出儀（PeakFinder Skyline）
+// ---------------------------------------------------------------- 360° 真實山稜天際線、山谷見光時窗與三節氣太陽軌跡儀（Insolation & Solar Envelope）
 async function computeHorizonSunrise(lat, lon, h, now = new Date()) {
   const sr = nextSunrise(lat, lon, h, now);
   const hObs = Math.max(0, h) + 1.8;
   const dists = [0.7, 1.4, 2.5, 4.2, 6.8, 10.5, 15.5, 22, 31];
-  const azList = [sr.azimuth - 3, sr.azimuth, sr.azimuth + 3];
+  const eastAz = [sr.azimuth - 3, sr.azimuth, sr.azimuth + 3];
+  // 同步取樣西方日落扇區（240°–295°），一次算出東稜破光與西稜入影時窗
+  const westAz = [245, 255, 265, 275, 285, 295];
   const pts = [];
-  for (const az of azList) for (const d of dists) pts.push({ az, d, c: offsetKm([lon, lat], az, d) });
+  for (const az of eastAz) for (const d of dists) pts.push({ side: 'e', az, d, c: offsetKm([lon, lat], az, d) });
+  for (const az of westAz) for (const d of dists) pts.push({ side: 'w', az, d, c: offsetKm([lon, lat], az, d) });
   const elevs = await Promise.all(pts.map((p) => elevationAt(p.c[0], p.c[1], 10)));
   let maxAngle = -90, maxDist = 0, maxElev = 0;
+  const westByAz = new Map(westAz.map((a) => [a, -90]));
   for (let i = 0; i < pts.length; i++) {
-    const d = pts[i].d, e = elevs[i];
+    const { side, az, d } = pts[i], e = elevs[i];
     const drop = (d * d * 1000) / (2 * R_EFF_KM);
     const ang = (Math.atan2(e - hObs - drop, d * 1000) * 180) / Math.PI;
-    if (ang > maxAngle) { maxAngle = ang; maxDist = d; maxElev = e; }
+    if (side === 'e') {
+      if (ang > maxAngle) { maxAngle = ang; maxDist = d; maxElev = e; }
+    } else if (ang > westByAz.get(az)) {
+      westByAz.set(az, ang);
+    }
   }
   const h0 = -0.833 - (1.76 / 60) * Math.sqrt(Math.max(0, h));
   const targetAlt = Math.max(h0, maxAngle - 0.53);
   let ridgeDate = sr.date;
   if (targetAlt > h0 + 0.12) {
-    let a = sr.date.getTime(), b = a + 75 * 60000;
+    let a = sr.date.getTime(), b = a + 95 * 60000;
     for (let i = 0; i < 20; i++) {
       const m = (a + b) / 2;
       if (sunPosition(new Date(m), lat, lon).altitude < targetAlt) a = m; else b = m;
     }
     ridgeDate = new Date(b);
   }
+  // 解算同日西稜入影時刻（13:30–19:00 台灣時間）
+  const tw = new Date(sr.date.getTime() + 8 * 3600e3);
+  const mid = Date.UTC(tw.getUTCFullYear(), tw.getUTCMonth(), tw.getUTCDate()) - 8 * 3600e3;
+  let westAngle = -90;
+  for (const v of westByAz.values()) if (v > westAngle) westAngle = v;
+  const setTarget = Math.max(h0, westAngle - 0.53);
+  let sa = mid + 13.5 * 3600e3, sb = mid + 19 * 3600e3;
+  for (let i = 0; i < 20; i++) {
+    const m = (sa + sb) / 2;
+    if (sunPosition(new Date(m), lat, lon).altitude > setTarget) sa = m; else sb = m;
+  }
+  const shadowDate = new Date(sa);
   const delayMin = Math.max(0, Math.round((ridgeDate.getTime() - sr.date.getTime()) / 60000));
-  return { maxAngle, maxDist, maxElev, ridgeDate, delayMin, seaSunrise: sr };
+  const directHours = Math.max(0, (shadowDate.getTime() - ridgeDate.getTime()) / 3600e3);
+  return { maxAngle, maxDist, maxElev, westAngle, ridgeDate, shadowDate, directHours, delayMin, seaSunrise: sr };
+}
+
+// 依據完整 360° 實測天際線 rays 解算某日的真實見光時窗與太陽軌跡點列
+function solveDayInsolation(lat, lon, hObs, rays, stepAz, year, month, day) {
+  const N = rays.length;
+  const h0 = -0.833 - (1.76 / 60) * Math.sqrt(Math.max(0, hObs));
+  const horizonAt = (az) => {
+    const u = ((az % 360) + 360) % 360 / stepAz;
+    const i0 = Math.floor(u) % N, i1 = (i0 + 1) % N, t = u - Math.floor(u);
+    return rays[i0].far * (1 - t) + rays[i1].far * t;
+  };
+  const mid = Date.UTC(year, month, day) - 8 * 3600e3; // 台灣時間 00:00
+  const stepMin = 4;
+  const arc = [];
+  let directMins = 0, flatMins = 0, firstLight = null, lastLight = null;
+  for (let m = 270; m <= 1140; m += stepMin) {
+    const t = new Date(mid + m * 60000);
+    const { azimuth, altitude } = sunPosition(t, lat, lon);
+    const ridge = horizonAt(azimuth);
+    const thresh = Math.max(h0, ridge - 0.53);
+    const lit = altitude >= thresh;
+    const flatLit = altitude >= h0;
+    if (flatLit) flatMins += stepMin;
+    if (lit) {
+      directMins += stepMin;
+      if (!firstLight) firstLight = { mins: m, az: azimuth, alt: altitude };
+      lastLight = { mins: m, az: azimuth, alt: altitude };
+    }
+    if (altitude >= -8) arc.push({ mins: m, az: azimuth, alt: altitude, lit, ridge });
+  }
+  const fmtHm = (mins) => `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+  return {
+    arc,
+    directHours: directMins / 60,
+    flatHours: flatMins / 60,
+    lossHours: Math.max(0, (flatMins - directMins) / 60),
+    firstHm: firstLight ? fmtHm(firstLight.mins) : '—',
+    lastHm: lastLight ? fmtHm(lastLight.mins) : '—',
+    firstLight,
+    lastLight,
+  };
+}
+
+function computeSolarEnvelope(lat, lon, hObs, rays, stepAz, now = new Date()) {
+  const tw = new Date(now.getTime() + 8 * 3600e3);
+  const y = tw.getUTCFullYear(), m = tw.getUTCMonth(), d = tw.getUTCDate();
+  return {
+    today: solveDayInsolation(lat, lon, hObs, rays, stepAz, y, m, d),
+    summer: solveDayInsolation(lat, lon, hObs, rays, stepAz, y, 5, 21),
+    equinox: solveDayInsolation(lat, lon, hObs, rays, stepAz, y, 2, 20),
+    winter: solveDayInsolation(lat, lon, hObs, rays, stepAz, y, 11, 22),
+  };
 }
 
 async function openSkyline(target) {
@@ -1910,7 +2104,8 @@ async function openSkyline(target) {
 
     const hz = await computeHorizonSunrise(lat, lon, hObs);
     if (token !== profile.token) return;
-    profile.skyline = { target, lon, lat, hObs, rays, stepAz, visPeaks: visPeaks.slice(0, 14), hz };
+    const solar = computeSolarEnvelope(lat, lon, hObs, rays, stepAz);
+    profile.skyline = { target, lon, lat, hObs, rays, stepAz, visPeaks: visPeaks.slice(0, 14), hz, solar };
     drawSkyline();
   } catch (err) {
     if (token !== profile.token) return;
@@ -1927,19 +2122,20 @@ function drawSkyline() {
   const W = box.clientWidth - 24, H = box.clientHeight - 12;
   if (W < 50 || H < 40) return;
   const L = 38, R = 10, T = 12, B = 18;
-  const { rays, visPeaks, hz, lon, lat, hObs } = sk;
-  let maxA = 12, minA = -6;
+  const { rays, visPeaks, hz, solar, lon, lat, hObs } = sk;
+  let maxA = 14, minA = -6;
   for (const r of rays) { if (r.maxAng > maxA) maxA = r.maxAng; }
   for (const p of visPeaks) { if (p.ang > maxA) maxA = p.ang; }
-  const hi = Math.min(35, Math.ceil(maxA + 4)), lo = Math.max(-12, Math.floor(minA - 2));
+  const hi = Math.min(42, Math.ceil(maxA + 6)), lo = Math.max(-12, Math.floor(minA - 2));
   const x = (az) => L + ((W - L - R) * clamp(az, 0, 360)) / 360;
   const y = (ang) => T + ((H - T - B) * (hi - clamp(ang, lo, hi))) / (hi - lo);
+  const yRaw = (ang) => T + ((H - T - B) * (hi - ang)) / (hi - lo);
   const y0 = y(0), base = H - B;
 
-  const rt = new Date(Math.round(hz.ridgeDate.getTime() / 60000) * 60000 + 8 * 3600e3);
-  const rhm = `${String(rt.getUTCHours()).padStart(2, '0')}:${String(rt.getUTCMinutes()).padStart(2, '0')}`;
-  $('profileStats').innerHTML = `觀測高 <b>${fmtInt(hObs)}</b> m · 可見百岳 <b>${visPeaks.length}</b> 座 · 東稜仰角 <b>${hz.maxAngle >= 0 ? '+' : ''}${hz.maxAngle.toFixed(1)}°</b> · 破稜日出 <b>${rhm}</b>${hz.delayMin > 0 ? `（晚 ${hz.delayMin} 分）` : ''}`;
-  setProfileNote('移動游標或按左右方向鍵環視 360° 方位，3D 鏡頭與地圖視線將同步轉向目標山稜。');
+  const td = solar.today;
+  const lossTxt = td.lossHours >= 0.25 ? `（地形遮蔽 −${td.lossHours.toFixed(1)} hr）` : '';
+  $('profileStats').innerHTML = `觀測高 <b>${fmtInt(hObs)}</b> m · 可見百岳 <b>${visPeaks.length}</b> 座 · 今日見光 <b>${td.firstHm} → ${td.lastHm}</b> · 直照 <b>${td.directHours.toFixed(1)}</b> hr${lossTxt}`;
+  setProfileNote(`全年日照時窗：夏至直照 ${solar.summer.directHours.toFixed(1)} hr（${solar.summer.firstHm}–${solar.summer.lastHm}）· 春秋分 ${solar.equinox.directHours.toFixed(1)} hr · 冬至 ${solar.winter.directHours.toFixed(1)} hr。圖中三色弧線為夏至／春秋分／冬至太陽軌跡。`);
 
   const poly = (key) => {
     const pts = rays.map((r) => `${x(r.az).toFixed(1)},${y(r[key]).toFixed(1)}`);
@@ -1971,12 +2167,37 @@ function drawSkyline() {
     }
   }
 
-  // 破稜日出太陽標記
-  const sunX = x(hz.seaSunrise.azimuth).toFixed(1), sunY = y(Math.max(0, hz.maxAngle)).toFixed(1);
-  const sunSvg = `<circle cx="${sunX}" cy="${sunY}" r="5" fill="#e9b44c" stroke="#fff" stroke-width="1.4"/>`;
+  // 繪製夏至、春秋分、冬至三條太陽軌跡弧線（只連接相鄰方位角差 < 35° 的點，避免跨 360° 邊界拉橫線；超出頂部由 skClip 裁切）
+  const arcPath = (pts, filterFn = () => true) => {
+    let d = '';
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      if (!filterFn(p)) continue;
+      const prev = i > 0 ? pts[i - 1] : null;
+      const cmd = !prev || !filterFn(prev) || Math.abs(p.az - prev.az) > 35 ? 'M' : 'L';
+      d += `${cmd}${x(p.az).toFixed(1)},${yRaw(p.alt).toFixed(1)} `;
+    }
+    return d.trim();
+  };
+  let sunPaths = '', sunMarkers = '';
+  for (const [key, color, dash] of [['winter', '#5ec2e6', '3 3'], ['equinox', '#e9b44c', '4 3'], ['summer', '#ff9b73', '3 3']]) {
+    const dLit = arcPath(solar[key].arc, (p) => p.lit);
+    if (dLit) sunPaths += `<path d="${dLit}" fill="none" stroke="${color}" stroke-width="1.2" stroke-dasharray="${dash}" opacity="0.72"/>`;
+  }
+  const dTodayLit = arcPath(td.arc, (p) => p.lit);
+  if (dTodayLit) sunPaths += `<path d="${dTodayLit}" fill="none" stroke="#ffd88a" stroke-width="2" opacity="0.95"/>`;
+  if (td.firstLight) {
+    const fx = x(td.firstLight.az).toFixed(1), fy = y(td.firstLight.alt).toFixed(1);
+    sunMarkers += `<circle cx="${fx}" cy="${fy}" r="4.8" fill="#e9b44c" stroke="#fff" stroke-width="1.4"/><text class="axis" x="${fx}" y="${Math.max(T + 10, fy - 7).toFixed(1)}" text-anchor="middle" style="fill:#ffd88a;font-weight:600">☀↑${td.firstHm}</text>`;
+  }
+  if (td.lastLight && Math.abs(td.lastLight.az - (td.firstLight?.az ?? 0)) > 20) {
+    const lx = x(td.lastLight.az).toFixed(1), ly = y(td.lastLight.alt).toFixed(1);
+    sunMarkers += `<circle cx="${lx}" cy="${ly}" r="4.4" fill="#ff9b73" stroke="#fff" stroke-width="1.3"/><text class="axis" x="${lx}" y="${Math.max(T + 10, ly - 7).toFixed(1)}" text-anchor="middle" style="fill:#ffb39e;font-weight:600">☀↓${td.lastHm}</text>`;
+  }
 
   box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="360度真實山稜天際線與百岳指認圖">
     <defs>
+      <clipPath id="skClip"><rect x="${L}" y="${T}" width="${W - L - R}" height="${base - T}"/></clipPath>
       <linearGradient id="skFar" x1="0" x2="0" y1="${T}" y2="${base}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8ab4d8" stop-opacity="0.55"/><stop offset="1" stop-color="#1d2c3f" stop-opacity="0.85"/></linearGradient>
       <linearGradient id="skMid" x1="0" x2="0" y1="${T}" y2="${base}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#6b9678" stop-opacity="0.65"/><stop offset="1" stop-color="#17241e" stop-opacity="0.92"/></linearGradient>
       <linearGradient id="skNear" x1="0" x2="0" y1="${T}" y2="${base}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#b98e64" stop-opacity="0.72"/><stop offset="1" stop-color="#181512" stop-opacity="0.96"/></linearGradient>
@@ -1986,7 +2207,8 @@ function drawSkyline() {
     <path d="${poly('mid')}" fill="url(#skMid)"/>
     <path d="${poly('near')}" fill="url(#skNear)"/>
     <path d="M${crest}" fill="none" stroke="#ece8e1" stroke-width="1.3"/>
-    ${sunSvg}
+    <g clip-path="url(#skClip)">${sunPaths}</g>
+    ${sunMarkers}
     ${peakSvg}
     <g id="pgHover" visibility="hidden">
       <line x1="0" x2="0" y1="${T}" y2="${base}" stroke="#e9b44c" stroke-width="1"/>
@@ -2035,7 +2257,7 @@ function drawSkyline() {
   box.setAttribute('aria-valuemin', '0');
   box.setAttribute('aria-valuemax', '357');
   box.setAttribute('aria-valuenow', '90');
-  setProfileSummary(`360度環景稜線，觀測高度 ${fmtInt(hObs)} 公尺，視線內可見 ${visPeaks.length} 座百岳。東方山稜最高仰角 ${hz.maxAngle.toFixed(1)} 度，破稜日出時間 ${rhm}。`);
+  setProfileSummary(`360度環景稜線，觀測高度 ${fmtInt(hObs)} 公尺，視線內可見 ${visPeaks.length} 座百岳。今日破稜見光時窗 ${td.firstHm} 至 ${td.lastHm}，實際直照 ${td.directHours.toFixed(1)} 小時。`);
   hit.addEventListener('pointermove', (ev) => {
     const rect = hit.getBoundingClientRect();
     const az = clamp(((ev.clientX - rect.left) / rect.width) * 360, 0, 359.9);
@@ -2280,8 +2502,9 @@ async function importGpxText(xmlText, fallbackName = '自訂 GPX 軌跡') {
   $('cardDesc').textContent = `已匯入「${name}」並貼合 3D 地形。路線依坡度陡峭度著色（平緩綠 → 琥珀 → 陡坡珊瑚紅）。點擊「飛覽」可啟動第一人稱鏡頭沿此 GPX 軌跡自動飛行。`;
   $('cardSun').hidden = true;
   $('cardHorizon').hidden = true;
-  $('cardContext').hidden = true;
-  $('cardProfileLabel').textContent = '剖面';
+  $('cardContext').innerHTML = renderPathGradeHtml(path, up, maxE);
+  $('cardContext').hidden = false;
+  $('cardProfileLabel').textContent = '軌跡剖面';
   $('cardOrbit').hidden = true;
   $('cardSkyline').hidden = true;
   $('cardGpx').hidden = true;
@@ -2548,9 +2771,9 @@ const travelEarlyClicks = [];
 function useTravel() {
   if (!travelImport) {
     travelTries++;
-    travelImport = import(`./travel.js?v=2.6.0${travelTries > 1 ? `&retry=${travelTries}` : ''}`).then((m) => {
+    travelImport = import(`./travel.js?v=2.7.0${travelTries > 1 ? `&retry=${travelTries}` : ''}`).then((m) => {
       m.init({ maplibregl, map, $, travel, ride, profile, beacon, cardEl, esc, pathIndex, clamp, fmtInt, isMobile, withTimeout,
-        mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, computeHorizonSunrise, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
+        mapReady, viewPadding, relayout, distanceKm, bearingTo, compassWord, nextSunrise, computeHorizonSunrise, alpinePhysics, renderAlpineAtmoHtml, renderPathGradeHtml, clearSpot, closeCard, setPlayIcon, stopTour, stopOrbit,
         stopQuakes, closeProfile, profileForSpot, showPathProfile, setSheet, toast, announceCard, GRADE_STOPS, DIF_COLORS, EMPTY });
       T = m;
       for (const b of travelEarlyClicks.splice(0)) b.click();
@@ -2601,7 +2824,9 @@ function updateHudPos(lngLat) {
     let txt = `${ll.lat.toFixed(4)}°N ${ll.lng.toFixed(4)}°E`;
     try {
       const e = await elevationAt(ll.lng, ll.lat, z);
-      txt += e < 0 ? ` · 水深 <b>${fmtInt(-e)}</b> m` : ` · 海拔 <b>${fmtInt(e)}</b> m`;
+      if (e < 0) txt += ` · 水深 <b>${fmtInt(-e)}</b> m`;
+      else if (e >= 1500) txt += ` · 海拔 <b>${fmtInt(e)}</b> m · 含氧 <b>${alpinePhysics(e).o2Pct}%</b>`;
+      else txt += ` · 海拔 <b>${fmtInt(e)}</b> m`;
     } catch { /* 圖磚未取得時只顯示座標 */ }
     $('hudPos').innerHTML = txt;
     hudBusy = false;
@@ -3197,4 +3422,4 @@ map.on('load', () => {
 addEventListener('hashchange', () => applyHash());
 
 // 方便除錯：在 console 存取 map
-window.__tw3d = { map, state, tour, quake, profile, rain, travel, ride, SPOTS, TOURS, elevationAt, sunPosition, nextSunrise, computeHorizonSunrise, computeLineOfSight, openSkyline, traceRaindrop, importGpxText, demFixes };
+window.__tw3d = { map, state, tour, quake, profile, rain, travel, ride, SPOTS, TOURS, elevationAt, sunPosition, nextSunrise, computeHorizonSunrise, computeSolarEnvelope, computeSeismogenicMetrics, alpinePhysics, analyzePathGrades, computeLineOfSight, openSkyline, traceRaindrop, importGpxText, demFixes };

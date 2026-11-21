@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>台灣 3D 地景</title>
   <meta name="description" content="在 3D 地球上飛覽台灣：即時串流衛星影像與實測地形，80 處導覽點、14 條主題路線、日照與海平面模擬、地形剖面、半世紀地震目錄與隱沒帶震源剖面，以及自行車環島、健行步道與百岳旅遊專項。">
-  <meta name="app-version" content="2.6.0">
+  <meta name="app-version" content="2.7.0">
   <meta name="theme-color" content="#0b0d10">
   <meta property="og:type" content="website">
   <meta property="og:title" content="台灣 3D 地景">
@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.14.0/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="app.css?v=2.6.0">
+  <link rel="stylesheet" href="app.css?v=2.7.0">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -392,6 +392,9 @@
       <li><b>360° 環景稜線與破稜日出</b>：利用 Terrarium DEM 圖磚於瀏覽器端進行 360° 射線投射（Ray-Casting），解算近／中／遠層真實山稜天際線、地球曲率與大氣折射，自動指認視線無遮蔽之可見百岳，並計算東方山稜遮擋後的實際破稜日出時間。</li>
       <li><b>雙點通視與落雨順流追蹤</b>：直線剖面自動解算 A↔B 視線通視性（Line-of-Sight）與最高遮擋山稜；落雨順流追蹤（快捷鍵 R）依 DEM 最陡梯度追蹤雨水從山坡匯入溪谷至出海口的 3D 水路與落差剖面。</li>
       <li><b>個人 GPX 匯入與高山雲海模擬</b>：支援拖曳或選取個人 GPX 軌跡檔貼合 3D 地形、坡度著色與沿線飛覽；高山雲海滑桿依逆溫層高程門檻模擬山谷雲海與百岳破雲景觀。</li>
+      <li><b>山谷見光時窗與三節氣太陽軌跡</b>：耦合 360° DEM 實測天際線與 NOAA 太陽方程，解算山谷／峰頂東稜見光至西稜入影之實際直照時數，並於環景圖疊加夏至、春秋分、冬至全年太陽軌跡包絡線。</li>
+      <li><b>震源地球物理定量解算</b>：於震源剖面即時以 Aki–Utsu 最大概似法計算 Gutenberg–Richter b 值、地震矩輻射能量（PJ/TJ 與等效 Mw）、淺源占比，並自動擬合 Wadati–Benioff 隱沒板塊發震帶傾角曲線。</li>
+      <li><b>高山標準大氣物理與坡度結構光譜</b>：依 ICAO 標準大氣與 Clausius–Clapeyron 方程計算高山氣壓、有效含氧分壓比與水沸點；對環島、步道與自訂 GPX 軌跡解算 4 級坡度結構光譜與 Naismith–Scarf 體能等效平路里程。</li>
       <li><b>繪圖引擎</b>：MapLibre GL JS 6.14（BSD-3-Clause）。</li>
     </ul>
     <form method="dialog"><button class="btn" type="submit">關閉</button></form>
@@ -403,6 +406,6 @@
 
   <noscript><p class="noscript">這個頁面需要 JavaScript 與 WebGL。也可改看<a href="classic.html">舊版介面</a>。</p></noscript>
 
-  <script type="module" src="app.js?v=2.6.0"></script>
+  <script type="module" src="app.js?v=2.7.0"></script>
 </body>
 </html>
